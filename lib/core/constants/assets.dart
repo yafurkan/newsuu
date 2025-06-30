@@ -5,17 +5,17 @@ class AppAssets {
   static const String appLogo = '${logoPath}suu_logo.png';
   static const String appLogoWhite = '${logoPath}suu_logo_white.png';
   static const String appLogoIcon = '${logoPath}suu_icon.png';
-  
+
   // İkonlar
   static const String iconPath = 'assets/icons/';
   static const String waterDropIcon = '${iconPath}water_drop.png';
   static const String glassIcon = '${iconPath}glass.png';
-  
+
   // Animasyonlar
   static const String animationPath = 'assets/animations/';
   static const String waterWaveAnimation = '${animationPath}water_wave.json';
   static const String splashAnimation = '${animationPath}splash.json';
-  
+
   // Genel resimler
   static const String imagePath = 'assets/images/';
   static const String onboardingImage1 = '${imagePath}onboarding_1.png';

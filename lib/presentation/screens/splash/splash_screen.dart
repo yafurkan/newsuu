@@ -44,39 +44,41 @@ class _SplashScreenState extends State<SplashScreen> {
           children: [
             // Logo animasyonu
             Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.textWhite,
-                borderRadius: BorderRadius.circular(
-                  AppDimensions.radiusXXL,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black26,
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: AppColors.textWhite,
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusXXL,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.black26,
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppDimensions.radiusXXL),
-                child: Image.asset(
-                  AppAssets.appLogo,
-                  width: 80,
-                  height: 80,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) {
-                    // Logo yoksa icon göster
-                    return const Icon(
-                      Icons.water_drop_rounded,
-                      size: 60,
-                      color: AppColors.primary,
-                    );
-                  },
-                ),
-              ),
-            )
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      AppDimensions.radiusXXL,
+                    ),
+                    child: Image.asset(
+                      AppAssets.appLogo,
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Logo yoksa icon göster
+                        return const Icon(
+                          Icons.water_drop_rounded,
+                          size: 60,
+                          color: AppColors.primary,
+                        );
+                      },
+                    ),
+                  ),
+                )
                 .animate()
                 .scale(
                   duration: const Duration(milliseconds: 800),

@@ -1,16 +1,38 @@
-# su_takip
+# Suu - Su Takip Uygulaması 💧
 
-A new Flutter project.
+Modern, minimal ve animasyonlu su takip uygulaması. Günlük su ihtiyacınızı kolayca takip edin!
 
-## Getting Started
+## 🚀 Özellikler
 
-This project is a starting point for a Flutter application.
+- ✨ **Modern Tasarım**: Material Design 3 ile şık arayüz
+- 📊 **Akıllı Hesaplama**: Yaş, kilo, boy ve aktivite seviyesine göre kişisel su hedefi
+- 🎯 **Kolay Takip**: Quick-add butonları ile hızlı su kaydı
+- 📈 **Görsel Grafikler**: İlerleme durumunu görsel olarak takip
+- 🎨 **Smooth Animasyonlar**: Flutter Animate ile akıcı geçişler
+- 💾 **Veri Saklama**: Hive ile yerel veri saklama
+- 📱 **Responsive**: Tüm ekran boyutlarına uyumlu
 
-A few resources to get you started if this is your first Flutter project:
+## 🏗️ Teknik Detaylar
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### Kullanılan Teknolojiler
+- **Flutter 3.24+**: Modern cross-platform development
+- **Provider**: State management
+- **Hive**: Local database
+- **FL Chart**: İstatistik grafikleri
+- **Flutter Animate**: Animasyonlar
+- **Material Design 3**: UI/UX tasarım sistemi
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Dosya Yapısı
+```
+lib/
+├── core/
+│   ├── constants/         # Renkler, boyutlar, metinler
+│   └── utils/            # Yardımcı fonksiyonlar
+├── data/
+│   └── models/           # Veri modelleri
+├── presentation/
+│   ├── providers/        # State management
+│   ├── screens/          # Ekranlar
+│   └── widgets/          # Özel widget'lar
+└── main.dart
+```
