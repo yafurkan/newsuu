@@ -177,6 +177,26 @@ class HiveService {
     }
   }
 
+  /// Bildirim ayarlarını kaydet
+  Future<void> saveNotificationSettings(dynamic settings) async {
+    try {
+      await _settingsBox.put('notification_settings', settings.toJson());
+      print('🔔 Bildirim ayarları kaydedildi');
+    } catch (e) {
+      print('❌ Bildirim ayarları kaydetme hatası: $e');
+    }
+  }
+
+  /// Bildirim ayarlarını getir
+  Map<String, dynamic>? getNotificationSettings() {
+    try {
+      return _settingsBox.get('notification_settings') as Map<String, dynamic>?;
+    } catch (e) {
+      print('❌ Bildirim ayarları yükleme hatası: $e');
+      return null;
+    }
+  }
+
   /// Tüm verileri temizle (geliştirme amaçlı)
   Future<void> clearAllData() async {
     try {

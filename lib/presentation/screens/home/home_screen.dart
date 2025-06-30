@@ -12,6 +12,7 @@ import '../../widgets/water_progress_card.dart';
 import '../../widgets/quick_add_buttons.dart';
 import '../../widgets/today_intake_list.dart';
 import '../statistics/statistics_screen.dart';
+import '../notification_settings/notification_settings_screen.dart';
 
 /// Ana ekran - Dashboard
 class HomeScreen extends StatefulWidget {
@@ -61,6 +62,16 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const NotificationSettingsScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.bar_chart),
             onPressed: () {
