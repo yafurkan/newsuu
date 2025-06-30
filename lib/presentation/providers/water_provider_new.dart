@@ -166,19 +166,4 @@ class WaterProvider extends ChangeNotifier {
   Future<void> refreshData() async {
     await _loadTodayData();
   }
-
-  /// Son N gün için su alımlarını getir
-  List<WaterIntakeModel> getIntakesForLastDays(int days) {
-    final startDate = DateTime.now().subtract(Duration(days: days));
-    final endDate = DateTime.now().add(const Duration(days: 1));
-    return getWaterIntakesByDateRange(startDate, endDate);
-  }
-
-  /// Belirli bir tarih için su alımlarını getir
-  List<WaterIntakeModel> getIntakesForDate(DateTime date) {
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
-
-    return _hiveService.getWaterIntakesByDateRange(startOfDay, endOfDay);
-  }
 }

@@ -130,7 +130,7 @@ class QuickAddButtons extends StatelessWidget {
             crossAxisCount: 2,
             crossAxisSpacing: AppDimensions.paddingM,
             mainAxisSpacing: AppDimensions.paddingM,
-            childAspectRatio: 2.2,
+            childAspectRatio: 3.0, // Daha da yüksek yapıldı
           ),
           itemCount: quickAmounts.length,
           itemBuilder: (context, index) {
@@ -211,35 +211,23 @@ class _QuickAddButton extends StatelessWidget {
               ),
             ),
             padding: const EdgeInsets.symmetric(
-              vertical: AppDimensions.paddingM,
-              horizontal: AppDimensions.paddingS,
+              vertical: AppDimensions.paddingS,
+              horizontal: AppDimensions.paddingXS,
             ),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 24, color: AppColors.primary),
+              Icon(icon, size: 20, color: AppColors.primary),
               const SizedBox(width: 8),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    '${amount.toInt()}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  Text(
-                    AppStrings.ml,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              Text(
+                '${amount.toInt()} ml',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
               ),
             ],
           ),

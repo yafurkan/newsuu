@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:percent_indicator/percent_indicator.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/constants/colors.dart';
@@ -12,6 +11,7 @@ import '../../providers/user_provider.dart';
 import '../../widgets/water_progress_card.dart';
 import '../../widgets/quick_add_buttons.dart';
 import '../../widgets/today_intake_list.dart';
+import '../statistics/statistics_screen.dart';
 
 /// Ana ekran - Dashboard
 class HomeScreen extends StatefulWidget {
@@ -61,6 +61,16 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const StatisticsScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () {

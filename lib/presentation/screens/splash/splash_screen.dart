@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:provider/provider.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
 import '../../../core/constants/assets.dart';
+import '../../providers/user_provider.dart';
 import '../home/home_screen.dart';
 import '../profile_setup/profile_setup_screen.dart';
 
@@ -23,14 +25,25 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToHome() async {
-    // 3 saniye bekle
+    // 3 saniye bekle (animasyonlar tamamlansın)
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
-      // Test için ProfileSetup ekranına git (normalde kullanıcı kontrolü yapılacak)
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
-      );
+      // Kullanıcı provider'ını al
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+      // İlk açılış kontrolü
+      if (userProvider.isFirstTime || userProvider.firstName.isEmpty) {
+        // İlk açılış veya kullanıcı bilgisi yok - Profile Setup'a git
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
+        );
+      } else {
+        // Kullanıcı mevcut - Ana ekrana git
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
     }
   }
 

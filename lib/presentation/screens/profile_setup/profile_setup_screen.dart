@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
-import '../../../core/utils/calculations.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/water_provider.dart';
 import '../home/home_screen.dart';
@@ -88,39 +87,62 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
   }
 
-  void _completeSetup() {
+  Future<void> _completeSetup() async {
     if (!_isCurrentPageValid()) return;
 
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final waterProvider = Provider.of<WaterProvider>(context, listen: false);
+    try {
+      // Loading göster
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
 
-    // Kullanıcı bilgilerini kaydet
-    userProvider.updatePersonalInfo(
-      firstName: _firstNameController.text,
-      lastName: _lastNameController.text,
-      age: int.parse(_ageController.text),
-      weight: double.parse(_weightController.text),
-      height: double.parse(_heightController.text),
-      gender: _selectedGender,
-      activityLevel: _selectedActivityLevel,
-    );
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final waterProvider = Provider.of<WaterProvider>(context, listen: false);
 
-    // Günlük su hedefini hesapla
-    final dailyGoal = WaterCalculations.calculateDailyWaterNeed(
-      weight: double.parse(_weightController.text),
-      age: int.parse(_ageController.text),
-      gender: _selectedGender,
-      activityLevel: _selectedActivityLevel,
-    );
+      // Kullanıcı bilgilerini kaydet (async)
+      await userProvider.updatePersonalInfo(
+        firstName: _firstNameController.text,
+        lastName: _lastNameController.text,
+        age: int.parse(_ageController.text),
+        weight: double.parse(_weightController.text),
+        height: double.parse(_heightController.text),
+        gender: _selectedGender,
+        activityLevel: _selectedActivityLevel,
+      );
 
-    userProvider.setDailyWaterGoal(dailyGoal);
-    waterProvider.updateDailyGoal(dailyGoal);
-    userProvider.completeOnboarding();
+      // Günlük su hedefini güncelle
+      waterProvider.updateDailyGoal(userProvider.dailyWaterGoal);
 
-    // Ana ekrana geç
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+      // İlk açılışı tamamla
+      await userProvider.completeFirstTime();
+
+      // Loading kapat
+      if (mounted) Navigator.pop(context);
+
+      // Ana ekrana geç
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      // Loading kapat
+      if (mounted) Navigator.pop(context);
+
+      // Hata mesajı göster
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Kaydetme hatası: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override

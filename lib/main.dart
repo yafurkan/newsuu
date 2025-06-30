@@ -1,31 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 import 'core/constants/colors.dart';
 import 'core/constants/strings.dart';
+import 'data/services/hive_service.dart';
 import 'presentation/screens/splash/splash_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Hive veritabanını başlat
-  await Hive.initFlutter();
-  
-  runApp(const SuTakipApp());
+
+  // Hive servisini başlat
+  final hiveService = HiveService();
+  await hiveService.initHive();
+
+  runApp(SuTakipApp(hiveService: hiveService));
 }
 
 class SuTakipApp extends StatelessWidget {
-  const SuTakipApp({super.key});
+  final HiveService hiveService;
+
+  const SuTakipApp({super.key, required this.hiveService});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => WaterProvider()),
+        Provider<HiveService>.value(value: hiveService),
+        ChangeNotifierProvider(create: (_) => UserProvider(hiveService)),
+        ChangeNotifierProvider(create: (_) => WaterProvider(hiveService)),
       ],
       child: MaterialApp(
         title: AppStrings.appName,
