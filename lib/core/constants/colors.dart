@@ -50,6 +50,9 @@ class AppColors {
   // Card gölge rengi
   static const Color shadow = Color(0x1A000000);
 
+  // Border rengi
+  static const Color border = Color(0xFFE0E0E0);
+
   // Şeffaf renkler
   static const Color transparent = Colors.transparent;
   static const Color black12 = Colors.black12;

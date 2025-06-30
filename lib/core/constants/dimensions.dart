@@ -49,6 +49,15 @@ class AppDimensions {
   static const double progressSizeL = 180.0;
   static const double progressSizeXL = 220.0;
 
+  // İstatistik ekranı için ek boyutlar
+  static const double paddingSmall = paddingS;
+  static const double paddingMedium = paddingM;
+  static const double spacingSmall = paddingS;
+  static const double spacingMedium = paddingM;
+  static const double spacingLarge = paddingL;
+  static const double radiusSmall = radiusS;
+  static const double radiusMedium = radiusM;
+
   // Elevation değerleri
   static const double elevationNone = 0.0;
   static const double elevationXS = 1.0;
