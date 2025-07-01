@@ -13,6 +13,7 @@ import '../../widgets/quick_add_buttons.dart';
 import '../../widgets/today_intake_list.dart';
 import '../statistics/statistics_screen.dart';
 import '../notification_settings/notification_settings_screen.dart';
+import '../profile/profile_screen.dart';
 
 /// Ana ekran - Dashboard
 class HomeScreen extends StatefulWidget {
@@ -75,12 +76,8 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () {
-              // Profil ekranına git
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Profil ekranı yakında eklenecek!'),
-                  duration: Duration(seconds: 2),
-                ),
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => const ProfileScreen()),
               );
             },
           ),
