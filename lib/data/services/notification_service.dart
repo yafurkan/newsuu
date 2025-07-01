@@ -212,32 +212,48 @@ class NotificationService {
     // Bildirim saatlerini hesapla
     List<int> notificationHours = [];
 
-    // Saat aralığında bildirim saatlerini oluştur
-    for (
-      int hour = settings.startHour;
-      hour <= settings.endHour;
-      hour += settings.intervalHours
-    ) {
-      notificationHours.add(hour);
-    }
+    // Eğer özel zaman dilimleri seçilmemişse, saatlik aralıkla bildirim ekle
+    bool hasSpecialTimes =
+        settings.morningEnabled ||
+        settings.afternoonEnabled ||
+        settings.eveningEnabled;
 
-    // Özel zaman dilimi bildirimleri
-    if (settings.morningEnabled) {
-      notificationHours.addAll([7, 9]); // Sabah 7 ve 9
-    }
-    if (settings.afternoonEnabled) {
-      notificationHours.addAll([12, 15]); // Öğlen 12 ve 15
-    }
-    if (settings.eveningEnabled) {
-      notificationHours.addAll([18, 20]); // Akşam 18 ve 20
+    if (!hasSpecialTimes) {
+      // Saat aralığında bildirim saatlerini oluştur
+      for (
+        int hour = settings.startHour;
+        hour <= settings.endHour;
+        hour += settings.intervalHours
+      ) {
+        notificationHours.add(hour);
+      }
+    } else {
+      // Özel zaman dilimi bildirimleri
+      if (settings.morningEnabled) {
+        notificationHours.addAll([7, 9]); // Sabah 7 ve 9
+      }
+      if (settings.afternoonEnabled) {
+        notificationHours.addAll([12, 15]); // Öğlen 12 ve 15
+      }
+      if (settings.eveningEnabled) {
+        notificationHours.addAll([18, 20]); // Akşam 18 ve 20
+      }
     }
 
     // Dublicatları kaldır ve sırala
-    notificationHours = notificationHours.toSet().toList();
-    notificationHours.sort();
+    final uniqueHours = notificationHours.toSet().toList();
+    uniqueHours.sort();
+
+    print('📅 Gün $weekday için bildirim saatleri: $uniqueHours');
+    print(
+      '📅 Ayarlar - Başlangıç: ${settings.startHour}, Bitiş: ${settings.endHour}, Aralık: ${settings.intervalHours}',
+    );
+    print(
+      '📅 Özel zamanlar - Sabah: ${settings.morningEnabled}, Öğlen: ${settings.afternoonEnabled}, Akşam: ${settings.eveningEnabled}',
+    );
 
     // Her saat için bildirim ayarla
-    for (int hour in notificationHours) {
+    for (int hour in uniqueHours) {
       if (hour >= settings.startHour && hour <= settings.endHour) {
         final scheduledTime = DateTime(
           nextDay.year,
@@ -257,6 +273,8 @@ class NotificationService {
           withSound: settings.soundEnabled,
           withVibration: settings.vibrationEnabled,
         );
+
+        print('⏰ Bildirim ayarlandı: ${scheduledTime.toString()} - $message');
       }
     }
   }

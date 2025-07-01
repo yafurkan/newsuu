@@ -43,10 +43,10 @@ class NotificationSettings extends HiveObject {
     this.morningEnabled = true,
     this.afternoonEnabled = true,
     this.eveningEnabled = true,
-    this.selectedDays = const [1, 2, 3, 4, 5, 6, 7], // Tüm günler
+    List<int>? selectedDays,
     this.soundEnabled = true,
     this.vibrationEnabled = true,
-  });
+  }) : selectedDays = selectedDays ?? [1, 2, 3, 4, 5, 6, 7];
 
   /// JSON'dan model oluştur
   factory NotificationSettings.fromJson(Map<String, dynamic> json) {

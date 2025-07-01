@@ -24,7 +24,7 @@ class NotificationSettingsAdapter extends TypeAdapter<NotificationSettings> {
       morningEnabled: fields[4] as bool,
       afternoonEnabled: fields[5] as bool,
       eveningEnabled: fields[6] as bool,
-      selectedDays: (fields[7] as List).cast<int>(),
+      selectedDays: (fields[7] as List?)?.cast<int>(),
       soundEnabled: fields[8] as bool,
       vibrationEnabled: fields[9] as bool,
     );

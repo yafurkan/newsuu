@@ -1,6 +1,7 @@
 import 'package:hive_flutter/hive_flutter.dart';
 import '../models/user_model.dart';
 import '../models/water_intake_model.dart';
+import '../models/notification_settings_model.dart';
 
 /// Hive veri saklama servis sınıfı
 class HiveService {
@@ -178,10 +179,10 @@ class HiveService {
   }
 
   /// Bildirim ayarlarını kaydet
-  Future<void> saveNotificationSettings(dynamic settings) async {
+  Future<void> saveNotificationSettings(NotificationSettings settings) async {
     try {
       await _settingsBox.put('notification_settings', settings.toJson());
-      print('🔔 Bildirim ayarları kaydedildi');
+      print('� Bildirim ayarları kaydedildi');
     } catch (e) {
       print('❌ Bildirim ayarları kaydetme hatası: $e');
     }
@@ -190,7 +191,15 @@ class HiveService {
   /// Bildirim ayarlarını getir
   Map<String, dynamic>? getNotificationSettings() {
     try {
-      return _settingsBox.get('notification_settings') as Map<String, dynamic>?;
+      final result = _settingsBox.get('notification_settings');
+      if (result == null) return null;
+
+      // Map<dynamic, dynamic> -> Map<String, dynamic> dönüşümü
+      if (result is Map<dynamic, dynamic>) {
+        return Map<String, dynamic>.from(result);
+      }
+
+      return result as Map<String, dynamic>?;
     } catch (e) {
       print('❌ Bildirim ayarları yükleme hatası: $e');
       return null;
