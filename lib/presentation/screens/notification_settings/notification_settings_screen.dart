@@ -7,7 +7,6 @@ import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
 import '../../providers/notification_provider.dart';
 import '../../../data/models/notification_settings_model.dart';
-import '../../../data/services/notification_service.dart';
 
 /// Bildirim ayarları ekranı
 class NotificationSettingsScreen extends StatefulWidget {
@@ -20,8 +19,6 @@ class NotificationSettingsScreen extends StatefulWidget {
 
 class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
-  final NotificationService _notificationService = NotificationService();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,13 +31,6 @@ class _NotificationSettingsScreenState
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.science),
-            onPressed: () => _notificationService.sendTestNotification(),
-            tooltip: 'Test Bildirimi',
-          ),
-        ],
       ),
       body: Consumer<NotificationProvider>(
         builder: (context, provider, child) {

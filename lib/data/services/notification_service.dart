@@ -186,7 +186,13 @@ class NotificationService {
       if (!settings.isEnabled) return;
 
       // Her gün için bildirimleri ayarla
-      for (int day in settings.selectedDays) {
+      print('🔍 Selected days: ${settings.selectedDays}');
+      print('🔍 Selected days type: ${settings.selectedDays.runtimeType}');
+
+      // Güvenli bir liste kopyası oluştur
+      final daysList = List<int>.from(settings.selectedDays);
+
+      for (int day in daysList) {
         await _scheduleNotificationsForDay(day, settings);
       }
 
@@ -201,81 +207,89 @@ class NotificationService {
     int weekday,
     NotificationSettings settings,
   ) async {
-    final now = DateTime.now();
+    try {
+      final now = DateTime.now();
 
-    // Bir sonraki bu günü bul
-    DateTime nextDay = now;
-    while (nextDay.weekday != weekday) {
-      nextDay = nextDay.add(const Duration(days: 1));
-    }
-
-    // Bildirim saatlerini hesapla
-    List<int> notificationHours = [];
-
-    // Eğer özel zaman dilimleri seçilmemişse, saatlik aralıkla bildirim ekle
-    bool hasSpecialTimes =
-        settings.morningEnabled ||
-        settings.afternoonEnabled ||
-        settings.eveningEnabled;
-
-    if (!hasSpecialTimes) {
-      // Saat aralığında bildirim saatlerini oluştur
-      for (
-        int hour = settings.startHour;
-        hour <= settings.endHour;
-        hour += settings.intervalHours
-      ) {
-        notificationHours.add(hour);
+      // Bir sonraki bu günü bul
+      DateTime nextDay = now;
+      while (nextDay.weekday != weekday) {
+        nextDay = nextDay.add(const Duration(days: 1));
       }
-    } else {
-      // Özel zaman dilimi bildirimleri
-      if (settings.morningEnabled) {
-        notificationHours.addAll([7, 9]); // Sabah 7 ve 9
+
+      // Bildirim saatlerini hesapla
+      List<int> notificationHours = <int>[];
+
+      // Eğer özel zaman dilimleri seçilmemişse, saatlik aralıkla bildirim ekle
+      bool hasSpecialTimes =
+          settings.morningEnabled ||
+          settings.afternoonEnabled ||
+          settings.eveningEnabled;
+
+      if (!hasSpecialTimes) {
+        // Saat aralığında bildirim saatlerini oluştur
+        for (
+          int hour = settings.startHour;
+          hour <= settings.endHour;
+          hour += settings.intervalHours
+        ) {
+          notificationHours.add(hour);
+        }
+      } else {
+        // Özel zaman dilimi bildirimleri
+        if (settings.morningEnabled) {
+          notificationHours.add(7);
+          notificationHours.add(9);
+        }
+        if (settings.afternoonEnabled) {
+          notificationHours.add(12);
+          notificationHours.add(15);
+        }
+        if (settings.eveningEnabled) {
+          notificationHours.add(18);
+          notificationHours.add(20);
+        }
       }
-      if (settings.afternoonEnabled) {
-        notificationHours.addAll([12, 15]); // Öğlen 12 ve 15
+
+      // Dublicatları kaldır ve sırala
+      final uniqueHours = List<int>.from(notificationHours.toSet());
+      uniqueHours.sort();
+
+      print('📅 Gün $weekday için bildirim saatleri: $uniqueHours');
+      print(
+        '📅 Ayarlar - Başlangıç: ${settings.startHour}, Bitiş: ${settings.endHour}, Aralık: ${settings.intervalHours}',
+      );
+      print(
+        '📅 Özel zamanlar - Sabah: ${settings.morningEnabled}, Öğlen: ${settings.afternoonEnabled}, Akşam: ${settings.eveningEnabled}',
+      );
+
+      // Her saat için bildirim ayarla
+      for (int hour in uniqueHours) {
+        if (hour >= settings.startHour && hour <= settings.endHour) {
+          final scheduledTime = DateTime(
+            nextDay.year,
+            nextDay.month,
+            nextDay.day,
+            hour,
+            Random().nextInt(60), // Rastgele dakika
+          );
+
+          final message = NotificationMessages.getHourlyMessage(hour);
+
+          await scheduleNotification(
+            id: (weekday * 100) + hour, // Benzersiz ID
+            title: '💧 Su İçme Zamanı!',
+            body: message,
+            scheduledTime: scheduledTime,
+            withSound: settings.soundEnabled,
+            withVibration: settings.vibrationEnabled,
+          );
+
+          print('⏰ Bildirim ayarlandı: ${scheduledTime.toString()} - $message');
+        }
       }
-      if (settings.eveningEnabled) {
-        notificationHours.addAll([18, 20]); // Akşam 18 ve 20
-      }
-    }
-
-    // Dublicatları kaldır ve sırala
-    final uniqueHours = notificationHours.toSet().toList();
-    uniqueHours.sort();
-
-    print('📅 Gün $weekday için bildirim saatleri: $uniqueHours');
-    print(
-      '📅 Ayarlar - Başlangıç: ${settings.startHour}, Bitiş: ${settings.endHour}, Aralık: ${settings.intervalHours}',
-    );
-    print(
-      '📅 Özel zamanlar - Sabah: ${settings.morningEnabled}, Öğlen: ${settings.afternoonEnabled}, Akşam: ${settings.eveningEnabled}',
-    );
-
-    // Her saat için bildirim ayarla
-    for (int hour in uniqueHours) {
-      if (hour >= settings.startHour && hour <= settings.endHour) {
-        final scheduledTime = DateTime(
-          nextDay.year,
-          nextDay.month,
-          nextDay.day,
-          hour,
-          Random().nextInt(60), // Rastgele dakika
-        );
-
-        final message = NotificationMessages.getHourlyMessage(hour);
-
-        await scheduleNotification(
-          id: (weekday * 100) + hour, // Benzersiz ID
-          title: '💧 Su İçme Zamanı!',
-          body: message,
-          scheduledTime: scheduledTime,
-          withSound: settings.soundEnabled,
-          withVibration: settings.vibrationEnabled,
-        );
-
-        print('⏰ Bildirim ayarlandı: ${scheduledTime.toString()} - $message');
-      }
+    } catch (e) {
+      print('❌ Gün $weekday için bildirim ayarlama hatası: $e');
+      print('❌ Stack trace: ${StackTrace.current}');
     }
   }
 

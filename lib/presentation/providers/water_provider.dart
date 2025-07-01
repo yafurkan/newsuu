@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../data/services/hive_service.dart';
 import '../../data/models/water_intake_model.dart';
 
@@ -9,9 +10,12 @@ class WaterProvider extends ChangeNotifier {
   double _todayIntake = 0.0;
   double _dailyGoal = 2000.0;
   List<WaterIntakeModel> _todayIntakes = [];
+  DateTime _lastCheckDate = DateTime.now();
+  Timer? _dailyResetTimer;
 
   WaterProvider(this._hiveService) {
     _loadTodayData();
+    _setupDailyReset();
   }
 
   // Getters
@@ -25,11 +29,81 @@ class WaterProvider extends ChangeNotifier {
   /// Bugünkü verileri Hive'dan yükle
   Future<void> _loadTodayData() async {
     try {
+      // Günlük geçiş kontrolü yap
+      await _checkDayTransition();
+
       _todayIntakes = _hiveService.getTodayWaterIntakes();
       _calculateTodayIntake();
       notifyListeners();
     } catch (e) {
       print('❌ Bugünkü veriler yükleme hatası: $e');
+    }
+  }
+
+  /// Günlük geçiş kontrolü (uygulama açıldığında)
+  Future<void> _checkDayTransition() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final lastCheck = DateTime(
+      _lastCheckDate.year,
+      _lastCheckDate.month,
+      _lastCheckDate.day,
+    );
+
+    if (today.isAfter(lastCheck)) {
+      print('🔄 Yeni güne geçiş tespit edildi: ${today.toString()}');
+      _lastCheckDate = now;
+      await _performDayReset();
+    }
+  }
+
+  /// Günlük sıfırlama sistemini kur
+  void _setupDailyReset() {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+    final timeUntilMidnight = tomorrow.difference(now);
+
+    print(
+      '⏰ Günlük sıfırlama ${timeUntilMidnight.inMinutes} dakika sonra başlayacak',
+    );
+
+    // İlk gece yarısı için timer
+    _dailyResetTimer = Timer(timeUntilMidnight, () {
+      _performDayReset();
+      _setupRecurringDailyReset();
+    });
+  }
+
+  /// Tekrarlayan günlük sıfırlama timer'ını kur
+  void _setupRecurringDailyReset() {
+    // Her 24 saatte bir çalışacak timer
+    _dailyResetTimer = Timer.periodic(const Duration(days: 1), (timer) {
+      _performDayReset();
+    });
+  }
+
+  /// Günlük sıfırlama işlemini gerçekleştir
+  Future<void> _performDayReset() async {
+    try {
+      print('🌅 Günlük sıfırlama başlatılıyor...');
+
+      final oldIntake = _todayIntake;
+
+      // Verileri sıfırla
+      _todayIntake = 0.0;
+      _todayIntakes.clear();
+      _lastCheckDate = DateTime.now();
+
+      // Yeni günün verilerini yükle
+      await _loadTodayData();
+
+      print('✅ Günlük sıfırlama tamamlandı:');
+      print('   - Önceki alım: ${oldIntake.toInt()}ml');
+      print('   - Yeni hedef: ${_dailyGoal.toInt()}ml');
+
+      notifyListeners();
+    } catch (e) {
+      print('❌ Günlük sıfırlama hatası: $e');
     }
   }
 
@@ -91,12 +165,21 @@ class WaterProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Güne sıfırlama (yeni güne geçişte)
+  /// Güne sıfırlama (yeni güne geçişte) - Manuel sıfırlama
   Future<void> resetDay() async {
-    _todayIntake = 0.0;
-    _todayIntakes.clear();
-    await _loadTodayData(); // Yeni günün verilerini yükle
-    notifyListeners();
+    await _performDayReset();
+  }
+
+  /// Provider'ı dispose et
+  @override
+  void dispose() {
+    _dailyResetTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Uygulama resume olduğunda kontrol et
+  void checkDayTransitionOnResume() {
+    _checkDayTransition();
   }
 
   /// Belirli tarih aralığındaki verileri getir (istatistikler için)

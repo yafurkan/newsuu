@@ -73,16 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.bar_chart),
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const StatisticsScreen(),
-                ),
-              );
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.person_outline),
             onPressed: () {
               // Profil ekranına git
@@ -210,13 +200,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       width: double.infinity,
                       child: ElevatedButton.icon(
                         onPressed: () {
-                          // İstatistikler ekranına git
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'İstatistikler ekranı yakında eklenecek!',
-                              ),
-                              duration: Duration(seconds: 2),
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const StatisticsScreen(),
                             ),
                           );
                         },

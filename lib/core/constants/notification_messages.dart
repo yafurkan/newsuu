@@ -161,24 +161,28 @@ class NotificationMessages {
   /// Saat bazlı mesaj getir
   static String getHourlyMessage(int hour) {
     if (hourlyMessages.containsKey(hour)) {
-      final messages = hourlyMessages[hour]!;
+      final messages = List<String>.from(hourlyMessages[hour]!);
       messages.shuffle();
       return messages.first;
     }
 
     // Genel saat aralığına göre mesaj seç
     if (hour >= 6 && hour < 11) {
-      morningMessages.shuffle();
-      return morningMessages.first;
+      final messages = List<String>.from(morningMessages);
+      messages.shuffle();
+      return messages.first;
     } else if (hour >= 11 && hour < 17) {
-      afternoonMessages.shuffle();
-      return afternoonMessages.first;
+      final messages = List<String>.from(afternoonMessages);
+      messages.shuffle();
+      return messages.first;
     } else if (hour >= 17 && hour < 22) {
-      eveningMessages.shuffle();
-      return eveningMessages.first;
+      final messages = List<String>.from(eveningMessages);
+      messages.shuffle();
+      return messages.first;
     } else {
-      generalMessages.shuffle();
-      return generalMessages.first;
+      final messages = List<String>.from(generalMessages);
+      messages.shuffle();
+      return messages.first;
     }
   }
 
@@ -197,13 +201,15 @@ class NotificationMessages {
 
   /// Motivasyon mesajı getir
   static String getMotivationalMessage() {
-    motivationalMessages.shuffle();
-    return motivationalMessages.first;
+    final messages = List<String>.from(motivationalMessages);
+    messages.shuffle();
+    return messages.first;
   }
 
   /// Hatırlatma mesajı getir
   static String getReminderMessage() {
-    reminderMessages.shuffle();
-    return reminderMessages.first;
+    final messages = List<String>.from(reminderMessages);
+    messages.shuffle();
+    return messages.first;
   }
 }

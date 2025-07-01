@@ -29,7 +29,7 @@ void main() async {
   );
 }
 
-class SuTakipApp extends StatelessWidget {
+class SuTakipApp extends StatefulWidget {
   final HiveService hiveService;
   final NotificationService notificationService;
 
@@ -40,15 +40,48 @@ class SuTakipApp extends StatelessWidget {
   });
 
   @override
+  State<SuTakipApp> createState() => _SuTakipAppState();
+}
+
+class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      // Uygulama ön plana geldiğinde günlük geçişi kontrol et
+      final waterProvider = context.read<WaterProvider>();
+      waterProvider.checkDayTransitionOnResume();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<HiveService>.value(value: hiveService),
-        Provider<NotificationService>.value(value: notificationService),
-        ChangeNotifierProvider(create: (_) => UserProvider(hiveService)),
-        ChangeNotifierProvider(create: (_) => WaterProvider(hiveService)),
+        Provider<HiveService>.value(value: widget.hiveService),
+        Provider<NotificationService>.value(value: widget.notificationService),
+        ChangeNotifierProvider(create: (_) => UserProvider(widget.hiveService)),
         ChangeNotifierProvider(
-          create: (_) => NotificationProvider(hiveService, notificationService),
+          create: (_) => WaterProvider(widget.hiveService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(
+            widget.hiveService,
+            widget.notificationService,
+          ),
         ),
       ],
       child: MaterialApp(

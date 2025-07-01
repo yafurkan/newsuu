@@ -46,7 +46,7 @@ class NotificationSettings extends HiveObject {
     List<int>? selectedDays,
     this.soundEnabled = true,
     this.vibrationEnabled = true,
-  }) : selectedDays = selectedDays ?? [1, 2, 3, 4, 5, 6, 7];
+  }) : selectedDays = List.from(selectedDays ?? [1, 2, 3, 4, 5, 6, 7]);
 
   /// JSON'dan model oluştur
   factory NotificationSettings.fromJson(Map<String, dynamic> json) {
