@@ -4,7 +4,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/constants/colors.dart';
-import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
 import '../../providers/water_provider.dart';
 import '../../providers/user_provider.dart';
@@ -41,7 +40,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           );
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDimensions.paddingMedium),
+            padding: EdgeInsets.fromLTRB(
+              AppDimensions.paddingMedium,
+              AppDimensions.paddingMedium,
+              AppDimensions.paddingMedium,
+              AppDimensions.paddingMedium +
+                  MediaQuery.of(context).padding.bottom,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

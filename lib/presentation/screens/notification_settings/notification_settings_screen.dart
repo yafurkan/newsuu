@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../../core/constants/colors.dart';
-import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
 import '../../providers/notification_provider.dart';
 import '../../../data/models/notification_settings_model.dart';
@@ -37,7 +36,12 @@ class _NotificationSettingsScreenState
           final settings = provider.settings;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppDimensions.paddingM),
+            padding: EdgeInsets.fromLTRB(
+              AppDimensions.paddingM,
+              AppDimensions.paddingM,
+              AppDimensions.paddingM,
+              AppDimensions.paddingM + MediaQuery.of(context).padding.bottom,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

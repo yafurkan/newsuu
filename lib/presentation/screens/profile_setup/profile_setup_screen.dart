@@ -254,7 +254,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Widget _buildPersonalInfoPage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.paddingM),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.paddingM,
+        AppDimensions.paddingM,
+        AppDimensions.paddingM,
+        AppDimensions.paddingM + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -309,7 +314,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Widget _buildPhysicalInfoPage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.paddingM),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.paddingM,
+        AppDimensions.paddingM,
+        AppDimensions.paddingM,
+        AppDimensions.paddingM + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,7 +400,12 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
 
   Widget _buildActivityLevelPage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppDimensions.paddingM),
+      padding: EdgeInsets.fromLTRB(
+        AppDimensions.paddingM,
+        AppDimensions.paddingM,
+        AppDimensions.paddingM,
+        AppDimensions.paddingM + MediaQuery.of(context).padding.bottom,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
