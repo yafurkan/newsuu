@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "152615733308",
+    "project_id": "sutakip-fcm-app-furkan-a3217",
+    "storage_bucket": "sutakip-fcm-app-furkan-a3217.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:152615733308:android:a2dce9699e9c6fa2331b39",
+        "android_client_info": {
+          "package_name": "com.example.su_takip"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiSTFGCflIb_SzYsomZ_94ptMLpIVaYUE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

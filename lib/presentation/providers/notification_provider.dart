@@ -123,7 +123,17 @@ class NotificationProvider extends ChangeNotifier {
 
   /// Test bildirimi gönder
   Future<void> sendTestNotification() async {
-    await _notificationService.sendTestNotification();
+    try {
+      await _notificationService.showInstantNotification(
+        title: '💧 Su Takip - Test',
+        body: 'Bildirim sistemi çalışıyor! Su içmeyi unutma! 😊',
+        payload: 'test_notification',
+      );
+      print('✅ Test bildirimi gönderildi');
+    } catch (e) {
+      print('❌ Test bildirimi hatası: $e');
+      rethrow;
+    }
   }
 
   /// Tebrik bildirimi gönder

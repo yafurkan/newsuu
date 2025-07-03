@@ -73,6 +73,11 @@ class _NotificationSettingsScreenState
                 // Ses ve titreşim ayarları
                 _buildSoundVibrationSection(settings, provider),
 
+                const SizedBox(height: AppDimensions.paddingL),
+
+                // Test butonu
+                _buildTestButton(provider),
+
                 const SizedBox(height: AppDimensions.paddingXL),
 
                 // Bildirim önizlemesi
@@ -739,5 +744,86 @@ class _NotificationSettingsScreenState
         ],
       ),
     ).animate().fadeIn(duration: 900.ms, delay: 600.ms).slideY(begin: 0.3);
+  }
+
+  Widget _buildTestButton(NotificationProvider provider) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppDimensions.paddingM),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppDimensions.radiusM),
+        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Text('🧪', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: AppDimensions.paddingS),
+              Text(
+                'Bildirim Testi',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppDimensions.paddingM),
+          ElevatedButton.icon(
+            onPressed: () async {
+              try {
+                // Test bildirimi gönder
+                await provider.sendTestNotification();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.check_circle, color: Colors.white),
+                          const SizedBox(width: 8),
+                          const Text('Test bildirimi gönderildi!'),
+                        ],
+                      ),
+                      backgroundColor: AppColors.secondary,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Hata: $e'),
+                      backgroundColor: AppColors.error,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.send),
+            label: const Text('Test Bildirimi Gönder'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textWhite,
+              padding: const EdgeInsets.symmetric(
+                vertical: AppDimensions.paddingM,
+                horizontal: AppDimensions.paddingL,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.paddingS),
+          Text(
+            'Bu butona basarak bildirim sisteminizin çalışıp çalışmadığını test edebilirsiniz.',
+            style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 }
