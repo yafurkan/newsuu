@@ -51,6 +51,9 @@ class NotificationService {
         onDidReceiveNotificationResponse: _onNotificationTapped,
       );
 
+      // Yüksek öncelikli bildirim kanalı oluştur
+      await _createHighImportanceChannel();
+
       // İzin iste
       await _requestPermissions();
 
@@ -61,12 +64,54 @@ class NotificationService {
     }
   }
 
+  /// Yüksek öncelikli bildirim kanalı oluştur
+  Future<void> _createHighImportanceChannel() async {
+    try {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'high_importance_channel',
+        'Su Takip Bildirimleri',
+        description: 'Su içme hatırlatmaları ve önemli bildirimler',
+        importance: Importance.max,
+        enableVibration: true,
+        playSound: true,
+        showBadge: true,
+      );
+
+      await _flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.createNotificationChannel(channel);
+
+      print('📱 Yüksek öncelikli bildirim kanalı oluşturuldu');
+    } catch (e) {
+      print('❌ Bildirim kanalı oluşturma hatası: $e');
+    }
+  }
+
   /// Bildirim izinlerini iste
   Future<void> _requestPermissions() async {
     try {
+      print('🔐 Bildirim izinleri kontrol ediliyor...');
+
       // Android 13+ için POST_NOTIFICATIONS izni
-      if (await Permission.notification.isDenied) {
-        await Permission.notification.request();
+      final notificationStatus = await Permission.notification.status;
+      print('📱 Bildirim izin durumu: $notificationStatus');
+
+      if (notificationStatus.isDenied) {
+        print('🔔 Bildirim izni isteniyor...');
+        final result = await Permission.notification.request();
+        print('📋 İzin sonucu: $result');
+
+        if (result.isGranted) {
+          print('✅ Bildirim izni verildi');
+        } else if (result.isDenied) {
+          print('❌ Bildirim izni reddedildi');
+        } else if (result.isPermanentlyDenied) {
+          print('🚫 Bildirim izni kalıcı olarak reddedildi');
+        }
+      } else if (notificationStatus.isGranted) {
+        print('✅ Bildirim izni zaten verilmiş');
       }
 
       // iOS için izin iste
@@ -108,15 +153,20 @@ class NotificationService {
         body,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            'water_reminder',
-            'Su Hatırlatma',
-            channelDescription: 'Su içme hatırlatmaları',
-            importance: Importance.high,
+            'high_importance_channel', // Yüksek öncelikli kanal
+            'Su Takip Bildirimleri',
+            channelDescription: 'Su içme hatırlatmaları ve önemli bildirimler',
+            importance: Importance.max,
             priority: Priority.high,
             playSound: withSound,
             enableVibration: withVibration,
             icon: '@mipmap/ic_launcher',
             color: const Color(0xFF4A90E2),
+            showWhen: true,
+            when: DateTime.now().millisecondsSinceEpoch,
+            autoCancel: false, // Kullanıcı kapatana kadar kalır
+            ongoing: false,
+            showProgress: false,
           ),
           iOS: DarwinNotificationDetails(
             presentAlert: true,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'core/constants/colors.dart';
 import 'core/constants/strings.dart';
@@ -20,6 +21,38 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print('🔥 Background message: ${message.messageId}');
 }
 
+// Bildirim izinlerini kontrol et ve iste
+Future<void> _checkAndRequestNotificationPermissions() async {
+  try {
+    print('🔐 Bildirim izinleri kontrol ediliyor...');
+
+    final status = await Permission.notification.status;
+    print('📱 Mevcut izin durumu: $status');
+
+    // TECNO telefon sorunu için zorla dialog göster
+    if (status.isDenied || status.isGranted) {
+      print('🔔 Bildirim izni isteniyor...');
+      final result = await Permission.notification.request();
+      print('📋 İzin sonucu: $result');
+
+      if (result.isGranted) {
+        print('✅ Bildirim izni başarıyla verildi');
+      } else if (result.isDenied) {
+        print('❌ Bildirim izni reddedildi');
+      } else if (result.isPermanentlyDenied) {
+        print('🚫 Bildirim izni kalıcı olarak reddedildi - Ayarları açın');
+        // Kullanıcıyı ayarlara yönlendir
+        await openAppSettings();
+      }
+    } else if (status.isPermanentlyDenied) {
+      print('🚫 Bildirim izni kalıcı olarak reddedilmiş - Ayarları açın');
+      await openAppSettings();
+    }
+  } catch (e) {
+    print('❌ Bildirim izni kontrol hatası: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -36,6 +69,9 @@ void main() async {
   // Bildirim servisini başlat
   final notificationService = NotificationService();
   await notificationService.initialize();
+
+  // Bildirim izinlerini kontrol et ve gerekirse iste
+  await _checkAndRequestNotificationPermissions();
 
   // Firebase Messaging servisini başlat
   final firebaseMessagingService = FirebaseMessagingService();

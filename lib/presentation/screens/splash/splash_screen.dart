@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../../core/constants/colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
@@ -29,6 +30,9 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
+      // Bildirim izni kontrol et
+      await _checkNotificationPermission();
+
       // Kullanıcı provider'ını al
       final userProvider = Provider.of<UserProvider>(context, listen: false);
 
@@ -45,6 +49,85 @@ class _SplashScreenState extends State<SplashScreen> {
         );
       }
     }
+  }
+
+  /// Bildirim izni kontrol et ve gerekirse iste
+  Future<void> _checkNotificationPermission() async {
+    final permission = Permission.notification;
+    final status = await permission.status;
+
+    print('🔐 Splash: Bildirim izin durumu: $status');
+
+    if (status.isDenied || status.isLimited) {
+      print('🔔 Splash: Bildirim izni isteniyor...');
+      await _showPermissionDialog();
+    } else if (status.isPermanentlyDenied) {
+      print('⚠️ Splash: Bildirim izni kalıcı olarak reddedilmiş');
+      await _showSettingsDialog();
+    }
+  }
+
+  /// İzin dialog'u göster
+  Future<void> _showPermissionDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('🔔 Bildirim İzni'),
+          content: const Text(
+            'Su içme hatırlatmaları ve önemli bildirimler için bildirim izni gereklidir.\n\nLütfen "İzin Ver" seçeneğini seçin.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('İptal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('İzin Ver'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                final result = await Permission.notification.request();
+                print('🔔 Splash: İzin sonucu: $result');
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Ayarlar dialog'u göster
+  Future<void> _showSettingsDialog() async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('⚙️ Ayarlar'),
+          content: const Text(
+            'Bildirim izni ayarlardan manuel olarak açılmalıdır.\n\nAyarlar > Uygulamalar > Suu > İzinler > Bildirimler',
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('Tamam'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            ElevatedButton(
+              child: const Text('Ayarları Aç'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await openAppSettings();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
