@@ -41,6 +41,11 @@ void main() async {
   final firebaseMessagingService = FirebaseMessagingService();
   await firebaseMessagingService.initialize();
 
+  // Otomatik topic abonelikleri
+  await firebaseMessagingService.subscribeToTopic('all_users');
+  await firebaseMessagingService.subscribeToTopic('water_reminders');
+  await firebaseMessagingService.subscribeToTopic('daily_tips');
+
   runApp(
     SuTakipApp(
       hiveService: hiveService,
