@@ -190,53 +190,85 @@ class _NotificationSettingsScreenState
             children: [
               const Text('⏰', style: TextStyle(fontSize: 20)),
               const SizedBox(width: AppDimensions.paddingS),
-              Text(
-                'Bildirim Sıklığı',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              Expanded(
+                child: Text(
+                  'Bildirim Sıklığı',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: AppDimensions.paddingM),
-          Text(
-            'Her ${settings.intervalHours} saatte bir hatırlatma',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: AppDimensions.paddingM),
-          Slider(
-            value: settings.intervalHours.toDouble(),
-            min: 1,
-            max: 6,
-            divisions: 5,
-            activeColor: AppColors.primary,
-            inactiveColor: AppColors.primary.withOpacity(0.3),
-            onChanged: (value) => provider.updateSettings(
-              settings.copyWith(intervalHours: value.toInt()),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '1 saat',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
-              ),
-              Text(
-                '6 saat',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+              Switch(
+                value: settings.intervalEnabled,
+                onChanged: (value) => provider.updateSettings(
+                  settings.copyWith(intervalEnabled: value),
+                ),
+                activeColor: AppColors.primary,
               ),
             ],
           ),
+          if (settings.intervalEnabled) ...[
+            const SizedBox(height: AppDimensions.paddingM),
+            Text(
+              'Düzenli bildirimler aktif - Her ${settings.intervalHours} saatte bir hatırlatma',
+              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppDimensions.paddingM),
+            Text(
+              'Her ${settings.intervalHours} saatte bir hatırlatma',
+              style: TextStyle(
+                fontSize: 16,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: AppDimensions.paddingM),
+            Slider(
+              value: settings.intervalHours.toDouble(),
+              min: 1,
+              max: 6,
+              divisions: 5,
+              activeColor: AppColors.primary,
+              inactiveColor: AppColors.primary.withOpacity(0.3),
+              onChanged: (value) => provider.updateSettings(
+                settings.copyWith(intervalHours: value.round()),
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Her saat',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                Text(
+                  'Her 6 saatte',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            const SizedBox(height: AppDimensions.paddingS),
+            Text(
+              'Düzenli sıklık bazlı bildirimler kapalı. Sadece akıllı günlük bildirimler (sabah, öğle, akşam) aktif.',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms, delay: 100.ms).slideY(begin: 0.3);
+    ).animate().fadeIn(duration: 300.ms, delay: 100.ms).slideX(begin: -0.3);
   }
 
   Widget _buildTimeRangeSection(
@@ -817,8 +849,53 @@ class _NotificationSettingsScreenState
             ),
           ),
           const SizedBox(height: AppDimensions.paddingS),
+          ElevatedButton.icon(
+            onPressed: () async {
+              try {
+                // Akıllı test bildirimi gönder
+                await provider.sendSmartTestNotification();
+
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: [
+                          const Icon(Icons.psychology, color: Colors.white),
+                          const SizedBox(width: 8),
+                          const Text('Akıllı test bildirimi gönderildi!'),
+                        ],
+                      ),
+                      backgroundColor: AppColors.secondary,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Hata: $e'),
+                      backgroundColor: AppColors.error,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.psychology),
+            label: const Text('Akıllı Test Bildirimi'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              foregroundColor: AppColors.textWhite,
+              padding: const EdgeInsets.symmetric(
+                vertical: AppDimensions.paddingM,
+                horizontal: AppDimensions.paddingL,
+              ),
+            ),
+          ),
+          const SizedBox(height: AppDimensions.paddingS),
           Text(
-            'Bu butona basarak bildirim sisteminizin çalışıp çalışmadığını test edebilirsiniz.',
+            'Bu butonlar ile bildirim sisteminizin çalışıp çalışmadığını test edebilirsiniz. Akıllı bildirim, günün saatine uygun mesaj gönderir.',
             style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),

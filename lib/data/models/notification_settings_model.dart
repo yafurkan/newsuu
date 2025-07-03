@@ -35,17 +35,21 @@ class NotificationSettings extends HiveObject {
   @HiveField(9)
   bool vibrationEnabled; // Titreşim açık mı?
 
+  @HiveField(10)
+  bool intervalEnabled; // Sıklık bazlı bildirimler açık mı?
+
   NotificationSettings({
-    this.isEnabled = true,
+    this.isEnabled = false, // Başlangıçta bildirim sıklığı KAPALI
     this.intervalHours = 2,
     this.startHour = 7,
     this.endHour = 22,
-    this.morningEnabled = true,
+    this.morningEnabled = true, // Özel zaman dilimleri AÇIK (günde 3 bildirim)
     this.afternoonEnabled = true,
     this.eveningEnabled = true,
     List<int>? selectedDays,
     this.soundEnabled = true,
     this.vibrationEnabled = true,
+    this.intervalEnabled = false, // Sıklık bazlı bildirimler başlangıçta KAPALI
   }) : selectedDays = List.from(selectedDays ?? [1, 2, 3, 4, 5, 6, 7]);
 
   /// JSON'dan model oluştur
@@ -63,6 +67,7 @@ class NotificationSettings extends HiveObject {
       ),
       soundEnabled: json['soundEnabled'] ?? true,
       vibrationEnabled: json['vibrationEnabled'] ?? true,
+      intervalEnabled: json['intervalEnabled'] ?? false,
     );
   }
 
@@ -79,6 +84,7 @@ class NotificationSettings extends HiveObject {
       'selectedDays': selectedDays,
       'soundEnabled': soundEnabled,
       'vibrationEnabled': vibrationEnabled,
+      'intervalEnabled': intervalEnabled,
     };
   }
 
@@ -94,6 +100,7 @@ class NotificationSettings extends HiveObject {
     List<int>? selectedDays,
     bool? soundEnabled,
     bool? vibrationEnabled,
+    bool? intervalEnabled,
   }) {
     return NotificationSettings(
       isEnabled: isEnabled ?? this.isEnabled,
@@ -106,6 +113,7 @@ class NotificationSettings extends HiveObject {
       selectedDays: selectedDays ?? this.selectedDays,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      intervalEnabled: intervalEnabled ?? this.intervalEnabled,
     );
   }
 

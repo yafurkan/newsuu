@@ -27,13 +27,14 @@ class NotificationSettingsAdapter extends TypeAdapter<NotificationSettings> {
       selectedDays: (fields[7] as List?)?.cast<int>(),
       soundEnabled: fields[8] as bool,
       vibrationEnabled: fields[9] as bool,
+      intervalEnabled: fields[10] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, NotificationSettings obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.isEnabled)
       ..writeByte(1)
@@ -53,7 +54,9 @@ class NotificationSettingsAdapter extends TypeAdapter<NotificationSettings> {
       ..writeByte(8)
       ..write(obj.soundEnabled)
       ..writeByte(9)
-      ..write(obj.vibrationEnabled);
+      ..write(obj.vibrationEnabled)
+      ..writeByte(10)
+      ..write(obj.intervalEnabled);
   }
 
   @override

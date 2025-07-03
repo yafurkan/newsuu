@@ -212,4 +212,65 @@ class NotificationMessages {
     messages.shuffle();
     return messages.first;
   }
+
+  // 🎯 YENİ: 2 Haftalık Akıllı Bildirim Sistemi
+
+  /// Rastgele sabah mesajı al (günlük döngü ile)
+  static String getSmartMorningMessage() {
+    final dayOfYear = DateTime.now().difference(DateTime(2025, 1, 1)).inDays;
+    final index = dayOfYear % morningMessages.length;
+    return morningMessages[index];
+  }
+
+  /// Rastgele öğlen mesajı al (günlük döngü ile)
+  static String getSmartAfternoonMessage() {
+    final dayOfYear = DateTime.now().difference(DateTime(2025, 1, 1)).inDays;
+    final index =
+        (dayOfYear + 5) % afternoonMessages.length; // +5 farklılık için
+    return afternoonMessages[index];
+  }
+
+  /// Rastgele akşam mesajı al (günlük döngü ile)
+  static String getSmartEveningMessage() {
+    final dayOfYear = DateTime.now().difference(DateTime(2025, 1, 1)).inDays;
+    final index =
+        (dayOfYear + 10) % eveningMessages.length; // +10 farklılık için
+    return eveningMessages[index];
+  }
+
+  /// Saate göre uygun akıllı mesaj al
+  static String getTimeBasedSmartMessage() {
+    final hour = DateTime.now().hour;
+
+    if (hour >= 7 && hour < 12) {
+      return getSmartMorningMessage();
+    } else if (hour >= 12 && hour < 18) {
+      return getSmartAfternoonMessage();
+    } else if (hour >= 18 && hour <= 22) {
+      return getSmartEveningMessage();
+    } else {
+      return "💧 Su içmeyi unutma!"; // Gece saatleri için genel mesaj
+    }
+  }
+
+  /// Günlük 3 akıllı mesajı al (Sabah 09:00, Öğle 14:00, Akşam 20:00)
+  static Map<String, Map<String, String>> getDailySmartNotifications() {
+    return {
+      'morning': {
+        'time': '09:00',
+        'title': 'Sabah Su Zamanı! 🌅',
+        'message': getSmartMorningMessage(),
+      },
+      'afternoon': {
+        'time': '14:00',
+        'title': 'Öğle Su Molası! 🌞',
+        'message': getSmartAfternoonMessage(),
+      },
+      'evening': {
+        'time': '20:00',
+        'title': 'Akşam Su Hatırlatması! 🌆',
+        'message': getSmartEveningMessage(),
+      },
+    };
+  }
 }
