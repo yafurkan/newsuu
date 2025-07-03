@@ -1,0 +1,11 @@
+<!-- Google Logo için geçici çözüm -->
+<!-- Gerçek Google logo dosyasını https://developers.google.com/identity/branding-guidelines adresinden indirip -->
+<!-- assets/images/google_logo.png olarak kaydedin -->
+
+<!-- Logo özellikleri: -->
+<!-- - Boyut: 24x24 px (veya yüksek çözünürlük için 48x48, 72x72) -->
+<!-- - Format: PNG -->
+<!-- - Arka plan: Şeffaf -->
+<!-- - Renkli Google "G" logosu kullanın -->
+
+Bu dosyayı gerçek Google logo dosyası ile değiştirin.

@@ -10,9 +10,13 @@ import 'data/services/hive_service.dart';
 import 'data/services/notification_service.dart';
 import 'data/services/firebase_messaging_service.dart';
 import 'presentation/screens/splash/splash_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/auth/auth_screen.dart';
+import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
+import 'presentation/providers/auth_provider.dart';
 
 // Background message handler
 @pragma('vm:entry-point')
@@ -124,11 +128,14 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
+    // TODO: WaterProvider entegrasyonu tamamlandığında bu kısmı aktif et
+    /*
     if (state == AppLifecycleState.resumed) {
       // Uygulama ön plana geldiğinde günlük geçişi kontrol et
       final waterProvider = context.read<WaterProvider>();
       waterProvider.checkDayTransitionOnResume();
     }
+    */
   }
 
   @override
@@ -137,6 +144,7 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
       providers: [
         Provider<HiveService>.value(value: widget.hiveService),
         Provider<NotificationService>.value(value: widget.notificationService),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider(widget.hiveService)),
         ChangeNotifierProvider(
           create: (_) => WaterProvider(widget.hiveService),
@@ -177,6 +185,11 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
           useMaterial3: true,
         ),
         home: const SplashScreen(),
+        routes: {
+          '/home': (context) => const HomeScreen(),
+          '/auth': (context) => const AuthScreen(),
+          '/login': (context) => const LoginScreen(),
+        },
       ),
     );
   }

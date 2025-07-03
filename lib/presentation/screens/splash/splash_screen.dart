@@ -6,7 +6,7 @@ import '../../../core/constants/colors.dart';
 import '../../../core/constants/strings.dart';
 import '../../../core/constants/dimensions.dart';
 import '../../../core/constants/assets.dart';
-import '../../providers/user_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../home/home_screen.dart';
 import '../profile_setup/profile_setup_screen.dart';
 
@@ -33,17 +33,25 @@ class _SplashScreenState extends State<SplashScreen> {
       // Bildirim izni kontrol et
       await _checkNotificationPermission();
 
-      // Kullanıcı provider'ını al
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      // Auth provider'ını al
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // İlk açılış kontrolü
-      if (userProvider.isFirstTime || userProvider.firstName.isEmpty) {
-        // İlk açılış veya kullanıcı bilgisi yok - Profile Setup'a git
+      // Kullanıcı giriş yapmış mı kontrol et
+      if (!authProvider.isSignedIn) {
+        // Giriş yapılmamış - Login ekranına git
+        Navigator.of(context).pushReplacementNamed('/login');
+        return;
+      }
+
+      // Kullanıcı profili var mı kontrol et
+      if (authProvider.userProfile == null ||
+          authProvider.userProfile!.firstName.isEmpty) {
+        // Profil tamamlanmamış - Profile Setup'a git
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const ProfileSetupScreen()),
         );
       } else {
-        // Kullanıcı mevcut - Ana ekrana git
+        // Her şey tamam - Ana ekrana git
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const HomeScreen()),
         );

@@ -12,7 +12,20 @@
           "package_name": "com.example.su_takip"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "152615733308-m1hqfdb7f82ccjjp3neq0npepvkti812.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.su_takip",
+            "certificate_hash": "ce1376eb10748539c973620eae5c203e44017148"
+          }
+        },
+        {
+          "client_id": "152615733308-evtionn5ttg8qiedv288cjarf1b1mlgh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCiSTFGCflIb_SzYsomZ_94ptMLpIVaYUE"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "152615733308-evtionn5ttg8qiedv288cjarf1b1mlgh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

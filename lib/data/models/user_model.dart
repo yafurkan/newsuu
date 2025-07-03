@@ -38,6 +38,18 @@ class UserModel extends HiveObject {
   @HiveField(10)
   bool isFirstTime; // Onboarding tamamlandı mı?
 
+  @HiveField(11)
+  String? email; // Firebase Auth email
+
+  @HiveField(12)
+  String? photoUrl; // Firebase Auth profil foto URL'i
+
+  @HiveField(13)
+  String? wakeUpTime; // Uyanma saati
+
+  @HiveField(14)
+  String? sleepTime; // Uyku saati
+
   UserModel({
     required this.firstName,
     required this.lastName,
@@ -50,6 +62,10 @@ class UserModel extends HiveObject {
     required this.createdAt,
     required this.updatedAt,
     this.isFirstTime = true,
+    this.email,
+    this.photoUrl,
+    this.wakeUpTime,
+    this.sleepTime,
   });
 
   /// Kullanıcının tam adını döndürür
@@ -83,6 +99,10 @@ class UserModel extends HiveObject {
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'isFirstTime': isFirstTime,
+      'email': email,
+      'photoUrl': photoUrl,
+      'wakeUpTime': wakeUpTime,
+      'sleepTime': sleepTime,
     };
   }
 
@@ -104,6 +124,10 @@ class UserModel extends HiveObject {
         json['updatedAt'] ?? DateTime.now().toIso8601String(),
       ),
       isFirstTime: json['isFirstTime'] ?? true,
+      email: json['email'],
+      photoUrl: json['photoUrl'],
+      wakeUpTime: json['wakeUpTime'],
+      sleepTime: json['sleepTime'],
     );
   }
 
@@ -119,6 +143,10 @@ class UserModel extends HiveObject {
     double? dailyWaterGoal,
     DateTime? updatedAt,
     bool? isFirstTime,
+    String? email,
+    String? photoUrl,
+    String? wakeUpTime,
+    String? sleepTime,
   }) {
     return UserModel(
       firstName: firstName ?? this.firstName,
@@ -132,6 +160,10 @@ class UserModel extends HiveObject {
       createdAt: createdAt,
       updatedAt: updatedAt ?? DateTime.now(),
       isFirstTime: isFirstTime ?? this.isFirstTime,
+      email: email ?? this.email,
+      photoUrl: photoUrl ?? this.photoUrl,
+      wakeUpTime: wakeUpTime ?? this.wakeUpTime,
+      sleepTime: sleepTime ?? this.sleepTime,
     );
   }
 
