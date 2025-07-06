@@ -20,17 +20,17 @@ class AuthService {
   /// Google ile giris yap
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      print('🔐 Google ile giris baslatiliyor...');
+      // Google ile giris baslatiliyor...
 
       // Google Sign-In akisini tetikle
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        print('❌ Kullanici Google girisini iptal etti');
+        // Kullanici Google girisini iptal etti
         return null;
       }
 
-      print('✅ Google hesabi secildi: ${googleUser.email}');
+      // Google hesabi secildi: ${googleUser.email}
 
       // Kimlik bilgilerini al
       final GoogleSignInAuthentication googleAuth =
@@ -139,6 +139,89 @@ class AuthService {
       rethrow;
     }
   }
+
+  /// Email ve şifre ile kayıt ol
+  Future<bool> signUpWithEmailAndPassword(String email, String password) async {
+    try {
+      print('📧 Email ile kayıt başlatılıyor: $email');
+
+      final UserCredential userCredential = await _auth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user != null) {
+        await _createUserProfile(userCredential.user!);
+        print('✅ Email ile kayıt başarılı');
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print('❌ Email ile kayıt hatası: $e');
+      return false;
+    }
+  }
+
+  /// Email ve şifre ile giriş yap
+  Future<bool> signInWithEmailAndPassword(String email, String password) async {
+    try {
+      print('📧 Email ile giriş başlatılıyor: $email');
+
+      final UserCredential userCredential = await _auth
+          .signInWithEmailAndPassword(email: email, password: password);
+
+      if (userCredential.user != null) {
+        await _createUserProfile(userCredential.user!);
+        print('✅ Email ile giriş başarılı');
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      print('❌ Email ile giriş hatası: $e');
+      return false;
+    }
+  }
+
+  /// Şifre sıfırlama e-postası gönder
+  Future<void> resetPassword(String email) async {
+    try {
+      print('📧 Şifre sıfırlama e-postası gönderiliyor: $email');
+
+      await _auth.sendPasswordResetEmail(email: email);
+
+      print('✅ Şifre sıfırlama e-postası gönderildi');
+    } catch (e) {
+      print('❌ Şifre sıfırlama hatası: $e');
+      rethrow;
+    }
+  }
+
+  /// Hesap sil
+  Future<void> deleteAccount() async {
+    try {
+      print('🗑️ Hesap siliniyor...');
+
+      final user = currentUser;
+      if (user != null) {
+        // Firestore'dan kullanıcı verilerini sil
+        await _firestore.collection('users').doc(user.uid).delete();
+
+        // Firebase Auth'dan hesabı sil
+        await user.delete();
+
+        print('✅ Hesap başarıyla silindi');
+      }
+    } catch (e) {
+      print('❌ Hesap silme hatası: $e');
+      rethrow;
+    }
+  }
+
+  /// Mevcut kullanıcı ID'si
+  String? get currentUserId => currentUser?.uid;
+
+  /// Mevcut kullanıcı e-postası
+  String? get currentUserEmail => currentUser?.email;
 
   /// Hesabi sil
   Future<bool> deleteUserAccount() async {

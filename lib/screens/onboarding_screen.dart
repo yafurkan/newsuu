@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/water_tracking_provider.dart';
-import '../models/user_model.dart';
-import '../utils/app_theme.dart';
+import '../presentation/providers/user_provider.dart';
+import '../core/utils/app_theme.dart';
 import 'home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -15,14 +14,16 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   final _formKey = GlobalKey<FormState>();
-  
+
   // Form kontrolleri
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _ageController = TextEditingController();
   final _heightController = TextEditingController();
-  
+  final _weightController = TextEditingController();
+
   String _selectedGender = 'male';
+  String _selectedActivityLevel = 'moderate';
   int _currentPage = 0;
   bool _isLoading = false;
 
@@ -33,6 +34,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     _lastNameController.dispose();
     _ageController.dispose();
     _heightController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -54,36 +56,47 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  Future<void> _completeOnboarding() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _finishOnboarding() async {
+    // Temel alanların dolu olup olmadığını kontrol et
+    if (_firstNameController.text.trim().isEmpty ||
+        _lastNameController.text.trim().isEmpty ||
+        _ageController.text.trim().isEmpty ||
+        _heightController.text.trim().isEmpty ||
+        _weightController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lütfen tüm alanları doldurun')),
+      );
+      return;
+    }
 
     setState(() {
       _isLoading = true;
     });
 
     try {
+      // Form alanlarının dolu olduğunu kontrol et
+      if (_ageController.text.isEmpty ||
+          _heightController.text.isEmpty ||
+          _weightController.text.isEmpty) {
+        throw Exception('Lütfen tüm alanları doldurun');
+      }
+
       final age = int.parse(_ageController.text);
       final height = int.parse(_heightController.text);
-      
-      // Günlük su ihtiyacını hesapla
-      final dailyWaterGoal = UserModel.calculateDailyWaterNeed(
-        height: height,
-        age: age,
-        gender: _selectedGender,
-      );
+      final weight = double.parse(_weightController.text);
 
-      final user = UserModel(
+      final provider = Provider.of<UserProvider>(context, listen: false);
+      await provider.updatePersonalInfo(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         age: age,
-        height: height,
+        weight: weight,
+        height: height.toDouble(),
         gender: _selectedGender,
-        createdAt: DateTime.now(),
-        dailyWaterGoal: dailyWaterGoal,
+        activityLevel: _selectedActivityLevel,
       );
 
-      final provider = Provider.of<WaterTrackingProvider>(context, listen: false);
-      await provider.saveUser(user);
+      await provider.completeFirstTime();
 
       if (mounted) {
         Navigator.of(context).pushReplacement(
@@ -91,9 +104,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: $e')));
+      }
     } finally {
       setState(() {
         _isLoading = false;
@@ -105,9 +120,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
         child: SafeArea(
           child: Column(
             children: [
@@ -119,13 +132,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     return Expanded(
                       child: Container(
                         height: 4,
-                        margin: EdgeInsets.only(
-                          right: index < 2 ? 10 : 0,
-                        ),
+                        margin: EdgeInsets.only(right: index < 2 ? 10 : 0),
                         decoration: BoxDecoration(
                           color: index <= _currentPage
                               ? Colors.white
-                              : Colors.white.withOpacity(0.3),
+                              : Colors.white.withValues(alpha: 0.3),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -157,37 +168,36 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: Row(
                   children: [
                     if (_currentPage > 0)
-                      TextButton(
-                        onPressed: _previousPage,
-                        child: const Text(
-                          'Geri',
-                          style: TextStyle(color: Colors.white70),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: _previousPage,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.2,
+                            ),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                          ),
+                          child: const Text('Geri'),
                         ),
                       ),
-                    const Spacer(),
-                    ElevatedButton(
-                      onPressed: _isLoading ? null : () {
-                        if (_currentPage == 2) {
-                          _completeOnboarding();
-                        } else {
-                          _nextPage();
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: AppTheme.primaryBlue,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
+                    if (_currentPage > 0) const SizedBox(width: 15),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: _isLoading
+                            ? null
+                            : (_currentPage == 2
+                                  ? _finishOnboarding
+                                  : _nextPage),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: Colors.blue[700],
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                         ),
+                        child: _isLoading
+                            ? const CircularProgressIndicator()
+                            : Text(_currentPage == 2 ? 'Başla' : 'İleri'),
                       ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(_currentPage == 2 ? 'Başla' : 'İleri'),
                     ),
                   ],
                 ),
@@ -200,19 +210,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildWelcomePage() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return const Padding(
+      padding: EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.water_drop,
-            size: 100,
-            color: Colors.white,
-          ),
-          const SizedBox(height: 30),
-          const Text(
-            'Su Takip\'e Hoşgeldiniz!',
+          Icon(Icons.water_drop, size: 100, color: Colors.white),
+          SizedBox(height: 30),
+          Text(
+            'Su Takip\'e Hoş Geldiniz!',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -220,14 +226,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Günlük su tüketiminizi takip ederek sağlıklı yaşam alışkanlıkları edinin.',
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-              height: 1.5,
-            ),
+          SizedBox(height: 20),
+          Text(
+            'Günlük su ihtiyacınızı takip edelim ve sağlıklı bir yaşam sürelim.',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
             textAlign: TextAlign.center,
           ),
         ],
@@ -236,270 +238,329 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildPersonalInfoPage() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              'Kişisel Bilgileriniz',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              const Text(
+                'Kişisel Bilgileriniz',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 30),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _firstNameController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Ad',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white70),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ad boş olamaz';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: TextFormField(
-                    controller: _lastNameController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Soyad',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white70),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Soyad boş olamaz';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _ageController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Yaş',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white70),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Yaş boş olamaz';
-                      }
-                      final age = int.tryParse(value);
-                      if (age == null || age < 1 || age > 120) {
-                        return 'Geçerli bir yaş girin';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: TextFormField(
-                    controller: _heightController,
-                    keyboardType: TextInputType.number,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: 'Boy (cm)',
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white70),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: const BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Boy boş olamaz';
-                      }
-                      final height = int.tryParse(value);
-                      if (height == null || height < 50 || height > 250) {
-                        return 'Geçerli bir boy girin';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 20),
-            
-            // Cinsiyet seçimi
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.white70),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 30),
+
+              // Ad Soyad
+              Row(
                 children: [
-                  const Text(
-                    'Cinsiyet',
-                    style: TextStyle(color: Colors.white70, fontSize: 16),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _firstNameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Ad',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white70),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Ad boş olamaz';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text('Erkek', style: TextStyle(color: Colors.white)),
-                          value: 'male',
-                          groupValue: _selectedGender,
-                          activeColor: Colors.white,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedGender = value!;
-                            });
-                          },
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _lastNameController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Soyad',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white70),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      Expanded(
-                        child: RadioListTile<String>(
-                          title: const Text('Kadın', style: TextStyle(color: Colors.white)),
-                          value: 'female',
-                          groupValue: _selectedGender,
-                          activeColor: Colors.white,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedGender = value!;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Soyad boş olamaz';
+                        }
+                        return null;
+                      },
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+
+              const SizedBox(height: 20),
+
+              // Yaş Boy
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _ageController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Yaş',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white70),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Yaş boş olamaz';
+                        }
+                        final age = int.tryParse(value);
+                        if (age == null || age < 1 || age > 120) {
+                          return 'Geçerli bir yaş girin';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 15),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _heightController,
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Boy (cm)',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white70),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Boy boş olamaz';
+                        }
+                        final height = int.tryParse(value);
+                        if (height == null || height < 50 || height > 250) {
+                          return 'Geçerli bir boy girin';
+                        }
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+
+              // Kilo alanı
+              TextFormField(
+                controller: _weightController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Kilo (kg)',
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white70),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.white),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Kilo boş olamaz';
+                  }
+                  final weight = double.tryParse(value);
+                  if (weight == null || weight < 30 || weight > 300) {
+                    return 'Geçerli bir kilo girin';
+                  }
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 20),
+
+              // Cinsiyet seçimi
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white70),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Cinsiyet',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text(
+                              'Erkek',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            value: 'male',
+                            groupValue: _selectedGender,
+                            activeColor: Colors.white,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedGender = value!;
+                              });
+                            },
+                          ),
+                        ),
+                        Expanded(
+                          child: RadioListTile<String>(
+                            title: const Text(
+                              'Kadın',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            value: 'female',
+                            groupValue: _selectedGender,
+                            activeColor: Colors.white,
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedGender = value!;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // Aktivite seviyesi
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white70),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Aktivite Seviyesi',
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    const SizedBox(height: 10),
+                    DropdownButtonFormField<String>(
+                      value: _selectedActivityLevel,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                      ),
+                      dropdownColor: Colors.blue[800],
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'low',
+                          child: Text(
+                            'Düşük (Masa başı)',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'moderate',
+                          child: Text(
+                            'Orta (Hafif spor)',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'high',
+                          child: Text(
+                            'Yüksek (Aktif spor)',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        DropdownMenuItem(
+                          value: 'very_high',
+                          child: Text(
+                            'Çok Yüksek (Profesyonel)',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          _selectedActivityLevel = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildGoalPage() {
-    int calculatedGoal = 2000;
-    
-    if (_ageController.text.isNotEmpty && _heightController.text.isNotEmpty) {
-      final age = int.tryParse(_ageController.text);
-      final height = int.tryParse(_heightController.text);
-      
-      if (age != null && height != null) {
-        calculatedGoal = UserModel.calculateDailyWaterNeed(
-          height: height,
-          age: age,
-          gender: _selectedGender,
-        );
-      }
-    }
-    
-    return Padding(
-      padding: const EdgeInsets.all(20),
+    return const Padding(
+      padding: EdgeInsets.all(20),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.track_changes,
-            size: 80,
-            color: Colors.white,
-          ),
-          const SizedBox(height: 30),
-          const Text(
-            'Günlük Su Hedefiniz',
+          Icon(Icons.track_changes, size: 80, color: Colors.white),
+          SizedBox(height: 30),
+          Text(
+            'Her Şey Hazır!',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  '${calculatedGoal} ml',
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '${(calculatedGoal / 1000).toStringAsFixed(1)} litre',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white70,
-                  ),
-                ),
-              ],
-            ),
+          SizedBox(height: 20),
+          Text(
+            'Günlük su hedefinizi kişisel bilgilerinize göre hesaplayacağız.',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 20),
-          const Text(
-            'Bu hedef, kişisel bilgilerinize göre hesaplanmıştır. Daha sonra profil ayarlarından değiştirebilirsiniz.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.white70,
-              height: 1.5,
-            ),
+          SizedBox(height: 20),
+          Text(
+            'Su içme alışkanlığınızı geliştirmeye başlayalım!',
+            style: TextStyle(fontSize: 16, color: Colors.white70),
             textAlign: TextAlign.center,
           ),
         ],

@@ -24,7 +24,7 @@ class QuickAddButtons extends StatelessWidget {
 
   void _addWater(BuildContext context, double amount) {
     final waterProvider = Provider.of<WaterProvider>(context, listen: false);
-    waterProvider.addWater(amount);
+    waterProvider.addWaterIntake(amount);
 
     // Başarı mesajı göster
     ScaffoldMessenger.of(context).showSnackBar(
@@ -202,11 +202,11 @@ class _QuickAddButton extends StatelessWidget {
             backgroundColor: AppColors.surface,
             foregroundColor: AppColors.primary,
             elevation: 2,
-            shadowColor: AppColors.primary.withOpacity(0.3),
+            shadowColor: AppColors.primary.withValues(alpha: 0.3),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               side: BorderSide(
-                color: AppColors.primary.withOpacity(0.3),
+                color: AppColors.primary.withValues(alpha: 0.3),
                 width: 1,
               ),
             ),
@@ -238,7 +238,7 @@ class _QuickAddButton extends StatelessWidget {
         .then(delay: const Duration(milliseconds: 200))
         .shimmer(
           duration: const Duration(milliseconds: 800),
-          color: AppColors.primary.withOpacity(0.1),
+          color: AppColors.primary.withValues(alpha: 0.1),
         );
   }
 }

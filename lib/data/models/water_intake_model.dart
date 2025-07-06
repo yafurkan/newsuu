@@ -1,24 +1,21 @@
-import 'package:hive/hive.dart';
-
-part 'water_intake_model.g.dart';
-
-/// Su alımı bilgilerini tutan model sınıfı
-@HiveType(typeId: 1)
-class WaterIntakeModel extends HiveObject {
-  @HiveField(0)
+/// Su alımı bilgilerini tutan model sınıfı (Firebase entegreli)
+class WaterIntakeModel {
+  String id; // Unique identifier
   double amount; // ml
-
-  @HiveField(1)
   DateTime timestamp;
-
-  @HiveField(2)
   String? note; // Opsiyonel not
 
-  WaterIntakeModel({required this.amount, required this.timestamp, this.note});
+  WaterIntakeModel({
+    required this.id,
+    required this.amount,
+    required this.timestamp,
+    this.note,
+  });
 
   /// JSON'dan model oluştur
   factory WaterIntakeModel.fromJson(Map<String, dynamic> json) {
     return WaterIntakeModel(
+      id: json['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
       amount: json['amount']?.toDouble() ?? 0.0,
       timestamp: DateTime.parse(json['timestamp']),
       note: json['note'],
@@ -28,6 +25,7 @@ class WaterIntakeModel extends HiveObject {
   /// Model'i JSON'a çevir
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'amount': amount,
       'timestamp': timestamp.toIso8601String(),
       'note': note,
@@ -36,11 +34,13 @@ class WaterIntakeModel extends HiveObject {
 
   /// Kopya oluştur
   WaterIntakeModel copyWith({
+    String? id,
     double? amount,
     DateTime? timestamp,
     String? note,
   }) {
     return WaterIntakeModel(
+      id: id ?? this.id,
       amount: amount ?? this.amount,
       timestamp: timestamp ?? this.timestamp,
       note: note ?? this.note,
@@ -49,7 +49,7 @@ class WaterIntakeModel extends HiveObject {
 
   @override
   String toString() {
-    return 'WaterIntakeModel(amount: $amount, timestamp: $timestamp, note: $note)';
+    return 'WaterIntakeModel(id: $id, amount: $amount, timestamp: $timestamp, note: $note)';
   }
 
   @override

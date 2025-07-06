@@ -1,52 +1,73 @@
 import 'package:flutter/material.dart';
-import '../../data/services/hive_service.dart';
 import '../../data/services/notification_service.dart';
+import '../../data/services/cloud_sync_service.dart';
 import '../../data/models/notification_settings_model.dart';
 import '../../core/constants/notification_messages.dart';
 
-/// Bildirim ayarlarını yöneten Provider sınıfı
+/// Bildirim ayarlarını yöneten Provider sınıfı (Firebase entegreli)
 class NotificationProvider extends ChangeNotifier {
-  final HiveService _hiveService;
   final NotificationService _notificationService;
+  final CloudSyncService _cloudSyncService;
 
   NotificationSettings _settings = NotificationSettings();
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  NotificationProvider(this._hiveService, this._notificationService) {
+  NotificationProvider(this._notificationService, this._cloudSyncService) {
     _loadSettings();
   }
 
   // Getters
   NotificationSettings get settings => _settings;
   bool get isEnabled => _settings.isEnabled;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  /// Ayarları Hive'dan yükle
+  /// Ayarları yükle (Firebase'den)
   Future<void> _loadSettings() async {
     try {
-      final savedSettingsJson = _hiveService.getNotificationSettings();
-      if (savedSettingsJson != null) {
-        _settings = NotificationSettings.fromJson(savedSettingsJson);
-        print('✅ Bildirim ayarları yüklendi');
+      _setLoading(true);
+      _clearError();
+
+      // Firebase'den bildirim ayarlarını al
+      final firebaseSettings = await _cloudSyncService
+          .getNotificationSettings();
+
+      if (firebaseSettings != null) {
+        _settings = firebaseSettings;
+        print('✅ Bildirim ayarları Firebase\'den yüklendi');
       } else {
-        // İlk kez kullanım - varsayılan ayarları kaydet
-        await _saveSettings();
-        print('📱 Varsayılan bildirim ayarları kaydedildi');
+        // Varsayılan ayarları kullan ve Firebase'e kaydet
+        _settings = NotificationSettings();
+        await _cloudSyncService.saveNotificationSettings(_settings);
+        print('✅ Varsayılan bildirim ayarları Firebase\'e kaydedildi');
       }
 
       // Bildirimleri ayarla
       await _scheduleNotifications();
       notifyListeners();
     } catch (e) {
+      _setError('Bildirim ayarları yükleme hatası: $e');
       print('❌ Bildirim ayarları yükleme hatası: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
-  /// Ayarları kaydet
+  /// Ayarları kaydet (Firebase'e)
   Future<void> _saveSettings() async {
     try {
-      await _hiveService.saveNotificationSettings(_settings);
-      print('💾 Bildirim ayarları kaydedildi');
+      _setLoading(true);
+      _clearError();
+
+      // Firebase'e kaydet
+      await _cloudSyncService.saveNotificationSettings(_settings);
+      print('💾 Bildirim ayarları Firebase\'e kaydedildi');
     } catch (e) {
+      _setError('Bildirim ayarları kaydetme hatası: $e');
       print('❌ Bildirim ayarları kaydetme hatası: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
@@ -175,6 +196,31 @@ class NotificationProvider extends ChangeNotifier {
     await _saveSettings();
     await _scheduleNotifications();
     notifyListeners();
+  }
+
+  /// Ayarları Firebase'den yeniden yükle
+  Future<void> refreshSettings() async {
+    await _loadSettings();
+  }
+
+  /// Ayarları Firebase'den sil
+  Future<void> deleteSettings() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      await _cloudSyncService.deleteNotificationSettings();
+      _settings = NotificationSettings();
+      await _scheduleNotifications();
+      notifyListeners();
+
+      print('🗑️ Bildirim ayarları Firebase\'den silindi');
+    } catch (e) {
+      _setError('Bildirim ayarları silme hatası: $e');
+      print('❌ Bildirim ayarları silme hatası: $e');
+    } finally {
+      _setLoading(false);
+    }
   }
 
   /// Bildirim iznini kontrol et
@@ -318,5 +364,20 @@ class NotificationProvider extends ChangeNotifier {
     await updateSettings(
       _settings.copyWith(intervalEnabled: !_settings.intervalEnabled),
     );
+  }
+
+  // Helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
   }
 }

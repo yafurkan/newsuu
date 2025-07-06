@@ -4,15 +4,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import 'core/constants/colors.dart';
-import 'core/constants/strings.dart';
-import 'data/services/hive_service.dart';
+import 'firebase_options.dart';
 import 'data/services/notification_service.dart';
-import 'data/services/firebase_messaging_service.dart';
-import 'presentation/screens/splash/splash_screen.dart';
-import 'presentation/screens/home/home_screen.dart';
-import 'presentation/screens/auth/auth_screen.dart';
-import 'presentation/screens/auth/login_screen.dart';
+import 'data/services/cloud_sync_service.dart';
+import 'screens/splash_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
@@ -21,90 +19,84 @@ import 'presentation/providers/auth_provider.dart';
 // Background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('🔥 Background message: ${message.messageId}');
-}
-
-// Bildirim izinlerini kontrol et ve iste
-Future<void> _checkAndRequestNotificationPermissions() async {
-  try {
-    print('🔐 Bildirim izinleri kontrol ediliyor...');
-
-    final status = await Permission.notification.status;
-    print('📱 Mevcut izin durumu: $status');
-
-    // TECNO telefon sorunu için zorla dialog göster
-    if (status.isDenied || status.isGranted) {
-      print('🔔 Bildirim izni isteniyor...');
-      final result = await Permission.notification.request();
-      print('📋 İzin sonucu: $result');
-
-      if (result.isGranted) {
-        print('✅ Bildirim izni başarıyla verildi');
-      } else if (result.isDenied) {
-        print('❌ Bildirim izni reddedildi');
-      } else if (result.isPermanentlyDenied) {
-        print('🚫 Bildirim izni kalıcı olarak reddedildi - Ayarları açın');
-        // Kullanıcıyı ayarlara yönlendir
-        await openAppSettings();
-      }
-    } else if (status.isPermanentlyDenied) {
-      print('🚫 Bildirim izni kalıcı olarak reddedilmiş - Ayarları açın');
-      await openAppSettings();
-    }
-  } catch (e) {
-    print('❌ Bildirim izni kontrol hatası: $e');
-  }
+  print('Background message received: ${message.messageId}');
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase'i başlat
-  await Firebase.initializeApp();
+  try {
+    // Firebase'i kontrollü şekilde initialize et
+    await _initializeFirebase();
 
-  // Background message handler'ı kaydet
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    // İzinleri iste
+    await Permission.notification.request();
 
-  // Hive servisini başlat
-  final hiveService = HiveService();
-  await hiveService.initHive();
+    // Notification service'i initialize et
+    final notificationService = NotificationService();
+    await notificationService.initialize();
 
-  // Bildirim servisini başlat
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+    // Cloud sync service'i initialize et
+    final cloudSyncService = CloudSyncService();
 
-  // Bildirim izinlerini kontrol et ve gerekirse iste
-  await _checkAndRequestNotificationPermissions();
+    runApp(
+      SuTakipApp(
+        notificationService: notificationService,
+        cloudSyncService: cloudSyncService,
+      ),
+    );
+  } catch (e) {
+    print('Firebase initialization error: $e');
+    // Firebase hatası olsa da normal uygulamayı çalıştır
 
-  // Firebase Messaging servisini başlat
-  final firebaseMessagingService = FirebaseMessagingService();
-  await firebaseMessagingService.initialize();
+    // Basit servisler oluştur
+    final notificationService = NotificationService();
+    final cloudSyncService = CloudSyncService();
 
-  // Otomatik topic abonelikleri
-  await firebaseMessagingService.subscribeToTopic('all_users');
-  await firebaseMessagingService.subscribeToTopic('water_reminders');
-  await firebaseMessagingService.subscribeToTopic('daily_tips');
+    runApp(
+      SuTakipApp(
+        notificationService: notificationService,
+        cloudSyncService: cloudSyncService,
+      ),
+    );
+  }
+}
 
-  runApp(
-    SuTakipApp(
-      hiveService: hiveService,
-      notificationService: notificationService,
-      firebaseMessagingService: firebaseMessagingService,
-    ),
-  );
+Future<void> _initializeFirebase() async {
+  try {
+    // Önce tüm mevcut Firebase app'larını listele
+    final apps = Firebase.apps;
+    print('Existing Firebase apps: ${apps.length}');
+
+    // Eğer DEFAULT app varsa onu kullan
+    if (apps.any((app) => app.name == '[DEFAULT]')) {
+      print('DEFAULT Firebase app already exists, using it.');
+      return;
+    }
+
+    // Eğer hiç app yoksa veya DEFAULT yoksa yeni bir tane oluştur
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // Background message handler'ı kaydet
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    print('Firebase initialized successfully');
+  } catch (e) {
+    print('Firebase initialization failed: $e');
+    rethrow;
+  }
 }
 
 class SuTakipApp extends StatefulWidget {
-  final HiveService hiveService;
   final NotificationService notificationService;
-  final FirebaseMessagingService? firebaseMessagingService;
+  final CloudSyncService cloudSyncService;
 
   const SuTakipApp({
     super.key,
-    required this.hiveService,
     required this.notificationService,
-    this.firebaseMessagingService,
+    required this.cloudSyncService,
   });
 
   @override
@@ -128,67 +120,58 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    // TODO: WaterProvider entegrasyonu tamamlandığında bu kısmı aktif et
-    /*
     if (state == AppLifecycleState.resumed) {
       // Uygulama ön plana geldiğinde günlük geçişi kontrol et
-      final waterProvider = context.read<WaterProvider>();
-      waterProvider.checkDayTransitionOnResume();
+      // Provider'ı güvenli şekilde alabilmek için try-catch kullan
+      try {
+        final waterProvider = context.read<WaterProvider>();
+        waterProvider.refreshData();
+      } catch (e) {
+        print('WaterProvider bulunamadı: $e');
+      }
     }
-    */
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<HiveService>.value(value: widget.hiveService),
         Provider<NotificationService>.value(value: widget.notificationService),
+        Provider<CloudSyncService>.value(value: widget.cloudSyncService),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider(widget.hiveService)),
         ChangeNotifierProvider(
-          create: (_) => WaterProvider(widget.hiveService),
+          create: (_) => UserProvider(widget.cloudSyncService),
+        ),
+        ChangeNotifierProxyProvider<UserProvider, WaterProvider>(
+          create: (context) => WaterProvider(widget.cloudSyncService),
+          update: (context, userProvider, waterProvider) {
+            // UserProvider'daki hedef değişikliğini WaterProvider'a aktar
+            waterProvider?.updateGoalFromUserProvider(
+              userProvider.dailyWaterGoal,
+            );
+            return waterProvider!;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => NotificationProvider(
-            widget.hiveService,
             widget.notificationService,
+            widget.cloudSyncService,
           ),
         ),
       ],
-      child: MaterialApp(
-        title: AppStrings.appName,
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          primaryColor: AppColors.primary,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
-            brightness: Brightness.light,
-          ),
-          scaffoldBackgroundColor: AppColors.background,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textWhite,
-            elevation: 0,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textWhite,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-          fontFamily: 'Roboto',
-          useMaterial3: true,
-        ),
-        home: const SplashScreen(),
-        routes: {
-          '/home': (context) => const HomeScreen(),
-          '/auth': (context) => const AuthScreen(),
-          '/login': (context) => const LoginScreen(),
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return MaterialApp(
+            title: 'Su Takip',
+            theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+            home: const SplashScreen(),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/onboarding': (context) => const OnboardingScreen(),
+            },
+            debugShowCheckedModeBanner: false,
+          );
         },
       ),
     );

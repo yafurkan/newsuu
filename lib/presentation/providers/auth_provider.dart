@@ -1,186 +1,189 @@
-import 'package:flutter/foundation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import '../../data/services/auth_service.dart';
-import '../../data/services/cloud_sync_service.dart';
-import '../../data/models/user_model.dart';
 
-/// Authentication durumunu yöneten Provider
-class AuthProvider with ChangeNotifier {
+/// Authentication state management provider
+class AuthProvider extends ChangeNotifier {
   final AuthService _authService = AuthService();
-  final CloudSyncService _cloudSyncService = CloudSyncService();
 
-  User? _user;
-  UserModel? _userProfile;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isSignedIn = false;
+  String? _userId;
+  String? _userEmail;
 
   // Getters
-  User? get user => _user;
-  UserModel? get userProfile => _userProfile;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isSignedIn => _user != null;
+  bool get isSignedIn => _isSignedIn;
+  String? get userId => _userId;
+  String? get userEmail => _userEmail;
 
   AuthProvider() {
-    // Firebase Auth state değişikliklerini dinle
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      _user = user;
-      if (user != null) {
-        _loadUserProfile();
-      } else {
-        _userProfile = null;
-      }
-      notifyListeners();
-    });
+    _checkAuthState();
   }
 
-  /// Hata mesajını temizle
-  void clearError() {
-    _errorMessage = null;
+  /// Check initial auth state
+  void _checkAuthState() {
+    _isSignedIn = _authService.isSignedIn;
+    _userId = _authService.currentUserId;
+    _userEmail = _authService.currentUserEmail;
     notifyListeners();
   }
 
-  /// Loading durumunu ayarla
+  /// Sign in with email and password
+  Future<bool> signIn(String email, String password) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final success = await _authService.signInWithEmailAndPassword(
+        email,
+        password,
+      );
+
+      if (success) {
+        _isSignedIn = true;
+        _userId = _authService.currentUserId;
+        _userEmail = _authService.currentUserEmail;
+        print('✅ AuthProvider: Giriş başarılı');
+      }
+
+      return success;
+    } catch (e) {
+      _setError('Giriş yapılamadı: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Sign up with email and password
+  Future<bool> signUp(String email, String password) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final success = await _authService.signUpWithEmailAndPassword(
+        email,
+        password,
+      );
+
+      if (success) {
+        _isSignedIn = true;
+        _userId = _authService.currentUserId;
+        _userEmail = _authService.currentUserEmail;
+        print('✅ AuthProvider: Kayıt başarılı');
+      }
+
+      return success;
+    } catch (e) {
+      _setError('Kayıt oluşturulamadı: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Sign out
+  Future<void> signOut() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      await _authService.signOut();
+
+      _isSignedIn = false;
+      _userId = null;
+      _userEmail = null;
+
+      print('✅ AuthProvider: Çıkış başarılı');
+      notifyListeners(); // Bu satır eksikti!
+    } catch (e) {
+      _setError('Çıkış yapılamadı: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Reset password
+  Future<bool> resetPassword(String email) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      await _authService.resetPassword(email);
+      return true;
+    } catch (e) {
+      _setError('Şifre sıfırlama e-postası gönderilemedi: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Delete account
+  Future<bool> deleteAccount() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      await _authService.deleteAccount();
+
+      _isSignedIn = false;
+      _userId = null;
+      _userEmail = null;
+
+      return true;
+    } catch (e) {
+      _setError('Hesap silinemedi: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Sign in with Google
+  Future<bool> signInWithGoogle() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      final userCredential = await _authService.signInWithGoogle();
+
+      if (userCredential != null) {
+        _isSignedIn = true;
+        _userId = _authService.currentUserId;
+        _userEmail = _authService.currentUserEmail;
+        print('✅ AuthProvider: Google ile giriş başarılı');
+        return true;
+      }
+
+      return false;
+    } catch (e) {
+      _setError('Google ile giriş yapılamadı: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// Check if user is signed in
+  void checkAuthStatus() {
+    _checkAuthState();
+  }
+
+  // Helper methods
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
   }
 
-  /// Hata mesajını ayarla
   void _setError(String error) {
     _errorMessage = error;
-    _setLoading(false);
+    notifyListeners();
   }
 
-  /// Google ile giriş yap
-  Future<bool> signInWithGoogle() async {
-    try {
-      _setLoading(true);
-      clearError();
-
-      final user = await _authService.signInWithGoogle();
-      if (user != null) {
-        await _loadUserProfile();
-        return true;
-      }
-      return false;
-    } catch (e) {
-      _setError('Google ile giriş yapılırken hata oluştu: ${e.toString()}');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Çıkış yap
-  Future<void> signOut() async {
-    try {
-      _setLoading(true);
-      await _authService.signOut();
-      _user = null;
-      _userProfile = null;
-    } catch (e) {
-      _setError('Çıkış yapılırken hata oluştu: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Kullanıcı profilini yükle
-  Future<void> _loadUserProfile() async {
-    if (_user == null) return;
-
-    try {
-      // Önce Firestore'dan profil bilgilerini al
-      _userProfile = await _cloudSyncService.getUserProfile();
-
-      // Eğer Firestore'da profil yoksa, Firebase Auth bilgilerinden oluştur
-      if (_userProfile == null && _user != null) {
-        final displayName = _user!.displayName ?? '';
-        final nameParts = displayName.split(' ');
-
-        _userProfile = UserModel(
-          firstName: nameParts.isNotEmpty ? nameParts.first : 'Kullanıcı',
-          lastName: nameParts.length > 1 ? nameParts.skip(1).join(' ') : '',
-          email: _user!.email,
-          photoUrl: _user!.photoURL,
-          age: 25, // Varsayılan değer
-          weight: 70.0, // Varsayılan değer
-          height: 170.0, // Varsayılan değer
-          gender: 'male', // Varsayılan değer
-          activityLevel: 'Orta',
-          dailyWaterGoal: 2000.0, // Varsayılan 2L
-          wakeUpTime: '07:00',
-          sleepTime: '23:00',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
-        // Yeni profili Firestore'a kaydet
-        await _cloudSyncService.syncUserProfile(_userProfile!);
-      }
-
-      notifyListeners();
-    } catch (e) {
-      print('Kullanıcı profili yüklenemedi: $e');
-    }
-  }
-
-  /// Kullanıcı profilini güncelle
-  Future<void> updateUserProfile(UserModel updatedProfile) async {
-    try {
-      _setLoading(true);
-
-      // Firestore'a kaydet
-      await _cloudSyncService.syncUserProfile(updatedProfile);
-
-      // Local state'i güncelle
-      _userProfile = updatedProfile;
-      notifyListeners();
-    } catch (e) {
-      _setError('Profil güncellenirken hata oluştu: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Hesabı sil
-  Future<bool> deleteAccount() async {
-    try {
-      _setLoading(true);
-      clearError();
-
-      final success = await _authService.deleteUserAccount();
-      if (success) {
-        _user = null;
-        _userProfile = null;
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      _setError('Hesap silinirken hata oluştu: ${e.toString()}');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Tüm verileri Firestore'a senkronize et
-  Future<void> syncAllData() async {
-    if (!isSignedIn) return;
-
-    try {
-      _setLoading(true);
-
-      // Burada diğer provider'lardan verileri alıp sync edeceğiz
-      // Şimdilik sadece profil sync ediyoruz
-      if (_userProfile != null) {
-        await _cloudSyncService.syncUserProfile(_userProfile!);
-      }
-    } catch (e) {
-      _setError('Veri senkronizasyonu sırasında hata oluştu: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
+  void _clearError() {
+    _errorMessage = null;
   }
 }

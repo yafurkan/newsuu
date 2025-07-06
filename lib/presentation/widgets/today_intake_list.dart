@@ -57,7 +57,7 @@ class TodayIntakeList extends StatelessWidget {
     }
   }
 
-  void _removeIntake(BuildContext context, int index) {
+  void _removeIntake(BuildContext context, String intakeId) {
     final waterProvider = Provider.of<WaterProvider>(context, listen: false);
 
     showDialog(
@@ -86,7 +86,7 @@ class TodayIntakeList extends StatelessWidget {
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                waterProvider.removeWaterIntake(index);
+                waterProvider.removeWaterIntake(intakeId);
 
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -141,7 +141,7 @@ class TodayIntakeList extends StatelessWidget {
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppDimensions.radiusM),
               border: Border.all(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.withValues(alpha: 0.2),
                 width: 1,
               ),
             ),
@@ -178,7 +178,7 @@ class TodayIntakeList extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppDimensions.radiusM),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -191,7 +191,7 @@ class TodayIntakeList extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppDimensions.paddingM),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(AppDimensions.radiusM),
                     topRight: Radius.circular(AppDimensions.radiusM),
@@ -239,12 +239,11 @@ class TodayIntakeList extends StatelessWidget {
                 itemCount: intakes.length,
                 separatorBuilder: (context, index) => Divider(
                   height: 1,
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                 ),
                 itemBuilder: (context, index) {
                   final intake =
                       intakes[intakes.length - 1 - index]; // En yenisi üstte
-                  final actualIndex = intakes.length - 1 - index;
                   final time = _formatTime(intake.timestamp);
                   final category = _getTimeCategory(intake.timestamp);
                   final categoryColor = _getCategoryColor(category);
@@ -259,7 +258,7 @@ class TodayIntakeList extends StatelessWidget {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: categoryColor.withOpacity(0.2),
+                            color: categoryColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Icon(
@@ -287,10 +286,10 @@ class TodayIntakeList extends StatelessWidget {
                         trailing: IconButton(
                           icon: Icon(
                             Icons.delete_outline,
-                            color: AppColors.error.withOpacity(0.7),
+                            color: AppColors.error.withValues(alpha: 0.7),
                             size: 20,
                           ),
-                          onPressed: () => _removeIntake(context, actualIndex),
+                          onPressed: () => _removeIntake(context, intake.id),
                         ),
                       )
                       .animate()

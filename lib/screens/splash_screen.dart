@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:lottie/lottie.dart';
-import '../providers/water_tracking_provider.dart';
-import '../utils/app_theme.dart';
-import 'onboarding_screen.dart';
-import 'home_screen.dart';
+import '../core/utils/app_theme.dart';
+import '../presentation/providers/auth_provider.dart';
+import '../presentation/providers/user_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -22,27 +20,19 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _animationController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
 
-    _scaleAnimation = Tween<double>(
-      begin: 0.5,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.elasticOut,
-    ));
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.elasticOut),
+    );
 
     _startAnimation();
   }
@@ -50,25 +40,39 @@ class _SplashScreenState extends State<SplashScreen>
   void _startAnimation() async {
     // Animasyonu başlat
     _animationController.forward();
-    
-    // Provider'ı başlat
-    final provider = Provider.of<WaterTrackingProvider>(context, listen: false);
-    await provider.initialize();
-    
+
     // 3 saniye bekle
     await Future.delayed(const Duration(seconds: 3));
-    
-    // Kullanıcı var mı kontrol et
+
+    // Auth durumunu kontrol et ve yönlendir
     if (mounted) {
-      if (provider.currentUser != null) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-        );
+      _checkAuthAndNavigate();
+    }
+  }
+
+  void _checkAuthAndNavigate() async {
+    final authProvider = context.read<AuthProvider>();
+    final userProvider = context.read<UserProvider>();
+
+    if (authProvider.isSignedIn) {
+      // Kullanıcı giriş yapmış
+      try {
+        await userProvider.loadUserData();
+
+        if (userProvider.isFirstTime) {
+          // İlk kez giriş yapan kullanıcı → Onboarding
+          Navigator.of(context).pushReplacementNamed('/onboarding');
+        } else {
+          // Mevcut kullanıcı → Ana sayfa
+          Navigator.of(context).pushReplacementNamed('/home');
+        }
+      } catch (e) {
+        // Kullanıcı verisi yüklenemedi → Onboarding'e gönder
+        Navigator.of(context).pushReplacementNamed('/onboarding');
       }
+    } else {
+      // Kullanıcı giriş yapmamış → Login ekranı
+      Navigator.of(context).pushReplacementNamed('/login');
     }
   }
 
@@ -82,9 +86,7 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppTheme.primaryGradient,
-        ),
+        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -105,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -121,9 +123,9 @@ class _SplashScreenState extends State<SplashScreen>
                   );
                 },
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               // Uygulama adı
               FadeTransition(
                 opacity: _fadeAnimation,
@@ -137,9 +139,9 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 10),
-              
+
               // Alt başlık
               FadeTransition(
                 opacity: _fadeAnimation,
@@ -152,9 +154,9 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-              
+
               const SizedBox(height: 50),
-              
+
               // Yükleniyor animasyonu
               FadeTransition(
                 opacity: _fadeAnimation,

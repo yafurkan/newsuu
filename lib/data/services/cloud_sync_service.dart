@@ -80,7 +80,7 @@ class CloudSyncService {
         'intakes': intakes.map((intake) => intake.toJson()).toList(),
         'totalAmount': intakes.fold<double>(
           0,
-          (sum, intake) => sum + intake.amount,
+          (total, intake) => total + intake.amount,
         ),
         'intakeCount': intakes.length,
         'lastUpdated': FieldValue.serverTimestamp(),
@@ -182,7 +182,7 @@ class CloudSyncService {
   // =================== BİLDİRİM AYARLARI ===================
 
   /// Bildirim ayarlarını Firestore'a kaydet
-  Future<void> syncNotificationSettings(NotificationSettings settings) async {
+  Future<void> saveNotificationSettings(NotificationSettings settings) async {
     if (!isUserSignedIn) return;
 
     try {
@@ -193,12 +193,12 @@ class CloudSyncService {
           .doc('notifications')
           .set({
             ...settings.toJson(),
-            'lastSyncAt': FieldValue.serverTimestamp(),
+            'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-      print('✅ Bildirim ayarları Cloud\'a sync edildi');
+      print('✅ Bildirim ayarları Cloud\'a kaydedildi');
     } catch (e) {
-      print('❌ Bildirim ayarları sync hatası: $e');
+      print('❌ Bildirim ayarları kaydetme hatası: $e');
       rethrow;
     }
   }
@@ -223,6 +223,25 @@ class CloudSyncService {
     } catch (e) {
       print('❌ Bildirim ayarları alma hatası: $e');
       return null;
+    }
+  }
+
+  /// Bildirim ayarlarını sil
+  Future<void> deleteNotificationSettings() async {
+    if (!isUserSignedIn) return;
+
+    try {
+      await _firestore
+          .collection('users')
+          .doc(_userId)
+          .collection('settings')
+          .doc('notifications')
+          .delete();
+
+      print('✅ Bildirim ayarları Cloud\'dan silindi');
+    } catch (e) {
+      print('❌ Bildirim ayarları silme hatası: $e');
+      rethrow;
     }
   }
 
@@ -321,6 +340,42 @@ class CloudSyncService {
     } catch (e) {
       print('❌ Tüm zamanlar istatistik alma hatası: $e');
       return null;
+    }
+  }
+
+  // =================== KULLANICI VERİLERİ (Firebase Generic) ===================
+
+  /// Kullanıcı verilerini Firestore'dan al (Generic)
+  Future<Map<String, dynamic>?> getUserData(String userId) async {
+    try {
+      final doc = await _firestore.collection('users').doc(userId).get();
+
+      if (doc.exists) {
+        print('✅ Kullanıcı verisi Cloud\'dan alındı');
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      print('❌ Kullanıcı verisi alma hatası: $e');
+      rethrow;
+    }
+  }
+
+  /// Kullanıcı verilerini Firestore'a kaydet (Generic)
+  Future<void> saveUserData(
+    String userId,
+    Map<String, dynamic> userData,
+  ) async {
+    try {
+      await _firestore.collection('users').doc(userId).set({
+        ...userData,
+        'lastSyncAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
+      print('✅ Kullanıcı verisi Cloud\'a kaydedildi');
+    } catch (e) {
+      print('❌ Kullanıcı verisi kaydetme hatası: $e');
+      rethrow;
     }
   }
 

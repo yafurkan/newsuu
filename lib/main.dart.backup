@@ -1,0 +1,249 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'firebase_options.dart';
+import 'core/constants/colors.dart';
+import 'core/constants/strings.dart';
+import 'data/services/notification_service.dart';
+import 'data/services/firebase_messaging_service.dart';
+import 'data/services/cloud_sync_service.dart';
+import 'data/services/auth_service.dart';
+import 'screens/splash_screen.dart';
+import 'presentation/providers/user_provider.dart';
+import 'presentation/providers/water_provider.dart';
+import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/notification_provider.dart';
+
+// Background message handler
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Firebase zaten initialize edilmiş olacak
+  // Background message received: ${message.messageId}
+}
+
+// Bildirim izinlerini kontrol et ve iste
+Future<void> _requestPermissions() async {
+  try {
+    // Bildirim izni
+    await Permission.notification.request();
+
+    // İzinler kontrol edildi
+  } catch (e) {
+    // İzin hatası: $e
+  }
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    // Firebase'i sadece bir kere initialize et
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // İzinleri iste
+    await _requestPermissions();
+
+    // Background message handler'ı kaydet
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    runApp(const SuTakipApp());
+  } catch (e, stackTrace) {
+    print('Firebase Initialize Error: $e');
+    print('Stack Trace: $stackTrace');
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text('Uygulama başlatılamadı', style: TextStyle(fontSize: 18)),
+                const SizedBox(height: 8),
+                Text('Hata: $e', style: const TextStyle(fontSize: 14)),
+    runApp(const SuTakipApp());
+  } catch (e, stackTrace) {
+    print('Firebase Initialize Error: $e');
+    print('Stack Trace: $stackTrace');
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                const Text(
+                  'Uygulama Başlatılamadı',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    'Hata: $e',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class SuTakipApp extends StatefulWidget {
+  const SuTakipApp({super.key});
+
+  @override
+  State<SuTakipApp> createState() => _SuTakipAppState();
+}
+
+class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
+  late CloudSyncService _cloudSyncService;
+  late AuthService _authService;
+  late NotificationService _notificationService;
+  late FirebaseMessagingService _firebaseMessagingService;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    _cloudSyncService = CloudSyncService();
+    _authService = AuthService();
+    _notificationService = NotificationService();
+    _firebaseMessagingService = FirebaseMessagingService();
+    
+    // Service'leri initialize et
+    _initializeServices();
+  }
+
+  Future<void> _initializeServices() async {
+    try {
+      await _notificationService.initialize();
+      await _firebaseMessagingService.initialize();
+      
+      // Topic subscription'ları
+      await _firebaseMessagingService.subscribeToTopic('all_users');
+      await _firebaseMessagingService.subscribeToTopic('water_reminders');
+      await _firebaseMessagingService.subscribeToTopic('daily_tips');
+    } catch (e) {
+      print('Service initialization error: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      // Uygulama ön plana geldiğinde günlük geçişi kontrol et
+      final waterProvider = context.read<WaterProvider>();
+      waterProvider.checkDayTransitionOnResume();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        // Services
+        Provider<NotificationService>.value(value: _notificationService),
+        Provider<CloudSyncService>.value(value: _cloudSyncService),
+        Provider<AuthService>.value(value: _authService),
+
+        // Auth Provider
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+
+        // User Provider with Auth State listener
+        ChangeNotifierProvider(create: (_) => UserProvider(_cloudSyncService)),
+
+        // Water Provider with dependency on UserProvider
+        ChangeNotifierProxyProvider<UserProvider, WaterProvider>(
+          create: (context) => WaterProvider(_cloudSyncService),
+          update: (context, userProvider, waterProvider) {
+            // UserProvider değiştiğinde WaterProvider'ı güncelle
+            waterProvider?.updateGoalFromUserProvider(
+              userProvider.dailyWaterGoal,
+            );
+
+            // UserProvider'a callback ver
+            userProvider.setGoalUpdateCallback(() {
+              waterProvider?.updateGoalFromUserProvider(
+                userProvider.dailyWaterGoal,
+              );
+            });
+
+            return waterProvider ?? WaterProvider(_cloudSyncService);
+          },
+        ),
+
+        // Notification Provider
+        ChangeNotifierProvider(
+          create: (_) => NotificationProvider(
+            _notificationService,
+            _cloudSyncService,
+          ),
+        ),
+      ],
+      child: Consumer<AuthProvider>(
+        builder: (context, authProvider, child) {
+          return MaterialApp(
+            title: AppStrings.appName,
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              primaryColor: AppColors.primary,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: AppColors.primary,
+                brightness: Brightness.light,
+              ),
+              scaffoldBackgroundColor: AppColors.background,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.textWhite,
+                elevation: 0,
+                centerTitle: true,
+              ),
+              elevatedButtonTheme: ElevatedButtonThemeData(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.textWhite,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              cardTheme: CardThemeData(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 4,
+              ),
+              useMaterial3: true,
+            ),
+            // Ana giriş noktası her zaman SplashScreen
+            home: const SplashScreen(),
+          );
+        },
+      ),
+    );
+  }
+}

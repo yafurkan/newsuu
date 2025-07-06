@@ -1,267 +1,227 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
-import '../../data/services/hive_service.dart';
+import '../../data/services/cloud_sync_service.dart';
 import '../../data/models/water_intake_model.dart';
 
-/// Su alımı verilerini yöneten Provider sınıfı
+/// Su tüketim verilerini yöneten Provider sınıfı (Firebase entegreli)
 class WaterProvider extends ChangeNotifier {
-  final HiveService _hiveService;
+  final CloudSyncService _cloudSyncService;
 
-  double _todayIntake = 0.0;
-  double _dailyGoal = 2000.0;
+  // State variables
   List<WaterIntakeModel> _todayIntakes = [];
-  DateTime _lastCheckDate = DateTime.now();
-  Timer? _dailyResetTimer;
+  double _dailyGoal = 2000.0;
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  WaterProvider(this._hiveService) {
-    _loadTodayData();
-    _setupDailyReset();
+  WaterProvider(this._cloudSyncService) {
+    _loadTodayIntakes();
   }
 
   // Getters
-  double get todayIntake => _todayIntake;
+  List<WaterIntakeModel> get todayIntakes => _todayIntakes;
   double get dailyGoal => _dailyGoal;
-  List<WaterIntakeModel> get todayIntakes => List.unmodifiable(_todayIntakes);
-  double get progress => _dailyGoal > 0 ? (_todayIntake / _dailyGoal) * 100 : 0;
-  bool get isGoalCompleted => _todayIntake >= _dailyGoal;
-  double get remainingAmount => _dailyGoal - _todayIntake;
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  /// Bugünkü verileri Hive'dan yükle
-  Future<void> _loadTodayData() async {
+  double get todayIntake =>
+      _todayIntakes.fold(0.0, (sum, intake) => sum + intake.amount);
+  double get progress =>
+      dailyGoal > 0 ? (todayIntake / dailyGoal).clamp(0.0, 1.0) : 0.0;
+  double get remainingAmount =>
+      (dailyGoal - todayIntake).clamp(0.0, double.infinity);
+  bool get isGoalCompleted => todayIntake >= dailyGoal;
+
+  /// Bugünün su tüketim verilerini yükle
+  Future<void> _loadTodayIntakes() async {
     try {
-      // Günlük geçiş kontrolü yap
-      await _checkDayTransition();
+      _setLoading(true);
+      _clearError();
 
-      _todayIntakes = _hiveService.getTodayWaterIntakes();
-      _calculateTodayIntake();
-      notifyListeners();
-    } catch (e) {
-      print('❌ Bugünkü veriler yükleme hatası: $e');
-    }
-  }
+      final today = DateTime.now();
+      final intakes = await _cloudSyncService.getDailyWaterIntake(today);
 
-  /// Günlük geçiş kontrolü (uygulama açıldığında)
-  Future<void> _checkDayTransition() async {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final lastCheck = DateTime(
-      _lastCheckDate.year,
-      _lastCheckDate.month,
-      _lastCheckDate.day,
-    );
-
-    if (today.isAfter(lastCheck)) {
-      print('🔄 Yeni güne geçiş tespit edildi: ${today.toString()}');
-      _lastCheckDate = now;
-      await _performDayReset();
-    }
-  }
-
-  /// Günlük sıfırlama sistemini kur
-  void _setupDailyReset() {
-    final now = DateTime.now();
-    final tomorrow = DateTime(now.year, now.month, now.day + 1);
-    final timeUntilMidnight = tomorrow.difference(now);
-
-    print(
-      '⏰ Günlük sıfırlama ${timeUntilMidnight.inMinutes} dakika sonra başlayacak',
-    );
-
-    // İlk gece yarısı için timer
-    _dailyResetTimer = Timer(timeUntilMidnight, () {
-      _performDayReset();
-      _setupRecurringDailyReset();
-    });
-  }
-
-  /// Tekrarlayan günlük sıfırlama timer'ını kur
-  void _setupRecurringDailyReset() {
-    // Her 24 saatte bir çalışacak timer
-    _dailyResetTimer = Timer.periodic(const Duration(days: 1), (timer) {
-      _performDayReset();
-    });
-  }
-
-  /// Günlük sıfırlama işlemini gerçekleştir
-  Future<void> _performDayReset() async {
-    try {
-      print('🌅 Günlük sıfırlama başlatılıyor...');
-
-      final oldIntake = _todayIntake;
-
-      // Verileri sıfırla
-      _todayIntake = 0.0;
-      _todayIntakes.clear();
-      _lastCheckDate = DateTime.now();
-
-      // Yeni günün verilerini yükle
-      await _loadTodayData();
-
-      print('✅ Günlük sıfırlama tamamlandı:');
-      print('   - Önceki alım: ${oldIntake.toInt()}ml');
-      print('   - Yeni hedef: ${_dailyGoal.toInt()}ml');
+      _todayIntakes = intakes;
+      print('✅ Bugünün su verileri yüklendi: ${_todayIntakes.length} kayıt');
 
       notifyListeners();
     } catch (e) {
-      print('❌ Günlük sıfırlama hatası: $e');
+      _setError('Su verileri yüklenirken hata: $e');
+      print('❌ Su verileri yükleme hatası: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
-  /// Bugünkü toplam su alımını hesapla
-  void _calculateTodayIntake() {
-    _todayIntake = _todayIntakes.fold(
-      0.0,
-      (sum, intake) => sum + intake.amount,
-    );
-  }
-
-  /// Su ekleme
-  Future<void> addWater(double amount, {String? note}) async {
+  /// Su tüketimi ekle
+  Future<void> addWaterIntake(double amount, {String note = ''}) async {
     try {
+      _setLoading(true);
+      _clearError();
+
+      final now = DateTime.now();
       final intake = WaterIntakeModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         amount: amount,
-        timestamp: DateTime.now(),
+        timestamp: now,
         note: note,
       );
 
-      // Hive'a kaydet
-      await _hiveService.saveWaterIntake(intake);
-
-      // Local listeye ekle
-      _todayIntakes.insert(0, intake); // En yeniler önce
-      _todayIntake += amount;
-
+      // Local state'i güncelle
+      _todayIntakes.add(intake);
       notifyListeners();
+
+      // Firebase'e kaydet
+      await _cloudSyncService.syncDailyWaterIntake(now, _todayIntakes);
+
+      print('✅ Su tüketimi eklendi: ${amount}ml');
     } catch (e) {
-      print('❌ Su ekleme hatası: $e');
-      rethrow;
+      // Hata durumunda local state'i geri al
+      _todayIntakes.removeLast();
+      _setError('Su tüketimi eklenirken hata: $e');
+      print('❌ Su tüketimi ekleme hatası: $e');
+      notifyListeners();
+    } finally {
+      _setLoading(false);
     }
   }
 
-  /// Su alımını sil
-  Future<void> removeWaterIntake(int index) async {
+  /// Su tüketimi sil
+  Future<void> removeWaterIntake(String intakeId) async {
     try {
-      if (index >= 0 && index < _todayIntakes.length) {
-        final intake = _todayIntakes[index];
+      _setLoading(true);
+      _clearError();
 
-        // Hive'dan sil
-        await _hiveService.deleteWaterIntake(intake);
+      // Silinecek kaydı bul
+      final index = _todayIntakes.indexWhere((intake) => intake.id == intakeId);
+      if (index == -1) return;
 
-        // Local listeden sil
-        _todayIntake -= intake.amount;
-        _todayIntakes.removeAt(index);
+      // Local state'den sil
+      _todayIntakes.removeAt(index);
+      notifyListeners();
 
-        notifyListeners();
-      }
+      // Firebase'i güncelle
+      await _cloudSyncService.syncDailyWaterIntake(
+        DateTime.now(),
+        _todayIntakes,
+      );
+
+      print('✅ Su tüketimi silindi');
     } catch (e) {
-      print('❌ Su alımı silme hatası: $e');
-      rethrow;
+      // Hata durumunda local state'i geri al
+      final index = _todayIntakes.indexWhere((intake) => intake.id == intakeId);
+      if (index != -1) {
+        // Silinen kaydı geri ekle (hata durumunda)
+        _todayIntakes.insert(
+          index,
+          WaterIntakeModel(
+            id: intakeId,
+            amount: 0, // Gerçek değer hatadan dolayı kayboldu
+            timestamp: DateTime.now(),
+          ),
+        );
+      }
+      _setError('Su tüketimi silinirken hata: $e');
+      print('❌ Su tüketimi silme hatası: $e');
+      notifyListeners();
+    } finally {
+      _setLoading(false);
     }
   }
 
-  /// Günlük hedef güncelleme
-  void updateDailyGoal(double goal) {
-    _dailyGoal = goal;
-    notifyListeners();
-  }
+  /// Günlük hedefi güncelle
+  Future<void> updateDailyGoal(double newGoal) async {
+    try {
+      _dailyGoal = newGoal;
+      notifyListeners();
 
-  /// Güne sıfırlama (yeni güne geçişte) - Manuel sıfırlama
-  Future<void> resetDay() async {
-    await _performDayReset();
-  }
-
-  /// Provider'ı dispose et
-  @override
-  void dispose() {
-    _dailyResetTimer?.cancel();
-    super.dispose();
-  }
-
-  /// Uygulama resume olduğunda kontrol et
-  void checkDayTransitionOnResume() {
-    _checkDayTransition();
-  }
-
-  /// Belirli tarih aralığındaki verileri getir (istatistikler için)
-  List<WaterIntakeModel> getWaterIntakesByDateRange(
-    DateTime startDate,
-    DateTime endDate,
-  ) {
-    return _hiveService.getWaterIntakesByDateRange(startDate, endDate);
-  }
-
-  /// Haftalık istatistik
-  Map<DateTime, double> getWeeklyStats() {
-    final now = DateTime.now();
-    final weekStart = now.subtract(Duration(days: now.weekday - 1));
-    final weekEnd = weekStart.add(const Duration(days: 6));
-
-    final weeklyIntakes = getWaterIntakesByDateRange(weekStart, weekEnd);
-    final Map<DateTime, double> dailyTotals = {};
-
-    // Her gün için toplam hesapla
-    for (int i = 0; i < 7; i++) {
-      final date = DateTime(weekStart.year, weekStart.month, weekStart.day + i);
-      dailyTotals[date] = 0.0;
+      print('✅ Günlük hedef güncellendi: ${newGoal}ml');
+    } catch (e) {
+      _setError('Günlük hedef güncellenirken hata: $e');
+      print('❌ Günlük hedef güncelleme hatası: $e');
     }
-
-    for (final intake in weeklyIntakes) {
-      final date = DateTime(
-        intake.timestamp.year,
-        intake.timestamp.month,
-        intake.timestamp.day,
-      );
-      dailyTotals[date] = (dailyTotals[date] ?? 0.0) + intake.amount;
-    }
-
-    return dailyTotals;
   }
 
-  /// Aylık istatistik
-  Map<DateTime, double> getMonthlyStats() {
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1);
-    final nextMonth = DateTime(now.year, now.month + 1, 1);
-
-    final monthlyIntakes = getWaterIntakesByDateRange(monthStart, nextMonth);
-    final Map<DateTime, double> dailyTotals = {};
-
-    // Ayın her günü için toplam hesapla
-    final daysInMonth = nextMonth.subtract(const Duration(days: 1)).day;
-    for (int i = 1; i <= daysInMonth; i++) {
-      final date = DateTime(now.year, now.month, i);
-      dailyTotals[date] = 0.0;
+  /// UserProvider'dan hedef güncelle
+  void updateGoalFromUserProvider(double newGoal) {
+    if (_dailyGoal != newGoal) {
+      _dailyGoal = newGoal;
+      notifyListeners();
     }
-
-    for (final intake in monthlyIntakes) {
-      final date = DateTime(
-        intake.timestamp.year,
-        intake.timestamp.month,
-        intake.timestamp.day,
-      );
-      dailyTotals[date] = (dailyTotals[date] ?? 0.0) + intake.amount;
-    }
-
-    return dailyTotals;
   }
 
   /// Verileri yenile
   Future<void> refreshData() async {
-    await _loadTodayData();
+    await _loadTodayIntakes();
   }
 
-  /// Son N gün için su alımlarını getir
-  List<WaterIntakeModel> getIntakesForLastDays(int days) {
-    final startDate = DateTime.now().subtract(Duration(days: days));
-    final endDate = DateTime.now().add(const Duration(days: 1));
-    return getWaterIntakesByDateRange(startDate, endDate);
+  /// Gün geçişini kontrol et
+  void checkDayTransitionOnResume() {
+    final now = DateTime.now();
+    if (_todayIntakes.isNotEmpty) {
+      final lastIntakeDate = _todayIntakes.last.timestamp;
+
+      // Farklı gün ise verileri yenile
+      if (now.day != lastIntakeDate.day ||
+          now.month != lastIntakeDate.month ||
+          now.year != lastIntakeDate.year) {
+        print('📅 Gün değişti, veriler yenileniyor...');
+        _loadTodayIntakes();
+      }
+    }
   }
 
-  /// Belirli bir tarih için su alımlarını getir
-  List<WaterIntakeModel> getIntakesForDate(DateTime date) {
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+  /// Belirli bir tarihteki verileri al
+  Future<List<WaterIntakeModel>?> getWaterIntakeForDate(DateTime date) async {
+    try {
+      return await _cloudSyncService.getDailyWaterIntake(date);
+    } catch (e) {
+      print('❌ Tarih verisi alma hatası: $e');
+      return null;
+    }
+  }
 
-    return _hiveService.getWaterIntakesByDateRange(startOfDay, endOfDay);
+  /// Tarih aralığındaki verileri al
+  Future<Map<String, List<WaterIntakeModel>>?> getWaterIntakeRange(
+    DateTime start,
+    DateTime end,
+  ) async {
+    try {
+      return await _cloudSyncService.getWaterIntakeRange(start, end);
+    } catch (e) {
+      print('❌ Tarih aralığı verisi alma hatası: $e');
+      return null;
+    }
+  }
+
+  /// Tüm verileri temizle
+  Future<void> clearAllData() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      _todayIntakes.clear();
+      notifyListeners();
+
+      print('✅ Tüm su verileri temizlendi');
+    } catch (e) {
+      _setError('Veriler temizlenirken hata: $e');
+      print('❌ Veri temizleme hatası: $e');
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
   }
 }

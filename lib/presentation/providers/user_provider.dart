@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../data/services/hive_service.dart';
-import '../../data/models/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../data/services/cloud_sync_service.dart';
 import '../../core/utils/calculations.dart';
 
-/// Kullanıcı verilerini yöneten Provider sınıfı
+/// Kullanıcı verilerini yöneten Provider sınıfı (Firebase entegreli)
 class UserProvider extends ChangeNotifier {
-  final HiveService _hiveService;
+  final CloudSyncService _cloudSyncService;
+  VoidCallback? _onGoalUpdated; // WaterProvider'ı bilgilendirmek için
 
   String _firstName = '';
   String _lastName = '';
@@ -16,9 +17,16 @@ class UserProvider extends ChangeNotifier {
   String _activityLevel = 'medium';
   double _dailyWaterGoal = 2000.0;
   bool _isFirstTime = true;
+  bool _isLoading = false;
+  String? _errorMessage;
 
-  UserProvider(this._hiveService) {
-    _loadUserData();
+  UserProvider(this._cloudSyncService) {
+    loadUserData();
+  }
+
+  // Callback setter (WaterProvider tarafından set edilecek)
+  void setGoalUpdateCallback(VoidCallback callback) {
+    _onGoalUpdated = callback;
   }
 
   // Getters
@@ -32,53 +40,75 @@ class UserProvider extends ChangeNotifier {
   double get dailyWaterGoal => _dailyWaterGoal;
   bool get isFirstTime => _isFirstTime;
   String get fullName => '$_firstName $_lastName';
+  bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
-  /// Kullanıcı verilerini Hive'dan yükle
-  Future<void> _loadUserData() async {
+  /// Kullanıcı verilerini Firebase'dan yükle
+  Future<void> loadUserData() async {
     try {
-      final user = _hiveService.getUser();
-      _isFirstTime = _hiveService.isFirstTime();
+      _setLoading(true);
+      _clearError();
 
-      if (user != null) {
-        _firstName = user.firstName;
-        _lastName = user.lastName;
-        _age = user.age;
-        _weight = user.weight;
-        _height = user.height;
-        _gender = user.gender;
-        _activityLevel = user.activityLevel;
-        _dailyWaterGoal = user.dailyWaterGoal;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final userData = await _cloudSyncService.getUserData(user.uid);
+
+      if (userData != null) {
+        _firstName = userData['firstName'] ?? '';
+        _lastName = userData['lastName'] ?? '';
+        _age = userData['age'] ?? 0;
+        _weight = (userData['weight'] ?? 0.0).toDouble();
+        _height = (userData['height'] ?? 0.0).toDouble();
+        _gender = userData['gender'] ?? 'male';
+        _activityLevel = userData['activityLevel'] ?? 'medium';
+        _dailyWaterGoal = (userData['dailyWaterGoal'] ?? 2000.0).toDouble();
+        _isFirstTime = userData['isFirstTime'] ?? true;
         notifyListeners();
       }
     } catch (e) {
+      _setError('Kullanıcı verisi yükleme hatası: $e');
       print('❌ Kullanıcı verisi yükleme hatası: $e');
+    } finally {
+      _setLoading(false);
     }
   }
 
-  /// Kullanıcı verilerini kaydet
+  /// Kullanıcı verilerini Firebase'e kaydet
   Future<void> _saveUserData() async {
     try {
-      final user = UserModel(
-        firstName: _firstName,
-        lastName: _lastName,
-        age: _age,
-        weight: _weight,
-        height: _height,
-        gender: _gender,
-        activityLevel: _activityLevel,
-        dailyWaterGoal: _dailyWaterGoal,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      _setLoading(true);
+      _clearError();
 
-      await _hiveService.saveUser(user);
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('Kullanıcı oturum açmamış');
+      }
+
+      final userData = {
+        'firstName': _firstName,
+        'lastName': _lastName,
+        'age': _age,
+        'weight': _weight,
+        'height': _height,
+        'gender': _gender,
+        'activityLevel': _activityLevel,
+        'dailyWaterGoal': _dailyWaterGoal,
+        'isFirstTime': _isFirstTime,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+
+      await _cloudSyncService.saveUserData(user.uid, userData);
     } catch (e) {
+      _setError('Kullanıcı verisi kaydetme hatası: $e');
       print('❌ Kullanıcı verisi kaydetme hatası: $e');
       rethrow;
+    } finally {
+      _setLoading(false);
     }
   }
 
-  // Setters
+  /// Kişisel bilgileri güncelle
   Future<void> updatePersonalInfo({
     required String firstName,
     required String lastName,
@@ -105,22 +135,38 @@ class UserProvider extends ChangeNotifier {
     );
 
     await _saveUserData();
+
+    // WaterProvider'ı hedef değişikliği hakkında bilgilendir
+    _onGoalUpdated?.call();
+
     notifyListeners();
   }
 
+  /// Günlük su hedefini güncelle
   Future<void> setDailyWaterGoal(double goal) async {
     _dailyWaterGoal = goal;
     await _saveUserData();
+
+    // WaterProvider'ı hedef değişikliği hakkında bilgilendir
+    _onGoalUpdated?.call();
+
     notifyListeners();
   }
 
+  /// İlk kez setup'ı tamamla
   Future<void> completeFirstTime() async {
-    _isFirstTime = false;
-    await _hiveService.markFirstTimeComplete();
-    notifyListeners();
+    try {
+      _isFirstTime = false;
+      await _saveUserData();
+      notifyListeners();
+    } catch (e) {
+      _setError('İlk kez tamamlama hatası: $e');
+      print('❌ İlk kez tamamlama hatası: $e');
+      rethrow;
+    }
   }
 
-  /// Kullanıcı verilerini temizle
+  /// Kullanıcı verilerini temizle (çıkış yapıldığında)
   Future<void> clearUserData() async {
     _firstName = '';
     _lastName = '';
@@ -131,6 +177,32 @@ class UserProvider extends ChangeNotifier {
     _activityLevel = 'medium';
     _dailyWaterGoal = 2000.0;
     _isFirstTime = true;
+    _isLoading = false;
+    _errorMessage = null;
     notifyListeners();
+  }
+
+  /// Auth durumu değiştiğinde çağır
+  Future<void> onAuthStateChanged(User? user) async {
+    if (user != null) {
+      await loadUserData();
+    } else {
+      await clearUserData();
+    }
+  }
+
+  // Helper methods
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  void _setError(String error) {
+    _errorMessage = error;
+    notifyListeners();
+  }
+
+  void _clearError() {
+    _errorMessage = null;
   }
 }
