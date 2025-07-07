@@ -247,8 +247,8 @@ class ProfileScreen extends StatelessWidget {
                   ).pushNamedAndRemoveUntil('/login', (route) => false);
                 }
               },
-              child: const Text('Çıkış Yap'),
               style: TextButton.styleFrom(foregroundColor: AppTheme.errorColor),
+              child: const Text('Çıkış Yap'),
             ),
           ],
         );

@@ -59,20 +59,26 @@ class _SplashScreenState extends State<SplashScreen>
       try {
         await userProvider.loadUserData();
 
-        if (userProvider.isFirstTime) {
-          // İlk kez giriş yapan kullanıcı → Onboarding
-          Navigator.of(context).pushReplacementNamed('/onboarding');
-        } else {
-          // Mevcut kullanıcı → Ana sayfa
-          Navigator.of(context).pushReplacementNamed('/home');
+        if (mounted) {
+          if (userProvider.isFirstTime) {
+            // İlk kez giriş yapan kullanıcı → Onboarding
+            Navigator.of(context).pushReplacementNamed('/onboarding');
+          } else {
+            // Mevcut kullanıcı → Ana sayfa
+            Navigator.of(context).pushReplacementNamed('/home');
+          }
         }
       } catch (e) {
         // Kullanıcı verisi yüklenemedi → Onboarding'e gönder
-        Navigator.of(context).pushReplacementNamed('/onboarding');
+        if (mounted) {
+          Navigator.of(context).pushReplacementNamed('/onboarding');
+        }
       }
     } else {
       // Kullanıcı giriş yapmamış → Login ekranı
-      Navigator.of(context).pushReplacementNamed('/login');
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/login');
+      }
     }
   }
 
@@ -84,95 +90,107 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Logo animasyonu
-              AnimatedBuilder(
-                animation: _animationController,
-                builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: ScaleTransition(
-                      scale: _scaleAnimation,
-                      child: Container(
-                        width: 120,
-                        height: 120,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
-                              blurRadius: 20,
-                              offset: const Offset(0, 10),
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        // Auth state değişikliğini dinle
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!authProvider.isSignedIn && mounted) {
+            // Eğer çıkış yapıldıysa login ekranına git
+            Navigator.of(context).pushReplacementNamed('/login');
+          }
+        });
+
+        return Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo animasyonu
+                  AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: ScaleTransition(
+                          scale: _scaleAnimation,
+                          child: Container(
+                            width: 120,
+                            height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.2),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                             ),
-                          ],
+                            child: const Icon(
+                              Icons.water_drop,
+                              size: 60,
+                              color: AppTheme.primaryBlue,
+                            ),
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.water_drop,
-                          size: 60,
-                          color: AppTheme.primaryBlue,
-                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Uygulama adı
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const Text(
+                      'Su Takip',
+                      style: TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 2,
                       ),
                     ),
-                  );
-                },
-              ),
-
-              const SizedBox(height: 30),
-
-              // Uygulama adı
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Text(
-                  'Su Takip',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 2,
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 10),
+                  const SizedBox(height: 10),
 
-              // Alt başlık
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const Text(
-                  'Sağlıklı yaşamın anahtarı',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                    letterSpacing: 1,
+                  // Alt başlık
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const Text(
+                      'Sağlıklı yaşamın anahtarı',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                        letterSpacing: 1,
+                      ),
+                    ),
                   ),
-                ),
-              ),
 
-              const SizedBox(height: 50),
+                  const SizedBox(height: 50),
 
-              // Yükleniyor animasyonu
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: const SizedBox(
-                  width: 40,
-                  height: 40,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 3,
+                  // Yükleniyor animasyonu
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 3,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

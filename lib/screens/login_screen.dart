@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   borderRadius: BorderRadius.circular(60),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.withOpacity(0.3),
+                      color: Colors.blue.withValues(alpha: 0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -72,10 +72,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton.icon(
                   onPressed: _isLoading ? null : _signInWithGoogle,
                   icon: _isLoading
-                      ? Container(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
-                          child: const CircularProgressIndicator(
+                          child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               Colors.white,
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
                     elevation: 3,
-                    shadowColor: Colors.blue.withOpacity(0.3),
+                    shadowColor: Colors.blue.withValues(alpha: 0.3),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -151,7 +151,7 @@ class _LoginScreenState extends State<LoginScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: Colors.blue.withOpacity(0.1),
+            color: Colors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: Colors.blue, size: 20),
@@ -196,13 +196,15 @@ class _LoginScreenState extends State<LoginScreen> {
         // Kullanıcı verilerini yükle
         await userProvider.loadUserData();
 
-        // Başarılı giriş sonrası yönlendirme
-        if (userProvider.isFirstTime) {
-          // Yeni kullanıcı → Onboarding'e git
-          Navigator.of(context).pushReplacementNamed('/onboarding');
-        } else {
-          // Mevcut kullanıcı → Ana sayfaya git
-          Navigator.of(context).pushReplacementNamed('/home');
+        // Başarılı giriş sonrası yönlendirme - mounted kontrolü
+        if (mounted) {
+          if (userProvider.isFirstTime) {
+            // Yeni kullanıcı → Onboarding'e git
+            Navigator.of(context).pushReplacementNamed('/onboarding');
+          } else {
+            // Mevcut kullanıcı → Ana sayfaya git
+            Navigator.of(context).pushReplacementNamed('/home');
+          }
         }
       }
     } catch (e) {

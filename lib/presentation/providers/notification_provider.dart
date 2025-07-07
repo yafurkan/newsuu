@@ -3,6 +3,7 @@ import '../../data/services/notification_service.dart';
 import '../../data/services/cloud_sync_service.dart';
 import '../../data/models/notification_settings_model.dart';
 import '../../core/constants/notification_messages.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Bildirim ayarlarını yöneten Provider sınıfı (Firebase entegreli)
 class NotificationProvider extends ChangeNotifier {
@@ -35,12 +36,18 @@ class NotificationProvider extends ChangeNotifier {
 
       if (firebaseSettings != null) {
         _settings = firebaseSettings;
-        print('✅ Bildirim ayarları Firebase\'den yüklendi');
+        DebugLogger.info(
+          '✅ Bildirim ayarları Firebase\'den yüklendi',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       } else {
         // Varsayılan ayarları kullan ve Firebase'e kaydet
         _settings = NotificationSettings();
         await _cloudSyncService.saveNotificationSettings(_settings);
-        print('✅ Varsayılan bildirim ayarları Firebase\'e kaydedildi');
+        DebugLogger.info(
+          '✅ Varsayılan bildirim ayarları Firebase\'e kaydedildi',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
 
       // Bildirimleri ayarla
@@ -48,7 +55,10 @@ class NotificationProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _setError('Bildirim ayarları yükleme hatası: $e');
-      print('❌ Bildirim ayarları yükleme hatası: $e');
+      DebugLogger.info(
+        '❌ Bildirim ayarları yükleme hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } finally {
       _setLoading(false);
     }
@@ -62,10 +72,16 @@ class NotificationProvider extends ChangeNotifier {
 
       // Firebase'e kaydet
       await _cloudSyncService.saveNotificationSettings(_settings);
-      print('💾 Bildirim ayarları Firebase\'e kaydedildi');
+      DebugLogger.info(
+        '💾 Bildirim ayarları Firebase\'e kaydedildi',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } catch (e) {
       _setError('Bildirim ayarları kaydetme hatası: $e');
-      print('❌ Bildirim ayarları kaydetme hatası: $e');
+      DebugLogger.info(
+        '❌ Bildirim ayarları kaydetme hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } finally {
       _setLoading(false);
     }
@@ -88,7 +104,10 @@ class NotificationProvider extends ChangeNotifier {
       if (_settings.isEnabled && _settings.intervalEnabled) {
         // Sıklık bazlı bildirimler (yalnızca intervalEnabled true ise)
         await _notificationService.scheduleRepeatingNotifications(_settings);
-        print('📅 Sıklık bazlı bildirimler planlandı');
+        DebugLogger.info(
+          '📅 Sıklık bazlı bildirimler planlandı',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
 
       // Akıllı günlük bildirimler (sıklık açık olmasa da çalışır)
@@ -96,17 +115,26 @@ class NotificationProvider extends ChangeNotifier {
           _settings.afternoonEnabled ||
           _settings.eveningEnabled) {
         await _scheduleDailySmartNotifications();
-        print('🧠 Akıllı günlük bildirimler planlandı');
+        DebugLogger.info(
+          '🧠 Akıllı günlük bildirimler planlandı',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
 
       if (!_settings.isEnabled &&
           !_settings.morningEnabled &&
           !_settings.afternoonEnabled &&
           !_settings.eveningEnabled) {
-        print('🔕 Tüm bildirimler iptal edildi');
+        DebugLogger.info(
+          '🔕 Tüm bildirimler iptal edildi',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
     } catch (e) {
-      print('❌ Bildirim planlama hatası: $e');
+      DebugLogger.info(
+        '❌ Bildirim planlama hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     }
   }
 
@@ -167,9 +195,15 @@ class NotificationProvider extends ChangeNotifier {
         body: 'Bildirim sistemi çalışıyor! Su içmeyi unutma! 😊',
         payload: 'test_notification',
       );
-      print('✅ Test bildirimi gönderildi');
+      DebugLogger.info(
+        '✅ Test bildirimi gönderildi',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } catch (e) {
-      print('❌ Test bildirimi hatası: $e');
+      DebugLogger.info(
+        '❌ Test bildirimi hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
       rethrow;
     }
   }
@@ -214,10 +248,16 @@ class NotificationProvider extends ChangeNotifier {
       await _scheduleNotifications();
       notifyListeners();
 
-      print('🗑️ Bildirim ayarları Firebase\'den silindi');
+      DebugLogger.info(
+        '🗑️ Bildirim ayarları Firebase\'den silindi',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } catch (e) {
       _setError('Bildirim ayarları silme hatası: $e');
-      print('❌ Bildirim ayarları silme hatası: $e');
+      DebugLogger.info(
+        '❌ Bildirim ayarları silme hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } finally {
       _setLoading(false);
     }
@@ -242,8 +282,9 @@ class NotificationProvider extends ChangeNotifier {
     if (!_settings.morningEnabled &&
         !_settings.afternoonEnabled &&
         !_settings.eveningEnabled) {
-      print(
-        '⏸️ Özel zaman dilimleri kapalı, günlük akıllı bildirimler planlanmadı',
+      DebugLogger.info(
+        'Özel zaman dilimleri kapalı, günlük akıllı bildirimler planlanmadı',
+        tag: 'NOTIFICATION_PROVIDER',
       );
       return;
     }
@@ -263,7 +304,10 @@ class NotificationProvider extends ChangeNotifier {
           title: notifications['morning']!['title']!,
           body: notifications['morning']!['message']!,
         );
-        print('🌅 Sabah akıllı bildirimi zamanlandı: 09:00');
+        DebugLogger.info(
+          '🌅 Sabah akıllı bildirimi zamanlandı: 09:00',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
 
       // Öğle bildirimi (14:00)
@@ -275,7 +319,10 @@ class NotificationProvider extends ChangeNotifier {
           title: notifications['afternoon']!['title']!,
           body: notifications['afternoon']!['message']!,
         );
-        print('🌞 Öğle akıllı bildirimi zamanlandı: 14:00');
+        DebugLogger.info(
+          '🌞 Öğle akıllı bildirimi zamanlandı: 14:00',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
 
       // Akşam bildirimi (20:00)
@@ -287,12 +334,21 @@ class NotificationProvider extends ChangeNotifier {
           title: notifications['evening']!['title']!,
           body: notifications['evening']!['message']!,
         );
-        print('🌆 Akşam akıllı bildirimi zamanlandı: 20:00');
+        DebugLogger.info(
+          '🌆 Akşam akıllı bildirimi zamanlandı: 20:00',
+          tag: 'NOTIFICATION_PROVIDER',
+        );
       }
 
-      print('✅ Günlük akıllı bildirimler başarıyla zamanlandı');
+      DebugLogger.info(
+        '✅ Günlük akıllı bildirimler başarıyla zamanlandı',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } catch (e) {
-      print('❌ Günlük akıllı bildirim zamanlama hatası: $e');
+      DebugLogger.info(
+        '❌ Günlük akıllı bildirim zamanlama hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     }
   }
 
@@ -313,7 +369,10 @@ class NotificationProvider extends ChangeNotifier {
         payload: 'smart_daily_$id',
       );
     } catch (e) {
-      print('❌ Zaman tabanlı bildirim zamanlama hatası: $e');
+      DebugLogger.info(
+        '❌ Zaman tabanlı bildirim zamanlama hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     }
   }
 
@@ -353,9 +412,15 @@ class NotificationProvider extends ChangeNotifier {
         payload: 'smart_test',
       );
 
-      print('✅ Akıllı test bildirimi gönderildi: $smartMessage');
+      DebugLogger.info(
+        '✅ Akıllı test bildirimi gönderildi: $smartMessage',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     } catch (e) {
-      print('❌ Akıllı test bildirimi hatası: $e');
+      DebugLogger.info(
+        '❌ Akıllı test bildirimi hatası: $e',
+        tag: 'NOTIFICATION_PROVIDER',
+      );
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Firebase Authentication ve Google Sign-In servisi
 class AuthService {
@@ -47,14 +48,17 @@ class AuthService {
         credential,
       );
 
-      print('🔥 Firebase giris basarili: ${userCredential.user?.email}');
+      DebugLogger.success(
+        'Firebase giris basarili: ${userCredential.user?.email}',
+        tag: 'AUTH',
+      );
 
       // Kullanici profilini Firestore'da olustur/guncelle
       await _createUserProfile(userCredential.user!);
 
       return userCredential;
     } catch (e) {
-      print('❌ Google giris hatasi: $e');
+      DebugLogger.error('Google giris hatasi: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -62,13 +66,13 @@ class AuthService {
   /// Cikis yap
   Future<void> signOut() async {
     try {
-      print('🔐 Cikis yapiliyor...');
+      DebugLogger.info('Cikis yapiliyor...', tag: 'AUTH');
 
       await Future.wait([_auth.signOut(), _googleSignIn.signOut()]);
 
-      print('✅ Basariyla cikis yapildi');
+      DebugLogger.success('Basariyla cikis yapildi', tag: 'AUTH');
     } catch (e) {
-      print('❌ Cikis hatasi: $e');
+      DebugLogger.error('Cikis hatasi: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -91,14 +95,14 @@ class AuthService {
         };
 
         await userDoc.set(userProfile);
-        print('✅ Yeni kullanici profili olusturuldu');
+        DebugLogger.success('Yeni kullanici profili olusturuldu', tag: 'AUTH');
       } else {
         // Mevcut kullanici son giris zamanini guncelle
         await userDoc.update({'lastLoginAt': FieldValue.serverTimestamp()});
-        print('🔄 Kullanici son giris zamani guncellendi');
+        DebugLogger.info('Kullanici son giris zamani guncellendi', tag: 'AUTH');
       }
     } catch (e) {
-      print('❌ Kullanici profili olusturma hatasi: $e');
+      DebugLogger.error('Kullanici profili olusturma hatasi: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -109,9 +113,9 @@ class AuthService {
       if (!isSignedIn) return;
 
       await currentUser!.verifyBeforeUpdateEmail(newEmail);
-      print('✅ Email guncelleme dogrulama gonderildi');
+      DebugLogger.success('Email guncelleme dogrulama gonderildi', tag: 'AUTH');
     } catch (e) {
-      print('❌ Email guncelleme hatasi: $e');
+      DebugLogger.error('Email guncelleme hatasi: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -133,9 +137,9 @@ class AuthService {
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      print('✅ Kullanici profili guncellendi');
+      DebugLogger.success('Kullanici profili guncellendi', tag: 'AUTH');
     } catch (e) {
-      print('❌ Kullanici profili guncelleme hatasi: $e');
+      DebugLogger.error('Kullanici profili guncelleme hatasi: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -143,20 +147,20 @@ class AuthService {
   /// Email ve şifre ile kayıt ol
   Future<bool> signUpWithEmailAndPassword(String email, String password) async {
     try {
-      print('📧 Email ile kayıt başlatılıyor: $email');
+      DebugLogger.info('Email ile kayıt başlatılıyor: $email', tag: 'AUTH');
 
       final UserCredential userCredential = await _auth
           .createUserWithEmailAndPassword(email: email, password: password);
 
       if (userCredential.user != null) {
         await _createUserProfile(userCredential.user!);
-        print('✅ Email ile kayıt başarılı');
+        DebugLogger.success('Email ile kayıt başarılı', tag: 'AUTH');
         return true;
       }
 
       return false;
     } catch (e) {
-      print('❌ Email ile kayıt hatası: $e');
+      DebugLogger.error('Email ile kayıt hatası: $e', tag: 'AUTH');
       return false;
     }
   }
@@ -164,20 +168,20 @@ class AuthService {
   /// Email ve şifre ile giriş yap
   Future<bool> signInWithEmailAndPassword(String email, String password) async {
     try {
-      print('📧 Email ile giriş başlatılıyor: $email');
+      DebugLogger.info('Email ile giriş başlatılıyor: $email', tag: 'AUTH');
 
       final UserCredential userCredential = await _auth
           .signInWithEmailAndPassword(email: email, password: password);
 
       if (userCredential.user != null) {
         await _createUserProfile(userCredential.user!);
-        print('✅ Email ile giriş başarılı');
+        DebugLogger.success('Email ile giriş başarılı', tag: 'AUTH');
         return true;
       }
 
       return false;
     } catch (e) {
-      print('❌ Email ile giriş hatası: $e');
+      DebugLogger.error('Email ile giriş hatası: $e', tag: 'AUTH');
       return false;
     }
   }
@@ -185,13 +189,16 @@ class AuthService {
   /// Şifre sıfırlama e-postası gönder
   Future<void> resetPassword(String email) async {
     try {
-      print('📧 Şifre sıfırlama e-postası gönderiliyor: $email');
+      DebugLogger.info(
+        'Şifre sıfırlama e-postası gönderiliyor: $email',
+        tag: 'AUTH',
+      );
 
       await _auth.sendPasswordResetEmail(email: email);
 
-      print('✅ Şifre sıfırlama e-postası gönderildi');
+      DebugLogger.success('Şifre sıfırlama e-postası gönderildi', tag: 'AUTH');
     } catch (e) {
-      print('❌ Şifre sıfırlama hatası: $e');
+      DebugLogger.error('Şifre sıfırlama hatası: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -199,7 +206,7 @@ class AuthService {
   /// Hesap sil
   Future<void> deleteAccount() async {
     try {
-      print('🗑️ Hesap siliniyor...');
+      DebugLogger.info('Hesap siliniyor...', tag: 'AUTH');
 
       final user = currentUser;
       if (user != null) {
@@ -209,10 +216,10 @@ class AuthService {
         // Firebase Auth'dan hesabı sil
         await user.delete();
 
-        print('✅ Hesap başarıyla silindi');
+        DebugLogger.success('Hesap başarıyla silindi', tag: 'AUTH');
       }
     } catch (e) {
-      print('❌ Hesap silme hatası: $e');
+      DebugLogger.error('Hesap silme hatası: $e', tag: 'AUTH');
       rethrow;
     }
   }
@@ -239,10 +246,10 @@ class AuthService {
       // Firebase Authentication'dan hesabi sil
       await currentUser!.delete();
 
-      print('✅ Hesap basariyla silindi');
+      DebugLogger.success('Hesap basariyla silindi', tag: 'AUTH');
       return true;
     } catch (e) {
-      print('❌ Hesap silme hatasi: $e');
+      DebugLogger.error('Hesap silme hatasi: $e', tag: 'AUTH');
       return false;
     }
   }
@@ -280,9 +287,12 @@ class AuthService {
       // Batch islemini commit et
       await batch.commit();
 
-      print('🗑️ Kullanici verileri Firestore\'dan silindi');
+      DebugLogger.info(
+        'Kullanici verileri Firestore\'dan silindi',
+        tag: 'AUTH',
+      );
     } catch (e) {
-      print('❌ Kullanici verilerini silme hatasi: $e');
+      DebugLogger.error('Kullanici verilerini silme hatasi: $e', tag: 'AUTH');
       rethrow;
     }
   }

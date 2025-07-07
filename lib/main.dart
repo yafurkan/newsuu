@@ -15,11 +15,15 @@ import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'core/utils/debug_logger.dart';
 
 // Background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('Background message received: ${message.messageId}');
+  DebugLogger.info(
+    'Background message received: ${message.messageId}',
+    tag: 'MAIN',
+  );
 }
 
 void main() async {
@@ -46,7 +50,7 @@ void main() async {
       ),
     );
   } catch (e) {
-    print('Firebase initialization error: $e');
+    DebugLogger.error('Firebase initialization error: $e', tag: 'MAIN');
     // Firebase hatası olsa da normal uygulamayı çalıştır
 
     // Basit servisler oluştur
@@ -66,11 +70,14 @@ Future<void> _initializeFirebase() async {
   try {
     // Önce tüm mevcut Firebase app'larını listele
     final apps = Firebase.apps;
-    print('Existing Firebase apps: ${apps.length}');
+    DebugLogger.info('Existing Firebase apps: ${apps.length}', tag: 'MAIN');
 
     // Eğer DEFAULT app varsa onu kullan
     if (apps.any((app) => app.name == '[DEFAULT]')) {
-      print('DEFAULT Firebase app already exists, using it.');
+      DebugLogger.info(
+        'DEFAULT Firebase app already exists, using it.',
+        tag: 'MAIN',
+      );
       return;
     }
 
@@ -82,9 +89,9 @@ Future<void> _initializeFirebase() async {
     // Background message handler'ı kaydet
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-    print('Firebase initialized successfully');
+    DebugLogger.success('Firebase initialized successfully', tag: 'MAIN');
   } catch (e) {
-    print('Firebase initialization failed: $e');
+    DebugLogger.error('Firebase initialization failed: $e', tag: 'MAIN');
     rethrow;
   }
 }
@@ -123,12 +130,14 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       // Uygulama ön plana geldiğinde günlük geçişi kontrol et
       // Provider'ı güvenli şekilde alabilmek için try-catch kullan
-      try {
-        final waterProvider = context.read<WaterProvider>();
-        waterProvider.refreshData();
-      } catch (e) {
-        print('WaterProvider bulunamadı: $e');
-      }
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          final waterProvider = context.read<WaterProvider>();
+          waterProvider.refreshData();
+        } catch (e) {
+          DebugLogger.error('WaterProvider bulunamadı: $e', tag: 'MAIN');
+        }
+      });
     }
   }
 

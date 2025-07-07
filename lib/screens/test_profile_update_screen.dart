@@ -155,34 +155,50 @@ class _TestProfileUpdateScreenState extends State<TestProfileUpdateScreen> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
-                      final age = int.tryParse(_ageController.text) ?? 25;
-                      final weight =
-                          double.tryParse(_weightController.text) ?? 70.0;
-                      final height =
-                          double.tryParse(_heightController.text) ?? 170.0;
+                      final context = this.context;
+                      try {
+                        final age = int.tryParse(_ageController.text) ?? 25;
+                        final weight =
+                            double.tryParse(_weightController.text) ?? 70.0;
+                        final height =
+                            double.tryParse(_heightController.text) ?? 170.0;
 
-                      await userProvider.updatePersonalInfo(
-                        firstName: userProvider.firstName.isNotEmpty
-                            ? userProvider.firstName
-                            : 'Test',
-                        lastName: userProvider.lastName.isNotEmpty
-                            ? userProvider.lastName
-                            : 'User',
-                        age: age,
-                        weight: weight,
-                        height: height,
-                        gender: _selectedGender,
-                        activityLevel: _selectedActivity,
-                      );
+                        await userProvider.updatePersonalInfo(
+                          firstName: userProvider.firstName.isNotEmpty
+                              ? userProvider.firstName
+                              : 'Test',
+                          lastName: userProvider.lastName.isNotEmpty
+                              ? userProvider.lastName
+                              : 'User',
+                          age: age,
+                          weight: weight,
+                          height: height,
+                          gender: _selectedGender,
+                          activityLevel: _selectedActivity,
+                        );
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Profil güncellendi! Su hedefi otomatik hesaplandı.',
-                          ),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
+                        if (mounted) {
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Profil güncellendi! Su hedefi otomatik hesaplandı.',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          // ignore: use_build_context_synchronously
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Hata: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,

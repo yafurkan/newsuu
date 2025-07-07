@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/services/auth_service.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Authentication state management provider
 class AuthProvider extends ChangeNotifier {
@@ -45,7 +46,10 @@ class AuthProvider extends ChangeNotifier {
         _isSignedIn = true;
         _userId = _authService.currentUserId;
         _userEmail = _authService.currentUserEmail;
-        print('✅ AuthProvider: Giriş başarılı');
+        DebugLogger.success(
+          'AuthProvider: Giriş başarılı',
+          tag: 'AUTH_PROVIDER',
+        );
       }
 
       return success;
@@ -72,7 +76,10 @@ class AuthProvider extends ChangeNotifier {
         _isSignedIn = true;
         _userId = _authService.currentUserId;
         _userEmail = _authService.currentUserEmail;
-        print('✅ AuthProvider: Kayıt başarılı');
+        DebugLogger.success(
+          'AuthProvider: Kayıt başarılı',
+          tag: 'AUTH_PROVIDER',
+        );
       }
 
       return success;
@@ -96,7 +103,7 @@ class AuthProvider extends ChangeNotifier {
       _userId = null;
       _userEmail = null;
 
-      print('✅ AuthProvider: Çıkış başarılı');
+      DebugLogger.success('AuthProvider: Çıkış başarılı', tag: 'AUTH_PROVIDER');
       notifyListeners(); // Bu satır eksikti!
     } catch (e) {
       _setError('Çıkış yapılamadı: $e');
@@ -154,7 +161,10 @@ class AuthProvider extends ChangeNotifier {
         _isSignedIn = true;
         _userId = _authService.currentUserId;
         _userEmail = _authService.currentUserEmail;
-        print('✅ AuthProvider: Google ile giriş başarılı');
+        DebugLogger.success(
+          'AuthProvider: Google ile giriş başarılı',
+          tag: 'AUTH_PROVIDER',
+        );
         return true;
       }
 

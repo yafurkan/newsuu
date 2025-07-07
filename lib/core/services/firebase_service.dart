@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../firebase_options.dart';
+import '../utils/debug_logger.dart';
 
 /// Firebase servislerini yöneten singleton sınıf
 class FirebaseService {
@@ -37,7 +38,7 @@ class FirebaseService {
 
       _isInitialized = true;
     } catch (e) {
-      print('Firebase initialization error: $e');
+      DebugLogger.error('Firebase initialization error: $e', tag: 'FIREBASE');
       rethrow;
     }
   }
@@ -52,10 +53,16 @@ class FirebaseService {
 
       // Foreground message handler'ı kaydet
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        print('Foreground message received: ${message.messageId}');
+        DebugLogger.info(
+          'Foreground message received: ${message.messageId}',
+          tag: 'FIREBASE',
+        );
       });
     } catch (e) {
-      print('Firebase Messaging initialization error: $e');
+      DebugLogger.error(
+        'Firebase Messaging initialization error: $e',
+        tag: 'FIREBASE',
+      );
     }
   }
 
@@ -64,7 +71,7 @@ class FirebaseService {
     try {
       await Permission.notification.request();
     } catch (e) {
-      print('Permission request error: $e');
+      DebugLogger.error('Permission request error: $e', tag: 'FIREBASE');
     }
   }
 
@@ -75,5 +82,8 @@ class FirebaseService {
 /// Background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  print('Background message received: ${message.messageId}');
+  DebugLogger.info(
+    'Background message received: ${message.messageId}',
+    tag: 'FIREBASE',
+  );
 }

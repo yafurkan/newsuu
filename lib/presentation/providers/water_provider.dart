@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/services/cloud_sync_service.dart';
 import '../../data/models/water_intake_model.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Su tüketim verilerini yöneten Provider sınıfı (Firebase entegreli)
 class WaterProvider extends ChangeNotifier {
@@ -40,12 +41,18 @@ class WaterProvider extends ChangeNotifier {
       final intakes = await _cloudSyncService.getDailyWaterIntake(today);
 
       _todayIntakes = intakes;
-      print('✅ Bugünün su verileri yüklendi: ${_todayIntakes.length} kayıt');
+      DebugLogger.info(
+        '✅ Bugünün su verileri yüklendi: ${_todayIntakes.length} kayıt',
+        tag: 'WATER_PROVIDER',
+      );
 
       notifyListeners();
     } catch (e) {
       _setError('Su verileri yüklenirken hata: $e');
-      print('❌ Su verileri yükleme hatası: $e');
+      DebugLogger.info(
+        '❌ Su verileri yükleme hatası: $e',
+        tag: 'WATER_PROVIDER',
+      );
     } finally {
       _setLoading(false);
     }
@@ -72,12 +79,18 @@ class WaterProvider extends ChangeNotifier {
       // Firebase'e kaydet
       await _cloudSyncService.syncDailyWaterIntake(now, _todayIntakes);
 
-      print('✅ Su tüketimi eklendi: ${amount}ml');
+      DebugLogger.info(
+        '✅ Su tüketimi eklendi: ${amount}ml',
+        tag: 'WATER_PROVIDER',
+      );
     } catch (e) {
       // Hata durumunda local state'i geri al
       _todayIntakes.removeLast();
       _setError('Su tüketimi eklenirken hata: $e');
-      print('❌ Su tüketimi ekleme hatası: $e');
+      DebugLogger.info(
+        '❌ Su tüketimi ekleme hatası: $e',
+        tag: 'WATER_PROVIDER',
+      );
       notifyListeners();
     } finally {
       _setLoading(false);
@@ -104,7 +117,7 @@ class WaterProvider extends ChangeNotifier {
         _todayIntakes,
       );
 
-      print('✅ Su tüketimi silindi');
+      DebugLogger.info('✅ Su tüketimi silindi', tag: 'WATER_PROVIDER');
     } catch (e) {
       // Hata durumunda local state'i geri al
       final index = _todayIntakes.indexWhere((intake) => intake.id == intakeId);
@@ -120,7 +133,7 @@ class WaterProvider extends ChangeNotifier {
         );
       }
       _setError('Su tüketimi silinirken hata: $e');
-      print('❌ Su tüketimi silme hatası: $e');
+      DebugLogger.info('❌ Su tüketimi silme hatası: $e', tag: 'WATER_PROVIDER');
       notifyListeners();
     } finally {
       _setLoading(false);
@@ -133,10 +146,16 @@ class WaterProvider extends ChangeNotifier {
       _dailyGoal = newGoal;
       notifyListeners();
 
-      print('✅ Günlük hedef güncellendi: ${newGoal}ml');
+      DebugLogger.info(
+        '✅ Günlük hedef güncellendi: ${newGoal}ml',
+        tag: 'WATER_PROVIDER',
+      );
     } catch (e) {
       _setError('Günlük hedef güncellenirken hata: $e');
-      print('❌ Günlük hedef güncelleme hatası: $e');
+      DebugLogger.info(
+        '❌ Günlük hedef güncelleme hatası: $e',
+        tag: 'WATER_PROVIDER',
+      );
     }
   }
 
@@ -163,7 +182,10 @@ class WaterProvider extends ChangeNotifier {
       if (now.day != lastIntakeDate.day ||
           now.month != lastIntakeDate.month ||
           now.year != lastIntakeDate.year) {
-        print('📅 Gün değişti, veriler yenileniyor...');
+        DebugLogger.info(
+          '📅 Gün değişti, veriler yenileniyor...',
+          tag: 'WATER_PROVIDER',
+        );
         _loadTodayIntakes();
       }
     }
@@ -174,7 +196,7 @@ class WaterProvider extends ChangeNotifier {
     try {
       return await _cloudSyncService.getDailyWaterIntake(date);
     } catch (e) {
-      print('❌ Tarih verisi alma hatası: $e');
+      DebugLogger.info('❌ Tarih verisi alma hatası: $e', tag: 'WATER_PROVIDER');
       return null;
     }
   }
@@ -187,7 +209,10 @@ class WaterProvider extends ChangeNotifier {
     try {
       return await _cloudSyncService.getWaterIntakeRange(start, end);
     } catch (e) {
-      print('❌ Tarih aralığı verisi alma hatası: $e');
+      DebugLogger.info(
+        '❌ Tarih aralığı verisi alma hatası: $e',
+        tag: 'WATER_PROVIDER',
+      );
       return null;
     }
   }
@@ -201,10 +226,10 @@ class WaterProvider extends ChangeNotifier {
       _todayIntakes.clear();
       notifyListeners();
 
-      print('✅ Tüm su verileri temizlendi');
+      DebugLogger.info('✅ Tüm su verileri temizlendi', tag: 'WATER_PROVIDER');
     } catch (e) {
       _setError('Veriler temizlenirken hata: $e');
-      print('❌ Veri temizleme hatası: $e');
+      DebugLogger.info('❌ Veri temizleme hatası: $e', tag: 'WATER_PROVIDER');
     } finally {
       _setLoading(false);
     }

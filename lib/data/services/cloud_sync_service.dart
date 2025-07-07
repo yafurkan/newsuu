@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/water_intake_model.dart';
 import '../models/user_model.dart';
 import '../models/notification_settings_model.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Firebase Firestore ile veri senkronizasyonu servisi
 class CloudSyncService {
@@ -32,9 +33,12 @@ class CloudSyncService {
             'lastSyncAt': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-      print('✅ Kullanıcı profili Cloud\'a sync edildi');
+      DebugLogger.success(
+        'Kullanıcı profili Cloud\'a sync edildi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Kullanıcı profili sync hatası: $e');
+      DebugLogger.error('Kullanıcı profili sync hatası: $e', tag: 'CLOUD_SYNC');
       rethrow;
     }
   }
@@ -57,7 +61,7 @@ class CloudSyncService {
       }
       return null;
     } catch (e) {
-      print('❌ Kullanıcı profili alma hatası: $e');
+      DebugLogger.error('Kullanıcı profili alma hatası: $e', tag: 'CLOUD_SYNC');
       return null;
     }
   }
@@ -93,9 +97,12 @@ class CloudSyncService {
           .doc(dateKey)
           .set(data, SetOptions(merge: true));
 
-      print('✅ $dateKey günlük su verisi Cloud\'a sync edildi');
+      DebugLogger.success(
+        '$dateKey günlük su verisi Cloud\'a sync edildi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Günlük su verisi sync hatası: $e');
+      DebugLogger.error('Günlük su verisi sync hatası: $e', tag: 'CLOUD_SYNC');
       rethrow;
     }
   }
@@ -128,7 +135,7 @@ class CloudSyncService {
       }
       return [];
     } catch (e) {
-      print('❌ Günlük su verisi alma hatası: $e');
+      DebugLogger.error('Günlük su verisi alma hatası: $e', tag: 'CLOUD_SYNC');
       return [];
     }
   }
@@ -171,10 +178,16 @@ class CloudSyncService {
         result[doc.id] = intakes;
       }
 
-      print('✅ ${result.length} günlük su verisi Cloud\'dan alındı');
+      DebugLogger.success(
+        '${result.length} günlük su verisi Cloud\'dan alındı',
+        tag: 'CLOUD_SYNC',
+      );
       return result;
     } catch (e) {
-      print('❌ Tarih aralığı su verisi alma hatası: $e');
+      DebugLogger.error(
+        'Tarih aralığı su verisi alma hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       return {};
     }
   }
@@ -196,9 +209,15 @@ class CloudSyncService {
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-      print('✅ Bildirim ayarları Cloud\'a kaydedildi');
+      DebugLogger.success(
+        'Bildirim ayarları Cloud\'a kaydedildi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Bildirim ayarları kaydetme hatası: $e');
+      DebugLogger.error(
+        'Bildirim ayarları kaydetme hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       rethrow;
     }
   }
@@ -221,7 +240,7 @@ class CloudSyncService {
       }
       return null;
     } catch (e) {
-      print('❌ Bildirim ayarları alma hatası: $e');
+      DebugLogger.error('Bildirim ayarları alma hatası: $e', tag: 'CLOUD_SYNC');
       return null;
     }
   }
@@ -238,9 +257,15 @@ class CloudSyncService {
           .doc('notifications')
           .delete();
 
-      print('✅ Bildirim ayarları Cloud\'dan silindi');
+      DebugLogger.success(
+        'Bildirim ayarları Cloud\'dan silindi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Bildirim ayarları silme hatası: $e');
+      DebugLogger.error(
+        'Bildirim ayarları silme hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       rethrow;
     }
   }
@@ -272,9 +297,12 @@ class CloudSyncService {
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-      print('✅ $monthKey aylık istatistikleri Cloud\'a sync edildi');
+      DebugLogger.success(
+        '$monthKey aylık istatistikleri Cloud\'a sync edildi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Aylık istatistik sync hatası: $e');
+      DebugLogger.error('Aylık istatistik sync hatası: $e', tag: 'CLOUD_SYNC');
       rethrow;
     }
   }
@@ -294,9 +322,15 @@ class CloudSyncService {
             'lastUpdated': FieldValue.serverTimestamp(),
           }, SetOptions(merge: true));
 
-      print('✅ Tüm zamanlar istatistikleri Cloud\'a sync edildi');
+      DebugLogger.success(
+        'Tüm zamanlar istatistikleri Cloud\'a sync edildi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Tüm zamanlar istatistik sync hatası: $e');
+      DebugLogger.error(
+        'Tüm zamanlar istatistik sync hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       rethrow;
     }
   }
@@ -319,7 +353,7 @@ class CloudSyncService {
 
       return doc.exists ? doc.data() : null;
     } catch (e) {
-      print('❌ Aylık istatistik alma hatası: $e');
+      DebugLogger.error('Aylık istatistik alma hatası: $e', tag: 'CLOUD_SYNC');
       return null;
     }
   }
@@ -338,7 +372,10 @@ class CloudSyncService {
 
       return doc.exists ? doc.data() : null;
     } catch (e) {
-      print('❌ Tüm zamanlar istatistik alma hatası: $e');
+      DebugLogger.error(
+        'Tüm zamanlar istatistik alma hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       return null;
     }
   }
@@ -351,12 +388,15 @@ class CloudSyncService {
       final doc = await _firestore.collection('users').doc(userId).get();
 
       if (doc.exists) {
-        print('✅ Kullanıcı verisi Cloud\'dan alındı');
+        DebugLogger.success(
+          'Kullanıcı verisi Cloud\'dan alındı',
+          tag: 'CLOUD_SYNC',
+        );
         return doc.data();
       }
       return null;
     } catch (e) {
-      print('❌ Kullanıcı verisi alma hatası: $e');
+      DebugLogger.error('Kullanıcı verisi alma hatası: $e', tag: 'CLOUD_SYNC');
       rethrow;
     }
   }
@@ -372,9 +412,15 @@ class CloudSyncService {
         'lastSyncAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      print('✅ Kullanıcı verisi Cloud\'a kaydedildi');
+      DebugLogger.success(
+        'Kullanıcı verisi Cloud\'a kaydedildi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Kullanıcı verisi kaydetme hatası: $e');
+      DebugLogger.error(
+        'Kullanıcı verisi kaydetme hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       rethrow;
     }
   }
@@ -403,9 +449,15 @@ class CloudSyncService {
       }
 
       await batch.commit();
-      print('🗑️ Tüm kullanıcı verileri Cloud\'dan silindi');
+      DebugLogger.success(
+        'Tüm kullanıcı verileri Cloud\'dan silindi',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Kullanıcı verileri silme hatası: $e');
+      DebugLogger.error(
+        'Kullanıcı verileri silme hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       rethrow;
     }
   }
@@ -413,19 +465,31 @@ class CloudSyncService {
   /// Çevrimdışı verilerle Cloud verileri senkronize et
   Future<void> performFullSync() async {
     if (!isUserSignedIn) {
-      print('⚠️ Kullanıcı giriş yapmamış, sync atlanıyor');
+      DebugLogger.warning(
+        'Kullanıcı giriş yapmamış, sync atlanıyor',
+        tag: 'CLOUD_SYNC',
+      );
       return;
     }
 
     try {
-      print('🔄 Tam veri senkronizasyonu başlatılıyor...');
+      DebugLogger.info(
+        'Tam veri senkronizasyonu başlatılıyor...',
+        tag: 'CLOUD_SYNC',
+      );
 
       // Bu method'u diğer provider'lardan çağıracağız
       // Her provider kendi verilerini sync edecek
 
-      print('✅ Tam veri senkronizasyonu tamamlandı');
+      DebugLogger.success(
+        'Tam veri senkronizasyonu tamamlandı',
+        tag: 'CLOUD_SYNC',
+      );
     } catch (e) {
-      print('❌ Tam veri senkronizasyonu hatası: $e');
+      DebugLogger.error(
+        'Tam veri senkronizasyonu hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
       rethrow;
     }
   }
@@ -439,7 +503,10 @@ class CloudSyncService {
         'lastSyncAt': FieldValue.serverTimestamp(),
       });
     } catch (e) {
-      print('❌ Son sync tarihi güncelleme hatası: $e');
+      DebugLogger.error(
+        'Son sync tarihi güncelleme hatası: $e',
+        tag: 'CLOUD_SYNC',
+      );
     }
   }
 }

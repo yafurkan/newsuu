@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../models/notification_settings_model.dart';
 import '../../core/constants/notification_messages.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Bildirim yönetimi servisi
 class NotificationService {
@@ -57,9 +58,15 @@ class NotificationService {
       await _requestPermissions();
 
       _isInitialized = true;
-      print('📱 Bildirim servisi başarıyla başlatıldı');
+      DebugLogger.success(
+        'Bildirim servisi başarıyla başlatıldı',
+        tag: 'NOTIFICATION',
+      );
     } catch (e) {
-      print('❌ Bildirim servisi başlatma hatası: $e');
+      DebugLogger.error(
+        'Bildirim servisi başlatma hatası: $e',
+        tag: 'NOTIFICATION',
+      );
     }
   }
 
@@ -82,35 +89,53 @@ class NotificationService {
           >()
           ?.createNotificationChannel(channel);
 
-      print('📱 Yüksek öncelikli bildirim kanalı oluşturuldu');
+      DebugLogger.success(
+        'Yüksek öncelikli bildirim kanalı oluşturuldu',
+        tag: 'NOTIFICATION',
+      );
     } catch (e) {
-      print('❌ Bildirim kanalı oluşturma hatası: $e');
+      DebugLogger.error(
+        'Bildirim kanalı oluşturma hatası: $e',
+        tag: 'NOTIFICATION',
+      );
     }
   }
 
   /// Bildirim izinlerini iste
   Future<void> _requestPermissions() async {
     try {
-      print('🔐 Bildirim izinleri kontrol ediliyor...');
+      DebugLogger.info(
+        'Bildirim izinleri kontrol ediliyor...',
+        tag: 'NOTIFICATION',
+      );
 
       // Android 13+ için POST_NOTIFICATIONS izni
       final notificationStatus = await Permission.notification.status;
-      print('📱 Bildirim izin durumu: $notificationStatus');
+      DebugLogger.info(
+        'Bildirim izin durumu: $notificationStatus',
+        tag: 'NOTIFICATION',
+      );
 
       if (notificationStatus.isDenied) {
-        print('🔔 Bildirim izni isteniyor...');
+        DebugLogger.info('Bildirim izni isteniyor...', tag: 'NOTIFICATION');
         final result = await Permission.notification.request();
-        print('📋 İzin sonucu: $result');
+        DebugLogger.info('İzin sonucu: $result', tag: 'NOTIFICATION');
 
         if (result.isGranted) {
-          print('✅ Bildirim izni verildi');
+          DebugLogger.success('Bildirim izni verildi', tag: 'NOTIFICATION');
         } else if (result.isDenied) {
-          print('❌ Bildirim izni reddedildi');
+          DebugLogger.warning('Bildirim izni reddedildi', tag: 'NOTIFICATION');
         } else if (result.isPermanentlyDenied) {
-          print('🚫 Bildirim izni kalıcı olarak reddedildi');
+          DebugLogger.warning(
+            'Bildirim izni kalıcı olarak reddedildi',
+            tag: 'NOTIFICATION',
+          );
         }
       } else if (notificationStatus.isGranted) {
-        print('✅ Bildirim izni zaten verilmiş');
+        DebugLogger.success(
+          'Bildirim izni zaten verilmiş',
+          tag: 'NOTIFICATION',
+        );
       }
 
       // iOS için izin iste
@@ -127,13 +152,16 @@ class NotificationService {
           >()
           ?.requestNotificationsPermission();
     } catch (e) {
-      print('❌ Bildirim izni hatası: $e');
+      DebugLogger.error('Bildirim izni hatası: $e', tag: 'NOTIFICATION');
     }
   }
 
   /// Bildirim tıklandığında çalışacak fonksiyon
   void _onNotificationTapped(NotificationResponse notificationResponse) {
-    print('🔔 Bildirim tıklandı: ${notificationResponse.payload}');
+    DebugLogger.info(
+      'Bildirim tıklandı: ${notificationResponse.payload}',
+      tag: 'NOTIFICATION',
+    );
     // Buraya bildirim tıklandığında yapılacak işlemler eklenebilir
   }
 
@@ -176,7 +204,7 @@ class NotificationService {
         payload: payload,
       );
     } catch (e) {
-      print('❌ Anında bildirim hatası: $e');
+      DebugLogger.error('Anında bildirim hatası: $e', tag: 'NOTIFICATION');
     }
   }
 
@@ -220,7 +248,7 @@ class NotificationService {
         matchDateTimeComponents: DateTimeComponents.time,
       );
     } catch (e) {
-      print('❌ Zamanlanmış bildirim hatası: $e');
+      DebugLogger.error('Zamanlanmış bildirim hatası: $e', tag: 'NOTIFICATION');
     }
   }
 
@@ -235,8 +263,14 @@ class NotificationService {
       if (!settings.isEnabled) return;
 
       // Her gün için bildirimleri ayarla
-      print('🔍 Selected days: ${settings.selectedDays}');
-      print('🔍 Selected days type: ${settings.selectedDays.runtimeType}');
+      DebugLogger.info(
+        'Selected days: ${settings.selectedDays}',
+        tag: 'NOTIFICATION',
+      );
+      DebugLogger.info(
+        'Selected days type: ${settings.selectedDays.runtimeType}',
+        tag: 'NOTIFICATION',
+      );
 
       // Güvenli bir liste kopyası oluştur
       final daysList = List<int>.from(settings.selectedDays);
@@ -245,9 +279,15 @@ class NotificationService {
         await _scheduleNotificationsForDay(day, settings);
       }
 
-      print('🔔 Tekrarlayan bildirimler ayarlandı');
+      DebugLogger.success(
+        'Tekrarlayan bildirimler ayarlandı',
+        tag: 'NOTIFICATION',
+      );
     } catch (e) {
-      print('❌ Tekrarlayan bildirim ayarlama hatası: $e');
+      DebugLogger.error(
+        'Tekrarlayan bildirim ayarlama hatası: $e',
+        tag: 'NOTIFICATION',
+      );
     }
   }
 
@@ -303,12 +343,17 @@ class NotificationService {
       final uniqueHours = List<int>.from(notificationHours.toSet());
       uniqueHours.sort();
 
-      print('📅 Gün $weekday için bildirim saatleri: $uniqueHours');
-      print(
-        '📅 Ayarlar - Başlangıç: ${settings.startHour}, Bitiş: ${settings.endHour}, Aralık: ${settings.intervalHours}',
+      DebugLogger.info(
+        'Gün $weekday için bildirim saatleri: $uniqueHours',
+        tag: 'NOTIFICATION',
       );
-      print(
-        '📅 Özel zamanlar - Sabah: ${settings.morningEnabled}, Öğlen: ${settings.afternoonEnabled}, Akşam: ${settings.eveningEnabled}',
+      DebugLogger.info(
+        'Ayarlar - Başlangıç: ${settings.startHour}, Bitiş: ${settings.endHour}, Aralık: ${settings.intervalHours}',
+        tag: 'NOTIFICATION',
+      );
+      DebugLogger.info(
+        'Özel zamanlar - Sabah: ${settings.morningEnabled}, Öğlen: ${settings.afternoonEnabled}, Akşam: ${settings.eveningEnabled}',
+        tag: 'NOTIFICATION',
       );
 
       // Her saat için bildirim ayarla
@@ -333,12 +378,21 @@ class NotificationService {
             withVibration: settings.vibrationEnabled,
           );
 
-          print('⏰ Bildirim ayarlandı: ${scheduledTime.toString()} - $message');
+          DebugLogger.info(
+            'Bildirim ayarlandı: ${scheduledTime.toString()} - $message',
+            tag: 'NOTIFICATION',
+          );
         }
       }
     } catch (e) {
-      print('❌ Gün $weekday için bildirim ayarlama hatası: $e');
-      print('❌ Stack trace: ${StackTrace.current}');
+      DebugLogger.error(
+        'Gün $weekday için bildirim ayarlama hatası: $e',
+        tag: 'NOTIFICATION',
+      );
+      DebugLogger.error(
+        'Stack trace: ${StackTrace.current}',
+        tag: 'NOTIFICATION',
+      );
     }
   }
 
@@ -346,9 +400,9 @@ class NotificationService {
   Future<void> cancelAllNotifications() async {
     try {
       await _flutterLocalNotificationsPlugin.cancelAll();
-      print('🔕 Tüm bildirimler iptal edildi');
+      DebugLogger.success('Tüm bildirimler iptal edildi', tag: 'NOTIFICATION');
     } catch (e) {
-      print('❌ Bildirim iptal etme hatası: $e');
+      DebugLogger.error('Bildirim iptal etme hatası: $e', tag: 'NOTIFICATION');
     }
   }
 
@@ -357,7 +411,7 @@ class NotificationService {
     try {
       await _flutterLocalNotificationsPlugin.cancel(id);
     } catch (e) {
-      print('❌ Bildirim iptal etme hatası: $e');
+      DebugLogger.error('Bildirim iptal etme hatası: $e', tag: 'NOTIFICATION');
     }
   }
 
@@ -367,7 +421,10 @@ class NotificationService {
       return await _flutterLocalNotificationsPlugin
           .pendingNotificationRequests();
     } catch (e) {
-      print('❌ Bekleyen bildirimler alınırken hata: $e');
+      DebugLogger.error(
+        'Bekleyen bildirimler alınırken hata: $e',
+        tag: 'NOTIFICATION',
+      );
       return [];
     }
   }

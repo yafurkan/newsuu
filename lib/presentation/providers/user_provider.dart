@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/services/cloud_sync_service.dart';
 import '../../core/utils/calculations.dart';
+import '../../core/utils/debug_logger.dart';
 
 /// Kullanıcı verilerini yöneten Provider sınıfı (Firebase entegreli)
 class UserProvider extends ChangeNotifier {
@@ -68,7 +69,10 @@ class UserProvider extends ChangeNotifier {
       }
     } catch (e) {
       _setError('Kullanıcı verisi yükleme hatası: $e');
-      print('❌ Kullanıcı verisi yükleme hatası: $e');
+      DebugLogger.info(
+        '❌ Kullanıcı verisi yükleme hatası: $e',
+        tag: 'USER_PROVIDER',
+      );
     } finally {
       _setLoading(false);
     }
@@ -101,7 +105,10 @@ class UserProvider extends ChangeNotifier {
       await _cloudSyncService.saveUserData(user.uid, userData);
     } catch (e) {
       _setError('Kullanıcı verisi kaydetme hatası: $e');
-      print('❌ Kullanıcı verisi kaydetme hatası: $e');
+      DebugLogger.info(
+        '❌ Kullanıcı verisi kaydetme hatası: $e',
+        tag: 'USER_PROVIDER',
+      );
       rethrow;
     } finally {
       _setLoading(false);
@@ -161,7 +168,7 @@ class UserProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _setError('İlk kez tamamlama hatası: $e');
-      print('❌ İlk kez tamamlama hatası: $e');
+      DebugLogger.info('❌ İlk kez tamamlama hatası: $e', tag: 'USER_PROVIDER');
       rethrow;
     }
   }
