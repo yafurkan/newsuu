@@ -6,6 +6,7 @@ import '../presentation/widgets/water_progress_card.dart';
 import '../presentation/widgets/quick_add_buttons.dart';
 import '../presentation/widgets/today_intake_list.dart';
 import 'profile_screen.dart';
+import 'statistics_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -34,6 +35,17 @@ class _HomeScreenState extends State<HomeScreen> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.bar_chart),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const StatisticsScreen(),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {

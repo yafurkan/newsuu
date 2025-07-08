@@ -13,8 +13,18 @@ class WaterProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
 
+  // Statistics update callback
+  Function(double amount, String type, String source)? _onStatsUpdate;
+
   WaterProvider(this._cloudSyncService) {
     _loadTodayIntakes();
+  }
+
+  // Setters
+  void setStatsUpdateCallback(
+    Function(double amount, String type, String source)? callback,
+  ) {
+    _onStatsUpdate = callback;
   }
 
   // Getters
@@ -79,6 +89,9 @@ class WaterProvider extends ChangeNotifier {
       // Firebase'e kaydet
       await _cloudSyncService.syncDailyWaterIntake(now, _todayIntakes);
 
+      // Statistics'i güncelle
+      _onStatsUpdate?.call(amount, 'add', 'quick_button');
+
       DebugLogger.info(
         '✅ Su tüketimi eklendi: ${amount}ml',
         tag: 'WATER_PROVIDER',
@@ -107,6 +120,8 @@ class WaterProvider extends ChangeNotifier {
       final index = _todayIntakes.indexWhere((intake) => intake.id == intakeId);
       if (index == -1) return;
 
+      final removedIntake = _todayIntakes[index];
+
       // Local state'den sil
       _todayIntakes.removeAt(index);
       notifyListeners();
@@ -116,6 +131,9 @@ class WaterProvider extends ChangeNotifier {
         DateTime.now(),
         _todayIntakes,
       );
+
+      // Statistics'i güncelle
+      _onStatsUpdate?.call(removedIntake.amount, 'remove', 'manual');
 
       DebugLogger.info('✅ Su tüketimi silindi', tag: 'WATER_PROVIDER');
     } catch (e) {
@@ -233,6 +251,15 @@ class WaterProvider extends ChangeNotifier {
     } finally {
       _setLoading(false);
     }
+  }
+
+  /// Kullanıcı verilerini temizle (çıkış yapıldığında)
+  void clearUserData() {
+    _todayIntakes.clear();
+    _dailyGoal = 2000.0;
+    _isLoading = false;
+    _errorMessage = null;
+    notifyListeners();
   }
 
   // Helper methods

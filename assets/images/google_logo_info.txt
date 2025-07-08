@@ -1,8 +1,0 @@
-# Google Logo Dosyası Eksik
-
-assets/images/google_logo.png dosyası eksik. Bu dosyayı şu şekilde ekleyebilirsiniz:
-
-1. Google'ın resmi asset'lerinden google logo'sunu indirin
-2. assets/images/ klasörüne google_logo.png olarak kaydedin
-
-Alternatif olarak login_screen.dart'da Google logo yerine material icon kullanılıyor (Icon(Icons.login)).

@@ -28,6 +28,9 @@ class NotificationService {
       // Timezone'ları başlat
       tz.initializeTimeZones();
 
+      // Türkiye timezone'ını set et
+      tz.setLocalLocation(tz.getLocation('Europe/Istanbul'));
+
       // Android ayarları
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('@mipmap/ic_launcher');

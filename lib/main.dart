@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'firebase_options.dart';
 import 'data/services/notification_service.dart';
@@ -15,6 +16,7 @@ import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/statistics_provider.dart';
 import 'core/utils/debug_logger.dart';
 
 // Background message handler
@@ -32,6 +34,20 @@ void main() async {
   try {
     // Firebase'i kontrollü şekilde initialize et
     await _initializeFirebase();
+
+    // Locale data'yı initialize et - önce tr_TR dene, sonra fallback'ler
+    try {
+      await initializeDateFormatting('tr_TR', null);
+      DebugLogger.success('Turkish locale initialized', tag: 'MAIN');
+    } catch (e) {
+      try {
+        await initializeDateFormatting('en_US', null);
+        DebugLogger.info('English locale initialized as fallback', tag: 'MAIN');
+      } catch (e2) {
+        await initializeDateFormatting('en', null);
+        DebugLogger.info('Default English locale initialized', tag: 'MAIN');
+      }
+    }
 
     // İzinleri iste
     await Permission.notification.request();
@@ -91,6 +107,14 @@ Future<void> _initializeFirebase() async {
 
     DebugLogger.success('Firebase initialized successfully', tag: 'MAIN');
   } catch (e) {
+    // Duplicate app hatası spesifik olarak yakala
+    if (e.toString().contains('duplicate-app')) {
+      DebugLogger.info(
+        'Firebase app already exists, continuing...',
+        tag: 'MAIN',
+      );
+      return;
+    }
     DebugLogger.error('Firebase initialization failed: $e', tag: 'MAIN');
     rethrow;
   }
@@ -111,6 +135,9 @@ class SuTakipApp extends StatefulWidget {
 }
 
 class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   @override
   void initState() {
     super.initState();
@@ -151,13 +178,28 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
         ChangeNotifierProvider(
           create: (_) => UserProvider(widget.cloudSyncService),
         ),
-        ChangeNotifierProxyProvider<UserProvider, WaterProvider>(
+        ChangeNotifierProvider(create: (_) => StatisticsProvider()),
+        ChangeNotifierProxyProvider2<
+          UserProvider,
+          StatisticsProvider,
+          WaterProvider
+        >(
           create: (context) => WaterProvider(widget.cloudSyncService),
-          update: (context, userProvider, waterProvider) {
+          update: (context, userProvider, statsProvider, waterProvider) {
             // UserProvider'daki hedef değişikliğini WaterProvider'a aktar
             waterProvider?.updateGoalFromUserProvider(
               userProvider.dailyWaterGoal,
             );
+
+            // Statistics update callback'ini ayarla
+            waterProvider?.setStatsUpdateCallback((amount, type, source) {
+              statsProvider.updateStatsOnWaterChange(
+                amount: amount,
+                type: type,
+                source: source,
+              );
+            });
+
             return waterProvider!;
           },
         ),
@@ -168,21 +210,48 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
           ),
         ),
       ],
-      child: Consumer<AuthProvider>(
-        builder: (context, authProvider, child) {
-          return MaterialApp(
-            title: 'Su Takip',
-            theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
-            home: const SplashScreen(),
-            routes: {
-              '/login': (context) => const LoginScreen(),
-              '/home': (context) => const HomeScreen(),
-              '/onboarding': (context) => const OnboardingScreen(),
-            },
-            debugShowCheckedModeBanner: false,
-          );
-        },
-      ),
+      child:
+          Consumer5<
+            AuthProvider,
+            UserProvider,
+            WaterProvider,
+            NotificationProvider,
+            StatisticsProvider
+          >(
+            builder:
+                (
+                  context,
+                  authProvider,
+                  userProvider,
+                  waterProvider,
+                  notificationProvider,
+                  statsProvider,
+                  child,
+                ) {
+                  // Çıkış yapıldığında diğer provider'ları temizle
+                  authProvider.setSignOutCallback(() {
+                    userProvider.clearUserData();
+                    waterProvider.clearUserData();
+                    statsProvider.clearUserData();
+                  });
+
+                  return MaterialApp(
+                    title: 'Su Takip',
+                    theme: ThemeData(
+                      primarySwatch: Colors.blue,
+                      useMaterial3: true,
+                    ),
+                    navigatorKey: navigatorKey,
+                    home: const SplashScreen(),
+                    routes: {
+                      '/login': (context) => const LoginScreen(),
+                      '/home': (context) => const HomeScreen(),
+                      '/onboarding': (context) => const OnboardingScreen(),
+                    },
+                    debugShowCheckedModeBanner: false,
+                  );
+                },
+          ),
     );
   }
 }

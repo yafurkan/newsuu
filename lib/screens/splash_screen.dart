@@ -90,20 +90,24 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, authProvider, child) {
-        // Auth state değişikliğini dinle
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!authProvider.isSignedIn && mounted) {
-            // Eğer çıkış yapıldıysa login ekranına git
-            Navigator.of(context).pushReplacementNamed('/login');
-          }
-        });
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
+        child: Consumer<AuthProvider>(
+          builder: (context, authProvider, child) {
+            // Auth state değiştiğinde navigation yap
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                final currentRoute = ModalRoute.of(context)?.settings.name;
 
-        return Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(gradient: AppTheme.primaryGradient),
-            child: Center(
+                if (!authProvider.isSignedIn && currentRoute != '/login') {
+                  // Çıkış yapıldıysa login ekranına yönlendir
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
+              }
+            });
+
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -187,10 +191,10 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ],
               ),
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 }

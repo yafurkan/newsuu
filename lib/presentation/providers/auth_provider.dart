@@ -12,12 +12,20 @@ class AuthProvider extends ChangeNotifier {
   String? _userId;
   String? _userEmail;
 
+  // Callback for clearing other providers on logout
+  VoidCallback? _onSignOutCallback;
+
   // Getters
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isSignedIn => _isSignedIn;
   String? get userId => _userId;
   String? get userEmail => _userEmail;
+
+  // Callback setter
+  void setSignOutCallback(VoidCallback callback) {
+    _onSignOutCallback = callback;
+  }
 
   AuthProvider() {
     _checkAuthState();
@@ -104,9 +112,19 @@ class AuthProvider extends ChangeNotifier {
       _userEmail = null;
 
       DebugLogger.success('AuthProvider: Çıkış başarılı', tag: 'AUTH_PROVIDER');
-      notifyListeners(); // Bu satır eksikti!
+
+      // Diğer provider'ları temizle
+      _onSignOutCallback?.call();
+
+      // Çıkış işlemi tamamlandıktan sonra navigation'ı tetikle
+      notifyListeners();
     } catch (e) {
       _setError('Çıkış yapılamadı: $e');
+      DebugLogger.error(
+        'AuthProvider: Çıkış hatası - $e',
+        tag: 'AUTH_PROVIDER',
+      );
+      notifyListeners();
     } finally {
       _setLoading(false);
     }
@@ -195,5 +213,11 @@ class AuthProvider extends ChangeNotifier {
 
   void _clearError() {
     _errorMessage = null;
+  }
+
+  /// Clear error message
+  void clearError() {
+    _clearError();
+    notifyListeners();
   }
 }

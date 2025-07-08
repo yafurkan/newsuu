@@ -238,9 +238,12 @@ class ProfileScreen extends StatelessWidget {
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
+
+                // Çıkış yap
                 await context.read<AuthProvider>().signOut();
 
-                // Çıkış sonrası login ekranına yönlendir
+                // AuthProvider'ın state'i değişince otomatik navigation olacak
+                // ama ekstra güvenlik için manuel navigation de yapabiliriz
                 if (context.mounted) {
                   Navigator.of(
                     context,
