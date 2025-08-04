@@ -21,6 +21,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isSignedIn => _isSignedIn;
   String? get userId => _userId;
   String? get userEmail => _userEmail;
+  bool get isEmailVerified => _authService.isEmailVerified;
 
   // Callback setter
   void setSignOutCallback(VoidCallback callback) {
@@ -192,6 +193,36 @@ class AuthProvider extends ChangeNotifier {
       return false;
     } finally {
       _setLoading(false);
+    }
+  }
+
+  /// E-posta doğrulama gönder
+  Future<bool> sendEmailVerification() async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      await _authService.sendEmailVerification();
+      DebugLogger.success(
+        'AuthProvider: E-posta doğrulama gönderildi',
+        tag: 'AUTH_PROVIDER',
+      );
+      return true;
+    } catch (e) {
+      _setError('E-posta doğrulama gönderilemedi: $e');
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  /// E-posta doğrulama durumunu yenile
+  Future<void> reloadUser() async {
+    try {
+      await _authService.reloadUser();
+      notifyListeners();
+    } catch (e) {
+      DebugLogger.error('Kullanıcı yenileme hatası: $e', tag: 'AUTH_PROVIDER');
     }
   }
 

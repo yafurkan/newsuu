@@ -1,4 +1,4 @@
-package com.example.su_takip
+package com.sutakip.app2025
 
 import io.flutter.embedding.android.FlutterActivity
 

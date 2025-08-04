@@ -51,11 +51,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyBvThKNRNVH6J2RflAOWXHgTrkCOhGlpOQ',
-    appId: '1:429615468598:android:a1b2c3d4e5f6g7h8i9j0',
-    messagingSenderId: '429615468598',
-    projectId: 'su-takip-app',
-    storageBucket: 'su-takip-app.appspot.com',
+    apiKey: 'AIzaSyC8kQ9uojJaPII8VhD0DWdk8p7HCvB70aM',
+    appId: '1:36993591963:android:326da5d1aa9a34131cb43e',
+    messagingSenderId: '36993591963',
+    projectId: 'sutakip-fcm-app-furkan-da7fe',
+    storageBucket: 'sutakip-fcm-app-furkan-da7fe.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

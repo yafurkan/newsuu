@@ -2,12 +2,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/utils/debug_logger.dart';
+import 'email_service.dart';
 
 /// Firebase Authentication ve Google Sign-In servisi
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final EmailService _emailService = EmailService();
 
   /// Mevcut kullaniciyi al
   User? get currentUser => _auth.currentUser;
@@ -54,7 +56,15 @@ class AuthService {
       );
 
       // Kullanici profilini Firestore'da olustur/guncelle
-      await _createUserProfile(userCredential.user!);
+      final isNewUser = await _createUserProfile(userCredential.user!);
+
+      // Yeni kullanıcıya hoş geldin e-postası gönder
+      if (isNewUser) {
+        await _emailService.sendWelcomeEmail(userCredential.user!);
+      }
+
+      // Google ile giriş yapan kullanıcıya da e-posta doğrulama gönder
+      await sendVerificationAfterGoogleSignIn();
 
       return userCredential;
     } catch (e) {
@@ -78,7 +88,8 @@ class AuthService {
   }
 
   /// Kullanici profilini Firestore'da olustur/guncelle
-  Future<void> _createUserProfile(User user) async {
+  /// Returns true if user is new, false if existing
+  Future<bool> _createUserProfile(User user) async {
     try {
       final userDoc = _firestore.collection('users').doc(user.uid);
       final docSnapshot = await userDoc.get();
@@ -92,14 +103,22 @@ class AuthService {
           'photoURL': user.photoURL,
           'createdAt': FieldValue.serverTimestamp(),
           'lastLoginAt': FieldValue.serverTimestamp(),
+          'emailPreferences': {
+            'welcomeEmail': true,
+            'dailySummary': false,
+            'goalCompletion': true,
+            'verificationReminder': true,
+          },
         };
 
         await userDoc.set(userProfile);
         DebugLogger.success('Yeni kullanici profili olusturuldu', tag: 'AUTH');
+        return true; // Yeni kullanıcı
       } else {
         // Mevcut kullanici son giris zamanini guncelle
         await userDoc.update({'lastLoginAt': FieldValue.serverTimestamp()});
         DebugLogger.info('Kullanici son giris zamani guncellendi', tag: 'AUTH');
+        return false; // Mevcut kullanıcı
       }
     } catch (e) {
       DebugLogger.error('Kullanici profili olusturma hatasi: $e', tag: 'AUTH');
@@ -154,6 +173,19 @@ class AuthService {
 
       if (userCredential.user != null) {
         await _createUserProfile(userCredential.user!);
+
+        // Otomatik e-posta doğrulama gönder
+        try {
+          await userCredential.user!.sendEmailVerification();
+          DebugLogger.success('E-posta doğrulama gönderildi', tag: 'AUTH');
+        } catch (e) {
+          DebugLogger.error(
+            'E-posta doğrulama gönderme hatası: $e',
+            tag: 'AUTH',
+          );
+          // E-posta gönderme hatası kayıt işlemini durdurmasın
+        }
+
         DebugLogger.success('Email ile kayıt başarılı', tag: 'AUTH');
         return true;
       }
@@ -162,6 +194,26 @@ class AuthService {
     } catch (e) {
       DebugLogger.error('Email ile kayıt hatası: $e', tag: 'AUTH');
       return false;
+    }
+  }
+
+  /// Google ile giriş yaptıktan sonra e-posta doğrulama gönder
+  Future<void> sendVerificationAfterGoogleSignIn() async {
+    try {
+      if (currentUser != null) {
+        // Google kullanıcıları da dahil herkese e-posta doğrulama gönder
+        await currentUser!.sendEmailVerification();
+        DebugLogger.success(
+          'Google kullanıcısına e-posta doğrulama gönderildi',
+          tag: 'AUTH',
+        );
+      }
+    } catch (e) {
+      DebugLogger.error(
+        'Google kullanıcısına e-posta doğrulama gönderme hatası: $e',
+        tag: 'AUTH',
+      );
+      // Hata olsa da devam et
     }
   }
 
@@ -174,7 +226,13 @@ class AuthService {
           .signInWithEmailAndPassword(email: email, password: password);
 
       if (userCredential.user != null) {
-        await _createUserProfile(userCredential.user!);
+        final isNewUser = await _createUserProfile(userCredential.user!);
+        
+        // Yeni kullanıcıya hoş geldin e-postası gönder (nadiren olur ama olabilir)
+        if (isNewUser) {
+          await _emailService.sendWelcomeEmail(userCredential.user!);
+        }
+        
         DebugLogger.success('Email ile giriş başarılı', tag: 'AUTH');
         return true;
       }
@@ -210,8 +268,32 @@ class AuthService {
 
       final user = currentUser;
       if (user != null) {
-        // Firestore'dan kullanıcı verilerini sil
-        await _firestore.collection('users').doc(user.uid).delete();
+        final uid = user.uid;
+
+        // Re-authentication gerekiyorsa yap
+        await _reauthenticateIfNeeded(user);
+
+        // Önce Firestore'dan kullanıcı verilerini sil
+        await _deleteUserData(uid);
+
+        // Google Sign-In cache'ini güvenli şekilde temizle
+        try {
+          await _googleSignIn.signOut();
+          DebugLogger.info('Google Sign-In signOut başarılı', tag: 'AUTH');
+        } catch (e) {
+          DebugLogger.warning('Google Sign-In signOut hatası: $e', tag: 'AUTH');
+        }
+
+        try {
+          await _googleSignIn.disconnect();
+          DebugLogger.info('Google Sign-In disconnect başarılı', tag: 'AUTH');
+        } catch (e) {
+          DebugLogger.warning(
+            'Google Sign-In disconnect hatası (devam ediliyor): $e',
+            tag: 'AUTH',
+          );
+          // Disconnect hatası hesap silmeyi durdurmasın
+        }
 
         // Firebase Auth'dan hesabı sil
         await user.delete();
@@ -224,11 +306,83 @@ class AuthService {
     }
   }
 
+  /// Re-authentication gerekiyorsa yap
+  Future<void> _reauthenticateIfNeeded(User user) async {
+    try {
+      // Google kullanıcısı için re-authentication
+      if (user.providerData.any((info) => info.providerId == 'google.com')) {
+        DebugLogger.info(
+          'Google kullanıcısı için re-authentication yapılıyor',
+          tag: 'AUTH',
+        );
+
+        final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+        if (googleUser != null) {
+          final GoogleSignInAuthentication googleAuth =
+              await googleUser.authentication;
+          final credential = GoogleAuthProvider.credential(
+            accessToken: googleAuth.accessToken,
+            idToken: googleAuth.idToken,
+          );
+
+          await user.reauthenticateWithCredential(credential);
+          DebugLogger.success('Re-authentication başarılı', tag: 'AUTH');
+        }
+      }
+    } catch (e) {
+      DebugLogger.error('Re-authentication hatası: $e', tag: 'AUTH');
+      // Re-authentication hatası olsa da devam et
+    }
+  }
+
   /// Mevcut kullanıcı ID'si
   String? get currentUserId => currentUser?.uid;
 
   /// Mevcut kullanıcı e-postası
   String? get currentUserEmail => currentUser?.email;
+
+  /// E-posta doğrulanmış mı?
+  bool get isEmailVerified {
+    final user = currentUser;
+    if (user == null) return false;
+
+    // Google kullanıcıları için özel kontrol
+    final isGoogleUser = user.providerData.any(
+      (info) => info.providerId == 'google.com',
+    );
+    if (isGoogleUser) {
+      // Google kullanıcıları için manuel doğrulama kontrolü
+      return user.emailVerified;
+    }
+
+    return user.emailVerified;
+  }
+
+  /// E-posta doğrulama gönder
+  Future<void> sendEmailVerification() async {
+    try {
+      if (!isSignedIn) return;
+
+      await currentUser!.sendEmailVerification();
+      DebugLogger.success('E-posta doğrulama gönderildi', tag: 'AUTH');
+    } catch (e) {
+      DebugLogger.error('E-posta doğrulama gönderme hatası: $e', tag: 'AUTH');
+      rethrow;
+    }
+  }
+
+  /// E-posta doğrulama durumunu yenile
+  Future<void> reloadUser() async {
+    try {
+      if (!isSignedIn) return;
+
+      await currentUser!.reload();
+      DebugLogger.info('Kullanıcı bilgileri yenilendi', tag: 'AUTH');
+    } catch (e) {
+      DebugLogger.error('Kullanıcı yenileme hatası: $e', tag: 'AUTH');
+      rethrow;
+    }
+  }
 
   /// Hesabi sil
   Future<bool> deleteUserAccount() async {
@@ -240,13 +394,17 @@ class AuthService {
       // Firestore'daki kullanici verilerini sil
       await _deleteUserData(uid);
 
-      // Google hesabindan cikis yap
+      // Google hesabından tamamen çıkış yap ve cache'i temizle
       await _googleSignIn.signOut();
+      await _googleSignIn.disconnect();
 
       // Firebase Authentication'dan hesabi sil
       await currentUser!.delete();
 
-      DebugLogger.success('Hesap basariyla silindi', tag: 'AUTH');
+      DebugLogger.success(
+        'Hesap basariyla silindi ve cache temizlendi',
+        tag: 'AUTH',
+      );
       return true;
     } catch (e) {
       DebugLogger.error('Hesap silme hatasi: $e', tag: 'AUTH');
@@ -254,46 +412,75 @@ class AuthService {
     }
   }
 
-  /// Kullanicinin tum Firestore verilerini sil
-  Future<void> _deleteUserData(String uid) async {
+  /// Google Sign-In cache'ini tamamen temizle
+  Future<void> clearGoogleSignInCache() async {
     try {
-      final batch = _firestore.batch();
+      await _googleSignIn.signOut();
+      DebugLogger.info('Google Sign-In signOut tamamlandı', tag: 'AUTH');
+    } catch (e) {
+      DebugLogger.warning('Google Sign-In signOut hatası: $e', tag: 'AUTH');
+    }
 
-      // Ana kullanici dokumanini sil
-      batch.delete(_firestore.collection('users').doc(uid));
-
-      // Su takip verilerini sil (subcollection'lar)
-      final dailyIntakeRef = _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('daily_intake');
-
-      final dailySnapshots = await dailyIntakeRef.get();
-      for (final doc in dailySnapshots.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // Statistics verilerini sil
-      final statsRef = _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('statistics');
-
-      final statsSnapshots = await statsRef.get();
-      for (final doc in statsSnapshots.docs) {
-        batch.delete(doc.reference);
-      }
-
-      // Batch islemini commit et
-      await batch.commit();
-
-      DebugLogger.info(
-        'Kullanici verileri Firestore\'dan silindi',
+    try {
+      await _googleSignIn.disconnect();
+      DebugLogger.success(
+        'Google Sign-In cache tamamen temizlendi',
         tag: 'AUTH',
       );
     } catch (e) {
-      DebugLogger.error('Kullanici verilerini silme hatasi: $e', tag: 'AUTH');
+      DebugLogger.warning(
+        'Google Sign-In disconnect hatası (normal): $e',
+        tag: 'AUTH',
+      );
+      // Disconnect hatası normal olabilir, cache zaten temizlenmiş olabilir
+    }
+  }
+
+  /// Kullanicinin tum Firestore verilerini sil
+  Future<void> _deleteUserData(String uid) async {
+    try {
+      DebugLogger.info('Kullanıcı verileri siliniyor: $uid', tag: 'AUTH');
+
+      // Ana kullanıcı dokümanını sil
+      await _firestore.collection('users').doc(uid).delete();
+
+      // Tüm subcollection'ları sil
+      await _deleteSubcollection(uid, 'daily_intake');
+      await _deleteSubcollection(uid, 'statistics');
+      await _deleteSubcollection(uid, 'notifications');
+      await _deleteSubcollection(uid, 'settings');
+      await _deleteSubcollection(uid, 'water_history');
+
+      DebugLogger.success('Kullanıcı verileri tamamen silindi', tag: 'AUTH');
+    } catch (e) {
+      DebugLogger.error('Kullanıcı verilerini silme hatası: $e', tag: 'AUTH');
       rethrow;
+    }
+  }
+
+  /// Subcollection'ı sil
+  Future<void> _deleteSubcollection(String uid, String collectionName) async {
+    try {
+      final collectionRef = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection(collectionName);
+
+      final snapshots = await collectionRef.get();
+
+      if (snapshots.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+
+        for (final doc in snapshots.docs) {
+          batch.delete(doc.reference);
+        }
+
+        await batch.commit();
+        DebugLogger.info('$collectionName koleksiyonu silindi', tag: 'AUTH');
+      }
+    } catch (e) {
+      DebugLogger.error('$collectionName silme hatası: $e', tag: 'AUTH');
+      // Subcollection silme hatası ana işlemi durdurmasın
     }
   }
 }

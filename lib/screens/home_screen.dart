@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../presentation/providers/user_provider.dart';
 import '../presentation/providers/water_provider.dart';
+import '../presentation/providers/auth_provider.dart';
 import '../presentation/widgets/water_progress_card.dart';
 import '../presentation/widgets/quick_add_buttons.dart';
 import '../presentation/widgets/today_intake_list.dart';
+import '../presentation/widgets/common/email_verification_banner.dart';
+import '../presentation/widgets/common/email_verification_guard.dart';
 import 'profile_screen.dart';
 import 'statistics_screen.dart';
 
@@ -57,8 +60,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: Consumer2<UserProvider, WaterProvider>(
-        builder: (context, userProvider, waterProvider, child) {
+      body: Consumer3<UserProvider, WaterProvider, AuthProvider>(
+        builder: (context, userProvider, waterProvider, authProvider, child) {
           if (userProvider.isLoading || waterProvider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -68,6 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // E-posta doğrulama banner'ı
+                const EmailVerificationBanner(),
+                
                 // Hoş geldin mesajı
                 Text(
                   'Merhaba, ${userProvider.firstName}!',
@@ -82,8 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 const WaterProgressCard(),
                 const SizedBox(height: 16),
 
-                // Hızlı ekleme butonları
-                const QuickAddButtons(),
+                // Hızlı ekleme butonları (E-posta doğrulama guard'ı ile)
+                EmailVerificationGuard(
+                  customMessage: 'Su ekleyebilmek için lütfen e-posta adresinizi doğrulayın.',
+                  child: const QuickAddButtons(),
+                ),
                 const SizedBox(height: 16),
 
                 // Bugünkü alım listesi

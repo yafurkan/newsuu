@@ -8,10 +8,12 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'firebase_options.dart';
 import 'data/services/notification_service.dart';
 import 'data/services/cloud_sync_service.dart';
+import 'data/services/deep_link_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/email_verification_success_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
@@ -59,10 +61,15 @@ void main() async {
     // Cloud sync service'i initialize et
     final cloudSyncService = CloudSyncService();
 
+    // Deep link service'i initialize et
+    final deepLinkService = DeepLinkService();
+    deepLinkService.initialize();
+
     runApp(
       SuTakipApp(
         notificationService: notificationService,
         cloudSyncService: cloudSyncService,
+        deepLinkService: deepLinkService,
       ),
     );
   } catch (e) {
@@ -77,6 +84,7 @@ void main() async {
       SuTakipApp(
         notificationService: notificationService,
         cloudSyncService: cloudSyncService,
+        deepLinkService: DeepLinkService(),
       ),
     );
   }
@@ -123,11 +131,13 @@ Future<void> _initializeFirebase() async {
 class SuTakipApp extends StatefulWidget {
   final NotificationService notificationService;
   final CloudSyncService cloudSyncService;
+  final DeepLinkService deepLinkService;
 
   const SuTakipApp({
     super.key,
     required this.notificationService,
     required this.cloudSyncService,
+    required this.deepLinkService,
   });
 
   @override
@@ -142,6 +152,43 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    
+    // Deep link callback'lerini ayarla
+    _setupDeepLinkCallbacks();
+  }
+
+  /// Deep link callback'lerini ayarla
+  void _setupDeepLinkCallbacks() {
+    widget.deepLinkService.onEmailVerificationSuccess = () {
+      DebugLogger.success('E-posta doğrulama başarılı - UI yönlendirme', tag: 'MAIN');
+      
+      // Ana thread'de navigation yap
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && navigatorKey.currentContext != null) {
+          Navigator.of(navigatorKey.currentContext!).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const EmailVerificationSuccessScreen(),
+            ),
+            (route) => route.isFirst,
+          );
+        }
+      });
+    };
+
+    widget.deepLinkService.onEmailVerificationError = (error) {
+      DebugLogger.error('E-posta doğrulama hatası: $error', tag: 'MAIN');
+      
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && navigatorKey.currentContext != null) {
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+            SnackBar(
+              content: Text('❌ E-posta doğrulama hatası: $error'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    };
   }
 
   @override
@@ -159,10 +206,15 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
       // Provider'ı güvenli şekilde alabilmek için try-catch kullan
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
-          final waterProvider = context.read<WaterProvider>();
-          waterProvider.refreshData();
+          if (mounted && context.mounted) {
+            // Context'in hala geçerli olduğunu kontrol et
+            final waterProvider = Provider.of<WaterProvider>(context, listen: false);
+            waterProvider.refreshData();
+            DebugLogger.info('WaterProvider başarıyla yenilendi', tag: 'MAIN');
+          }
         } catch (e) {
           DebugLogger.error('WaterProvider bulunamadı: $e', tag: 'MAIN');
+          // Provider bulunamazsa sessizce devam et
         }
       });
     }
@@ -174,6 +226,7 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
       providers: [
         Provider<NotificationService>.value(value: widget.notificationService),
         Provider<CloudSyncService>.value(value: widget.cloudSyncService),
+        Provider<DeepLinkService>.value(value: widget.deepLinkService),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(
           create: (_) => UserProvider(widget.cloudSyncService),
@@ -247,6 +300,7 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                       '/login': (context) => const LoginScreen(),
                       '/home': (context) => const HomeScreen(),
                       '/onboarding': (context) => const OnboardingScreen(),
+                      '/email-verification-success': (context) => const EmailVerificationSuccessScreen(),
                     },
                     debugShowCheckedModeBanner: false,
                   );
