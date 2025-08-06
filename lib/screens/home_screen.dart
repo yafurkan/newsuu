@@ -10,6 +10,7 @@ import '../presentation/widgets/common/email_verification_banner.dart';
 import '../presentation/widgets/common/email_verification_guard.dart';
 import 'profile_screen.dart';
 import 'statistics_screen.dart';
+import 'badges_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -46,6 +47,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 MaterialPageRoute(
                   builder: (context) => const StatisticsScreen(),
                 ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.emoji_events),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BadgesScreen()),
               );
             },
           ),

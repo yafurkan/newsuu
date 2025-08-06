@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../data/services/cloud_sync_service.dart';
 import '../../data/models/water_intake_model.dart';
 import '../../core/utils/debug_logger.dart';
+import 'badge_provider.dart';
 
 /// Su tüketim verilerini yöneten Provider sınıfı (Firebase entegreli)
 class WaterProvider extends ChangeNotifier {
@@ -15,6 +16,9 @@ class WaterProvider extends ChangeNotifier {
 
   // Statistics update callback
   Function(double amount, String type, String source)? _onStatsUpdate;
+  
+  // Badge provider reference
+  BadgeProvider? _badgeProvider;
 
   WaterProvider(this._cloudSyncService) {
     _loadTodayIntakes();
@@ -25,6 +29,11 @@ class WaterProvider extends ChangeNotifier {
     Function(double amount, String type, String source)? callback,
   ) {
     _onStatsUpdate = callback;
+  }
+  
+  /// Badge provider'ı ayarla
+  void setBadgeProvider(BadgeProvider badgeProvider) {
+    _badgeProvider = badgeProvider;
   }
 
   // Getters
@@ -91,6 +100,9 @@ class WaterProvider extends ChangeNotifier {
 
       // Statistics'i güncelle
       _onStatsUpdate?.call(amount, 'add', 'quick_button');
+
+      // Rozet kontrolü yap
+      await _checkBadgeAchievements(amount);
 
       DebugLogger.info(
         '✅ Su tüketimi eklendi: ${amount}ml',
@@ -275,5 +287,66 @@ class WaterProvider extends ChangeNotifier {
 
   void _clearError() {
     _errorMessage = null;
+  }
+  
+  /// Rozet başarılarını kontrol et
+  Future<void> _checkBadgeAchievements(double addedAmount) async {
+    if (_badgeProvider == null) return;
+    
+    try {
+      // Buton kullanım istatistiklerini hesapla (basit implementasyon)
+      final buttonUsage = <String, int>{
+        '250': _todayIntakes.where((i) => i.amount == 250).length,
+        '500': _todayIntakes.where((i) => i.amount == 500).length,
+        '750': _todayIntakes.where((i) => i.amount == 750).length,
+        '1000': _todayIntakes.where((i) => i.amount == 1000).length,
+      };
+      
+      // Ardışık gün sayısını hesapla (basit implementasyon - gerçekte daha karmaşık olmalı)
+      final consecutiveDays = await _calculateConsecutiveDays();
+      
+      final newBadges = await _badgeProvider!.checkWaterAdditionBadges(
+        amount: addedAmount.toInt(),
+        dailyTotal: todayIntake.toInt(),
+        dailyGoal: dailyGoal.toInt(),
+        consecutiveDays: consecutiveDays,
+        buttonUsage: buttonUsage,
+      );
+      
+      // Yeni rozetler varsa bildirim göster
+      if (newBadges.isNotEmpty) {
+        DebugLogger.success(
+          'Yeni rozetler kazanıldı: ${newBadges.map((b) => b.name).join(', ')}',
+          tag: 'WATER_PROVIDER',
+        );
+      }
+    } catch (e) {
+      DebugLogger.error('Rozet kontrolü hatası: $e', tag: 'WATER_PROVIDER');
+    }
+  }
+  
+  /// Ardışık gün sayısını hesapla (basit implementasyon)
+  Future<int> _calculateConsecutiveDays() async {
+    try {
+      // Son 30 günü kontrol et
+      final now = DateTime.now();
+      int consecutiveDays = 0;
+      
+      for (int i = 0; i < 30; i++) {
+        final checkDate = now.subtract(Duration(days: i));
+        final dayIntakes = await getWaterIntakeForDate(checkDate);
+        
+        if (dayIntakes != null && dayIntakes.isNotEmpty) {
+          consecutiveDays++;
+        } else {
+          break;
+        }
+      }
+      
+      return consecutiveDays;
+    } catch (e) {
+      DebugLogger.error('Ardışık gün hesaplama hatası: $e', tag: 'WATER_PROVIDER');
+      return 1; // En az bugün var
+    }
   }
 }

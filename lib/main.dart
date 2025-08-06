@@ -19,6 +19,7 @@ import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/statistics_provider.dart';
+import 'presentation/providers/badge_provider.dart';
 import 'core/utils/debug_logger.dart';
 
 // Background message handler
@@ -262,14 +263,16 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
             widget.cloudSyncService,
           ),
         ),
+        ChangeNotifierProvider(create: (_) => BadgeProvider()),
       ],
       child:
-          Consumer5<
+          Consumer6<
             AuthProvider,
             UserProvider,
             WaterProvider,
             NotificationProvider,
-            StatisticsProvider
+            StatisticsProvider,
+            BadgeProvider
           >(
             builder:
                 (
@@ -279,13 +282,19 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                   waterProvider,
                   notificationProvider,
                   statsProvider,
+                  badgeProvider,
                   child,
                 ) {
+                  // Badge provider'ı diğer provider'lara bağla
+                  waterProvider.setBadgeProvider(badgeProvider);
+                  authProvider.setBadgeProvider(badgeProvider);
+                  
                   // Çıkış yapıldığında diğer provider'ları temizle
                   authProvider.setSignOutCallback(() {
                     userProvider.clearUserData();
                     waterProvider.clearUserData();
                     statsProvider.clearUserData();
+                    badgeProvider.reset();
                   });
 
                   return MaterialApp(

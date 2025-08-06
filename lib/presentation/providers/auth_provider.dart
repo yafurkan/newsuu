@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/services/auth_service.dart';
 import '../../core/utils/debug_logger.dart';
+import 'badge_provider.dart';
 
 /// Authentication state management provider
 class AuthProvider extends ChangeNotifier {
@@ -14,6 +15,9 @@ class AuthProvider extends ChangeNotifier {
 
   // Callback for clearing other providers on logout
   VoidCallback? _onSignOutCallback;
+  
+  // Badge provider reference
+  BadgeProvider? _badgeProvider;
 
   // Getters
   bool get isLoading => _isLoading;
@@ -26,6 +30,11 @@ class AuthProvider extends ChangeNotifier {
   // Callback setter
   void setSignOutCallback(VoidCallback callback) {
     _onSignOutCallback = callback;
+  }
+  
+  /// Badge provider'ı ayarla
+  void setBadgeProvider(BadgeProvider badgeProvider) {
+    _badgeProvider = badgeProvider;
   }
 
   AuthProvider() {
@@ -59,6 +68,9 @@ class AuthProvider extends ChangeNotifier {
           'AuthProvider: Giriş başarılı',
           tag: 'AUTH_PROVIDER',
         );
+        
+        // Kullanıcı rozetlerini başlat
+        _initializeUserBadges();
       }
 
       return success;
@@ -89,6 +101,9 @@ class AuthProvider extends ChangeNotifier {
           'AuthProvider: Kayıt başarılı',
           tag: 'AUTH_PROVIDER',
         );
+        
+        // Yeni kullanıcı için rozetleri başlat
+        _initializeUserBadges();
       }
 
       return success;
@@ -184,6 +199,10 @@ class AuthProvider extends ChangeNotifier {
           'AuthProvider: Google ile giriş başarılı',
           tag: 'AUTH_PROVIDER',
         );
+        
+        // Google kullanıcısı için rozetleri başlat
+        _initializeUserBadges();
+        
         return true;
       }
 
@@ -250,5 +269,14 @@ class AuthProvider extends ChangeNotifier {
   void clearError() {
     _clearError();
     notifyListeners();
+  }
+  
+  /// Kullanıcı rozetlerini başlat
+  void _initializeUserBadges() {
+    if (_badgeProvider != null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _badgeProvider!.initializeUserBadges();
+      });
+    }
   }
 }
