@@ -125,28 +125,61 @@ class UserProvider extends ChangeNotifier {
     required String gender,
     required String activityLevel,
   }) async {
-    _firstName = firstName;
-    _lastName = lastName;
-    _age = age;
-    _weight = weight;
-    _height = height;
-    _gender = gender;
-    _activityLevel = activityLevel;
+    try {
+      DebugLogger.info(
+        '🔄 Kişisel bilgiler güncelleniyor...',
+        tag: 'USER_PROVIDER',
+      );
 
-    // Su hedefini otomatik hesapla
-    _dailyWaterGoal = WaterCalculations.calculateDailyWaterNeed(
-      weight: weight,
-      age: age,
-      gender: gender,
-      activityLevel: activityLevel,
-    );
+      _firstName = firstName;
+      _lastName = lastName;
+      _age = age;
+      _weight = weight;
+      _height = height;
+      _gender = gender;
+      _activityLevel = activityLevel;
 
-    await _saveUserData();
+      // Su hedefini otomatik hesapla
+      _dailyWaterGoal = WaterCalculations.calculateDailyWaterNeed(
+        weight: weight,
+        age: age,
+        gender: gender,
+        activityLevel: activityLevel,
+      );
 
-    // WaterProvider'ı hedef değişikliği hakkında bilgilendir
-    _onGoalUpdated?.call();
+      DebugLogger.info(
+        '📊 Su hedefi hesaplandı: ${_dailyWaterGoal}ml',
+        tag: 'USER_PROVIDER',
+      );
 
-    notifyListeners();
+      // Önce local'e kaydet ki hata olursa bile kullanıcı ilerleyebilsin
+      notifyListeners();
+
+      // WaterProvider'ı hedef değişikliği hakkında bilgilendir
+      _onGoalUpdated?.call();
+
+      // Sonra Firebase'e kaydetmeye çalış (background'da)
+      try {
+        await _saveUserData();
+        DebugLogger.info(
+          '✅ Kişisel bilgiler Firebase\'e kaydedildi',
+          tag: 'USER_PROVIDER',
+        );
+      } catch (e) {
+        // Firebase hatası olursa log'la ama fonksiyonu başarısız sayma
+        DebugLogger.info(
+          '⚠️ Firebase kayıt hatası (offline devam): $e',
+          tag: 'USER_PROVIDER',
+        );
+      }
+    } catch (e) {
+      _setError('Kişisel bilgi güncelleme hatası: $e');
+      DebugLogger.info(
+        '❌ Kişisel bilgi güncelleme hatası: $e',
+        tag: 'USER_PROVIDER',
+      );
+      rethrow;
+    }
   }
 
   /// Günlük su hedefini güncelle
@@ -164,8 +197,24 @@ class UserProvider extends ChangeNotifier {
   Future<void> completeFirstTime() async {
     try {
       _isFirstTime = false;
-      await _saveUserData();
+
+      // Önce local'e kaydet ki hata olursa bile kullanıcı ilerleyebilsin
       notifyListeners();
+
+      // Sonra Firebase'e kaydetmeye çalış (background'da)
+      try {
+        await _saveUserData();
+        DebugLogger.info(
+          '✅ Kullanıcı verisi Firebase\'e kaydedildi',
+          tag: 'USER_PROVIDER',
+        );
+      } catch (e) {
+        // Firebase hatası olursa log'la ama fonksiyonu başarısız sayma
+        DebugLogger.info(
+          '⚠️ Firebase kayıt hatası (offline devam): $e',
+          tag: 'USER_PROVIDER',
+        );
+      }
     } catch (e) {
       _setError('İlk kez tamamlama hatası: $e');
       DebugLogger.info('❌ İlk kez tamamlama hatası: $e', tag: 'USER_PROVIDER');

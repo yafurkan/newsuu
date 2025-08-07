@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../core/utils/app_theme.dart';
+import '../core/utils/debug_logger.dart';
 import '../presentation/providers/auth_provider.dart';
 import '../presentation/providers/user_provider.dart';
 
@@ -54,21 +55,36 @@ class _SplashScreenState extends State<SplashScreen>
     final authProvider = context.read<AuthProvider>();
     final userProvider = context.read<UserProvider>();
 
+    // Debug için auth durumunu log'la
+    DebugLogger.info(
+      'Auth durumu: isSignedIn=${authProvider.isSignedIn}, userId=${authProvider.userId}',
+      tag: 'SPLASH',
+    );
+
     if (authProvider.isSignedIn) {
       // Kullanıcı giriş yapmış
       try {
         await userProvider.loadUserData();
 
+        // Debug için user durumunu log'la
+        DebugLogger.info(
+          'User durumu: isFirstTime=${userProvider.isFirstTime}',
+          tag: 'SPLASH',
+        );
+
         if (mounted) {
           if (userProvider.isFirstTime) {
             // İlk kez giriş yapan kullanıcı → Onboarding
+            DebugLogger.info('Onboarding\'e yönlendiriliyor', tag: 'SPLASH');
             Navigator.of(context).pushReplacementNamed('/onboarding');
           } else {
             // Mevcut kullanıcı → Ana sayfa
+            DebugLogger.info('Ana sayfaya yönlendiriliyor', tag: 'SPLASH');
             Navigator.of(context).pushReplacementNamed('/home');
           }
         }
       } catch (e) {
+        DebugLogger.info('Kullanıcı verisi yükleme hatası: $e', tag: 'SPLASH');
         // Kullanıcı verisi yüklenemedi → Onboarding'e gönder
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/onboarding');
@@ -76,6 +92,7 @@ class _SplashScreenState extends State<SplashScreen>
       }
     } else {
       // Kullanıcı giriş yapmamış → Login ekranı
+      DebugLogger.info('Login ekranına yönlendiriliyor', tag: 'SPLASH');
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/login');
       }

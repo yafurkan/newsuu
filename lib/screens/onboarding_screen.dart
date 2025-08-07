@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../presentation/providers/user_provider.dart';
 import '../core/utils/app_theme.dart';
+import '../core/utils/debug_logger.dart';
 import 'home_screen.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -57,12 +58,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishOnboarding() async {
+    DebugLogger.info('🚀 Onboarding tamamlanıyor...', tag: 'ONBOARDING');
+
     // Temel alanların dolu olup olmadığını kontrol et
     if (_firstNameController.text.trim().isEmpty ||
         _lastNameController.text.trim().isEmpty ||
         _ageController.text.trim().isEmpty ||
         _heightController.text.trim().isEmpty ||
         _weightController.text.trim().isEmpty) {
+      DebugLogger.info('❌ Form alanları eksik', tag: 'ONBOARDING');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen tüm alanları doldurun')),
       );
@@ -72,6 +76,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() {
       _isLoading = true;
     });
+
+    DebugLogger.info('⏳ Loading durumu: true', tag: 'ONBOARDING');
 
     try {
       // Form alanlarının dolu olduğunu kontrol et
@@ -85,7 +91,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       final height = int.parse(_heightController.text);
       final weight = double.parse(_weightController.text);
 
+      DebugLogger.info(
+        '📝 Kullanıcı bilgileri: yaş=$age, boy=$height, kilo=$weight',
+        tag: 'ONBOARDING',
+      );
+
       final provider = Provider.of<UserProvider>(context, listen: false);
+
+      DebugLogger.info(
+        '💾 updatePersonalInfo çağrılıyor...',
+        tag: 'ONBOARDING',
+      );
       await provider.updatePersonalInfo(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
@@ -95,15 +111,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         gender: _selectedGender,
         activityLevel: _selectedActivityLevel,
       );
+      DebugLogger.info('✅ updatePersonalInfo tamamlandı', tag: 'ONBOARDING');
 
+      DebugLogger.info('🎯 completeFirstTime çağrılıyor...', tag: 'ONBOARDING');
       await provider.completeFirstTime();
+      DebugLogger.info('✅ completeFirstTime tamamlandı', tag: 'ONBOARDING');
 
       if (mounted) {
+        DebugLogger.info(
+          '🏠 HomeScreen\'e yönlendiriliyor...',
+          tag: 'ONBOARDING',
+        );
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
         );
+        DebugLogger.info(
+          '✅ HomeScreen navigasyonu tamamlandı',
+          tag: 'ONBOARDING',
+        );
+      } else {
+        DebugLogger.info(
+          '⚠️ Widget unmounted olduğu için navigasyon yapılmadı',
+          tag: 'ONBOARDING',
+        );
       }
     } catch (e) {
+      DebugLogger.info('❌ Onboarding hatası: $e', tag: 'ONBOARDING');
       if (mounted) {
         ScaffoldMessenger.of(
           context,
@@ -113,6 +146,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       setState(() {
         _isLoading = false;
       });
+      DebugLogger.info('⏹️ Loading durumu: false', tag: 'ONBOARDING');
     }
   }
 
