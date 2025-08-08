@@ -321,31 +321,33 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
   }
 
   Widget _buildNameStep() {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.person_add,
-            size: 100,
-            color: Colors.white,
-          ).animate().scale(duration: 600.ms).then().scale(begin: const Offset(1.0, 1.0), end: const Offset(1.1, 1.1), duration: 500.ms).then().scale(begin: const Offset(1.1, 1.1), end: const Offset(1.0, 1.0), duration: 500.ms),
-          const SizedBox(height: 32),
-          _buildAnimatedTextField(
-            controller: _firstNameController,
-            label: 'Adınız',
-            icon: Icons.person,
-            delay: 200,
-          ),
-          const SizedBox(height: 16),
-          _buildAnimatedTextField(
-            controller: _lastNameController,
-            label: 'Soyadınız',
-            icon: Icons.person_outline,
-            delay: 400,
-          ),
-        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.person_add,
+              size: 80,
+              color: Colors.white,
+            ).animate().scale(duration: 600.ms).then().scale(begin: const Offset(1.0, 1.0), end: const Offset(1.1, 1.1), duration: 500.ms).then().scale(begin: const Offset(1.1, 1.1), end: const Offset(1.0, 1.0), duration: 500.ms),
+            const SizedBox(height: 24),
+            _buildAnimatedTextField(
+              controller: _firstNameController,
+              label: 'Adınız',
+              icon: Icons.person,
+              delay: 200,
+            ),
+            const SizedBox(height: 16),
+            _buildAnimatedTextField(
+              controller: _lastNameController,
+              label: 'Soyadınız',
+              icon: Icons.person_outline,
+              delay: 400,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -496,32 +498,34 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
   }
 
   Widget _buildActivityStep() {
-    return Padding(
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.fitness_center,
-            size: 100,
-            color: Colors.white,
-          ).animate().scale(duration: 600.ms).then().rotate(begin: -0.1, end: 0.1).then().rotate(begin: 0.1, end: -0.1),
-          const SizedBox(height: 32),
-          const Text(
-            'Aktivite Seviyenizi Seçin',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.fitness_center,
+              size: 80,
               color: Colors.white,
-            ),
-          ).animate().fadeIn(duration: 400.ms),
-          const SizedBox(height: 24),
-          _buildActivityCard('low', 'Düşük', 'Hareketsiz yaşam', Icons.airline_seat_recline_normal, 0),
-          const SizedBox(height: 12),
-          _buildActivityCard('medium', 'Orta', 'Haftada 1-3 gün spor', Icons.directions_walk, 200),
-          const SizedBox(height: 12),
-          _buildActivityCard('high', 'Yüksek', 'Haftada 3+ gün spor', Icons.directions_run, 400),
-        ],
+            ).animate().scale(duration: 600.ms).then().rotate(begin: -0.1, end: 0.1).then().rotate(begin: 0.1, end: -0.1),
+            const SizedBox(height: 24),
+            const Text(
+              'Aktivite Seviyenizi Seçin',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ).animate().fadeIn(duration: 400.ms),
+            const SizedBox(height: 20),
+            _buildActivityCard('low', 'Düşük', 'Hareketsiz yaşam', Icons.airline_seat_recline_normal, 0),
+            const SizedBox(height: 12),
+            _buildActivityCard('medium', 'Orta', 'Haftada 1-3 gün spor', Icons.directions_walk, 200),
+            const SizedBox(height: 12),
+            _buildActivityCard('high', 'Yüksek', 'Haftada 3+ gün spor', Icons.directions_run, 400),
+          ],
+        ),
       ),
     );
   }
@@ -680,61 +684,65 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
   }
 
   Widget _buildNavigationButtons() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          if (_currentStep > 0 && _currentStep < 7)
-            Expanded(
-              child: OutlinedButton(
-                onPressed: _previousStep,
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      child: SafeArea(
+        child: Row(
+          children: [
+            if (_currentStep > 0 && _currentStep < 7)
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _previousStep,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  child: const Text('Geri', style: TextStyle(fontSize: 14)),
                 ),
-                child: const Text('Geri', style: TextStyle(fontSize: 16)),
               ),
-            ),
-          if (_currentStep > 0 && _currentStep < 7) const SizedBox(width: 16),
-          if (_currentStep < 7)
-            Expanded(
-              flex: _currentStep == 0 ? 1 : 2,
-              child: ElevatedButton(
-                onPressed: _canProceed() 
-                    ? (_currentStep == 6 ? _completeOnboarding : _nextStep)
-                    : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: _getBackgroundColors()[1],
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            if (_currentStep > 0 && _currentStep < 7) const SizedBox(width: 12),
+            if (_currentStep < 7)
+              Expanded(
+                flex: _currentStep == 0 ? 1 : 2,
+                child: ElevatedButton(
+                  onPressed: _canProceed()
+                      ? (_currentStep == 6 ? _completeOnboarding : _nextStep)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: _getBackgroundColors()[1],
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-                child: _isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        _currentStep == 0 
-                            ? 'Başlayalım!' 
-                            : _currentStep == 6 
-                                ? 'Tamamla' 
-                                : 'Devam',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : FittedBox(
+                          child: Text(
+                            _currentStep == 0
+                                ? 'Başlayalım!'
+                                : _currentStep == 6
+                                    ? 'Tamamla'
+                                    : 'Devam',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

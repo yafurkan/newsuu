@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../data/services/cloud_sync_service.dart';
 import '../../data/models/water_intake_model.dart';
+import '../../data/models/badge_model.dart';
 import '../../core/utils/debug_logger.dart';
 import 'badge_provider.dart';
+import '../widgets/badges/festival_badge_celebration.dart';
+import '../widgets/badges/badge_notification_overlay.dart';
+import 'user_provider.dart';
 
 /// Su tüketim verilerini yöneten Provider sınıfı (Firebase entegreli)
 class WaterProvider extends ChangeNotifier {
@@ -23,6 +27,12 @@ class WaterProvider extends ChangeNotifier {
   
   // Badge provider reference
   BadgeProvider? _badgeProvider;
+  
+  // Context for showing dialogs
+  BuildContext? _context;
+  
+  // User provider for user name
+  UserProvider? _userProvider;
 
   WaterProvider(this._cloudSyncService) {
     _loadTodayIntakes();
@@ -38,6 +48,16 @@ class WaterProvider extends ChangeNotifier {
   /// Badge provider'ı ayarla
   void setBadgeProvider(BadgeProvider badgeProvider) {
     _badgeProvider = badgeProvider;
+  }
+  
+  /// Context'i ayarla (dialog göstermek için)
+  void setContext(BuildContext context) {
+    _context = context;
+  }
+  
+  /// User provider'ı ayarla
+  void setUserProvider(UserProvider userProvider) {
+    _userProvider = userProvider;
   }
 
   // Getters
@@ -102,6 +122,7 @@ class WaterProvider extends ChangeNotifier {
 
     // 3. Rozet kontrolü yap (offline'da da çalışır)
     try {
+      DebugLogger.info('🏆 Rozet kontrolü başlatılıyor...', tag: 'WATER_PROVIDER');
       await _checkBadgeAchievements(amount);
     } catch (e) {
       DebugLogger.error('Rozet kontrolü hatası: $e', tag: 'WATER_PROVIDER');
@@ -486,12 +507,17 @@ class WaterProvider extends ChangeNotifier {
         buttonUsage: buttonUsage,
       );
       
-      // Yeni rozetler varsa bildirim göster
+      // Yeni rozetler varsa festival kutlaması göster
       if (newBadges.isNotEmpty) {
         DebugLogger.success(
           'Yeni rozetler kazanıldı: ${newBadges.map((b) => b.name).join(', ')}',
           tag: 'WATER_PROVIDER',
         );
+        
+        // Her yeni rozet için önce overlay notification göster
+        for (final badge in newBadges) {
+          _showBadgeNotificationOverlay(badge);
+        }
       }
     } catch (e) {
       DebugLogger.error('Rozet kontrolü hatası: $e', tag: 'WATER_PROVIDER');
@@ -521,5 +547,85 @@ class WaterProvider extends ChangeNotifier {
       DebugLogger.error('Ardışık gün hesaplama hatası: $e', tag: 'WATER_PROVIDER');
       return 1; // En az bugün var
     }
+  }
+  
+  /// Overlay notification göster
+  void _showBadgeNotificationOverlay(BadgeModel badge) {
+    DebugLogger.info('🎊 Overlay notification gösteriliyor: ${badge.name}', tag: 'WATER_PROVIDER');
+    
+    if (_context == null || !_context!.mounted) {
+      DebugLogger.warning('❌ Context null veya unmounted!', tag: 'WATER_PROVIDER');
+      return;
+    }
+    
+    try {
+      // Overlay'in mevcut olup olmadığını kontrol et
+      final overlay = Overlay.maybeOf(_context!);
+      if (overlay == null) {
+        DebugLogger.warning('❌ Overlay widget bulunamadı, direkt festival kutlaması gösteriliyor', tag: 'WATER_PROVIDER');
+        // Overlay yoksa direkt festival kutlaması göster
+        _showFestivalCelebration(badge);
+        return;
+      }
+      
+      // Overlay entry oluştur
+      late OverlayEntry overlayEntry;
+      
+      overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          top: MediaQuery.of(context).padding.top + 10,
+          left: 0,
+          right: 0,
+          child: BadgeNotificationOverlay(
+            badge: badge,
+            onTap: () {
+              DebugLogger.info('🎊 Overlay tıklandı, festival kutlaması başlatılıyor', tag: 'WATER_PROVIDER');
+              // Overlay'i kapat ve festival kutlaması göster
+              overlayEntry.remove();
+              _showFestivalCelebration(badge);
+            },
+            onDismiss: () {
+              DebugLogger.info('🎊 Overlay kapatıldı', tag: 'WATER_PROVIDER');
+              // Sadece overlay'i kapat
+              overlayEntry.remove();
+            },
+          ),
+        ),
+      );
+      
+      // Overlay'i güvenli şekilde göster
+      overlay.insert(overlayEntry);
+      DebugLogger.success('✅ Overlay başarıyla gösterildi', tag: 'WATER_PROVIDER');
+    } catch (e) {
+      DebugLogger.error('❌ ❌ Overlay gösterme hatası: $e', tag: 'WATER_PROVIDER');
+      // Hata durumunda direkt festival kutlaması göster
+      _showFestivalCelebration(badge);
+    }
+  }
+  
+  /// Festival kutlaması göster
+  void _showFestivalCelebration(BadgeModel badge) {
+    if (_context == null || !_context!.mounted) return;
+    
+    // Biraz gecikme ile dialog göster (animasyonların tamamlanması için)
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_context != null && _context!.mounted) {
+        showDialog(
+          context: _context!,
+          barrierDismissible: false,
+          builder: (context) => FestivalBadgeCelebration(
+            badge: badge,
+            userName: _userProvider?.firstName ?? 'Kahraman',
+            onContinue: () {
+              // Dialog kapandıktan sonra yapılacak işlemler
+              DebugLogger.info(
+                'Festival kutlaması tamamlandı: ${badge.name}',
+                tag: 'WATER_PROVIDER',
+              );
+            },
+          ),
+        );
+      }
+    });
   }
 }

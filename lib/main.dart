@@ -254,6 +254,11 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                 source: source,
               );
             });
+            
+            // UserProvider'ı set et
+            waterProvider?.setUserProvider(userProvider);
+            
+            // Context'i burada set etme - HomeScreen'de yapılacak
 
             return waterProvider!;
           },

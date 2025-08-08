@@ -21,6 +21,20 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Context tamamen hazır olduğunda set et
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // WaterProvider'a context'i set et (rozet bildirimleri için)
+        // Bu context MaterialApp içinde olduğu için Overlay'e erişebilir
+        final waterProvider = context.read<WaterProvider>();
+        waterProvider.setContext(context);
+      }
+    });
+  }
+
+  @override
   void initState() {
     super.initState();
     // Verileri yükle
