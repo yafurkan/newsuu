@@ -44,14 +44,44 @@ class StatisticsProvider with ChangeNotifier {
       _isLoadingMonthly ||
       _isLoadingPerformance;
 
-  /// Initialize statistics data
+  /// Initialize statistics data (Optimize edilmiş)
   Future<void> initializeStats() async {
-    await Future.wait([
-      loadDailyStats(_selectedDate),
-      loadWeeklyStats(_selectedDate),
-      loadMonthlyStats(_selectedDate),
-      loadPerformanceMetrics(),
-    ]);
+    try {
+      // Batch loading kullanarak tüm istatistikleri paralel yükle
+      final results = await _statisticsService.loadBatchStats(
+        date: _selectedDate,
+        loadDaily: true,
+        loadWeekly: true,
+        loadMonthly: true,
+        loadPerformance: true,
+      );
+
+      // Sonuçları provider state'ine aktar
+      _currentDailyStats = results['daily'] as DailyStats?;
+      _currentWeeklyStats = results['weekly'] as WeeklyStats?;
+      _currentMonthlyStats = results['monthly'] as MonthlyStats?;
+      _currentPerformanceMetrics = results['performance'] as PerformanceMetrics?;
+
+      notifyListeners();
+
+      DebugLogger.success(
+        'Tüm istatistikler batch olarak yüklendi',
+        tag: 'STATS_PROVIDER',
+      );
+    } catch (e) {
+      DebugLogger.error(
+        'Batch istatistik yükleme hatası: $e',
+        tag: 'STATS_PROVIDER',
+      );
+      
+      // Fallback: Eski yöntemle yükle
+      await Future.wait([
+        loadDailyStats(_selectedDate),
+        loadWeeklyStats(_selectedDate),
+        loadMonthlyStats(_selectedDate),
+        loadPerformanceMetrics(),
+      ]);
+    }
   }
 
   /// Load daily statistics
@@ -217,41 +247,75 @@ class StatisticsProvider with ChangeNotifier {
     await changeDate(newDate);
   }
 
-  /// Update statistics when water is added/removed
+  /// Update statistics when water is added/removed - Optimize edilmiş
   Future<void> updateStatsOnWaterChange({
     required double amount,
     required String type, // 'add' or 'remove'
     required String source,
   }) async {
     try {
+      DebugLogger.info(
+        'İstatistik güncelleme başlatılıyor: $type $amount ml',
+        tag: 'STATS_PROVIDER',
+      );
+
+      // Statistics service'e kısa timeout ile gönder
       await _statisticsService.addWaterEntry(
         amount: amount,
         type: type,
         source: source,
-      );
+      ).timeout(const Duration(seconds: 5));
 
-      // Reload current day stats
-      await loadDailyStats(_selectedDate);
-
-      // If viewing current week/month, reload those too
-      final now = DateTime.now();
-      if (_isSameWeek(_selectedDate, now)) {
-        await loadWeeklyStats(_selectedDate);
+      // Sadece bugünkü istatistikleri yenile - kısa timeout ile
+      try {
+        await loadDailyStats(_selectedDate).timeout(const Duration(seconds: 3));
+        
+        DebugLogger.success(
+          'Günlük istatistikler güncellendi: $type $amount ml',
+          tag: 'STATS_PROVIDER',
+        );
+      } catch (e) {
+        DebugLogger.warning(
+          'Günlük istatistik yenileme timeout: $e',
+          tag: 'STATS_PROVIDER',
+        );
       }
-      if (_isSameMonth(_selectedDate, now)) {
-        await loadMonthlyStats(_selectedDate);
-      }
 
-      DebugLogger.success(
-        'İstatistikler güncellendi: $type $amount ml',
-        tag: 'STATS_PROVIDER',
-      );
+      // Haftalık ve aylık istatistikleri background'da yenile
+      _refreshWeeklyMonthlyInBackground();
+
     } catch (e) {
       DebugLogger.error(
         'İstatistik güncelleme hatası: $e',
         tag: 'STATS_PROVIDER',
       );
+      // Hata olsa bile devam et - kritik değil
     }
+  }
+
+  /// Background'da haftalık ve aylık istatistikleri yenile - Cache invalidation ile
+  void _refreshWeeklyMonthlyInBackground() {
+    Future.microtask(() async {
+      try {
+        final now = DateTime.now();
+        
+        // Mevcut hafta/ay için cache'i invalidate et
+        if (_isSameWeek(_selectedDate, now)) {
+          _statisticsService.invalidateDateCache(_selectedDate);
+          await loadWeeklyStats(_selectedDate).timeout(const Duration(seconds: 8));
+          DebugLogger.info('Haftalık istatistikler background\'da yenilendi', tag: 'STATS_PROVIDER');
+        }
+        if (_isSameMonth(_selectedDate, now)) {
+          _statisticsService.invalidateDateCache(_selectedDate);
+          await loadMonthlyStats(_selectedDate).timeout(const Duration(seconds: 8));
+          DebugLogger.info('Aylık istatistikler background\'da yenilendi', tag: 'STATS_PROVIDER');
+        }
+        
+        DebugLogger.success('Background istatistik yenileme tamamlandı', tag: 'STATS_PROVIDER');
+      } catch (e) {
+        DebugLogger.warning('Background istatistik yenileme hatası: $e', tag: 'STATS_PROVIDER');
+      }
+    });
   }
 
   /// Update performance metrics when user profile changes
@@ -288,13 +352,53 @@ class StatisticsProvider with ChangeNotifier {
     }
   }
 
-  /// Refresh all current stats
+  /// Refresh all current stats (Cache'i temizleyerek) - Timeout'lu
   Future<void> refreshAll() async {
-    await initializeStats();
+    try {
+      DebugLogger.info('Tüm istatistikler yenileniyor...', tag: 'STATS_PROVIDER');
+      
+      // Cache'i temizle
+      _statisticsService.clearCache();
+      
+      // Tüm loading state'lerini true yap
+      _isLoadingDaily = true;
+      _isLoadingWeekly = true;
+      _isLoadingMonthly = true;
+      _isLoadingPerformance = true;
+      notifyListeners();
+      
+      // Kısa timeout ile yeniden yükle
+      await initializeStats().timeout(const Duration(seconds: 10));
+      
+      DebugLogger.success('Tüm istatistikler yenilendi', tag: 'STATS_PROVIDER');
+    } catch (e) {
+      DebugLogger.error('İstatistik yenileme hatası: $e', tag: 'STATS_PROVIDER');
+      
+      // Loading state'lerini temizle
+      _isLoadingDaily = false;
+      _isLoadingWeekly = false;
+      _isLoadingMonthly = false;
+      _isLoadingPerformance = false;
+      notifyListeners();
+    }
+  }
+
+  /// Cache'i invalidate et ve belirli tarihi yenile
+  Future<void> invalidateAndRefresh(DateTime date) async {
+    _statisticsService.invalidateDateCache(date);
+    
+    if (_selectedDate.year == date.year &&
+        _selectedDate.month == date.month &&
+        _selectedDate.day == date.day) {
+      await initializeStats();
+    }
   }
 
   /// Clear all user data when signing out
   void clearUserData() {
+    // Cache'i temizle
+    _statisticsService.clearCache();
+    
     _currentDailyStats = null;
     _currentWeeklyStats = null;
     _currentMonthlyStats = null;
@@ -311,7 +415,7 @@ class StatisticsProvider with ChangeNotifier {
     notifyListeners();
 
     DebugLogger.info(
-      'StatisticsProvider kullanıcı verileri temizlendi',
+      'StatisticsProvider kullanıcı verileri ve cache temizlendi',
       tag: 'STATS_PROVIDER',
     );
   }

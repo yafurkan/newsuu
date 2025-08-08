@@ -15,7 +15,7 @@ class AuthProvider extends ChangeNotifier {
 
   // Callback for clearing other providers on logout
   VoidCallback? _onSignOutCallback;
-  
+
   // Badge provider reference
   BadgeProvider? _badgeProvider;
 
@@ -31,7 +31,7 @@ class AuthProvider extends ChangeNotifier {
   void setSignOutCallback(VoidCallback callback) {
     _onSignOutCallback = callback;
   }
-  
+
   /// Badge provider'ı ayarla
   void setBadgeProvider(BadgeProvider badgeProvider) {
     _badgeProvider = badgeProvider;
@@ -68,7 +68,7 @@ class AuthProvider extends ChangeNotifier {
           'AuthProvider: Giriş başarılı',
           tag: 'AUTH_PROVIDER',
         );
-        
+
         // Kullanıcı rozetlerini başlat
         _initializeUserBadges();
       }
@@ -101,7 +101,7 @@ class AuthProvider extends ChangeNotifier {
           'AuthProvider: Kayıt başarılı',
           tag: 'AUTH_PROVIDER',
         );
-        
+
         // Yeni kullanıcı için rozetleri başlat
         _initializeUserBadges();
       }
@@ -115,13 +115,24 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  /// Sign out
+  /// Sign out - Timeout ile güvenilir çıkış
   Future<void> signOut() async {
     try {
       _setLoading(true);
       _clearError();
 
-      await _authService.signOut();
+      // Timeout ile çıkış işlemi - Firebase takılırsa zorla çık
+      await _authService.signOut().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          DebugLogger.warning(
+            'AuthProvider: Çıkış timeout, zorla çıkış yapılıyor',
+            tag: 'AUTH_PROVIDER',
+          );
+          // Timeout durumunda da çıkış yap
+          return;
+        },
+      );
 
       _isSignedIn = false;
       _userId = null;
@@ -135,11 +146,18 @@ class AuthProvider extends ChangeNotifier {
       // Çıkış işlemi tamamlandıktan sonra navigation'ı tetikle
       notifyListeners();
     } catch (e) {
-      _setError('Çıkış yapılamadı: $e');
-      DebugLogger.error(
-        'AuthProvider: Çıkış hatası - $e',
+      // Hata olsa bile çıkış yap (güvenlik için)
+      _isSignedIn = false;
+      _userId = null;
+      _userEmail = null;
+
+      DebugLogger.warning(
+        'AuthProvider: Çıkış hatası ama zorla çıkış yapıldı - $e',
         tag: 'AUTH_PROVIDER',
       );
+
+      // Hata olsa bile provider'ları temizle
+      _onSignOutCallback?.call();
       notifyListeners();
     } finally {
       _setLoading(false);
@@ -199,10 +217,10 @@ class AuthProvider extends ChangeNotifier {
           'AuthProvider: Google ile giriş başarılı',
           tag: 'AUTH_PROVIDER',
         );
-        
+
         // Google kullanıcısı için rozetleri başlat
         _initializeUserBadges();
-        
+
         return true;
       }
 
@@ -270,7 +288,7 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
     notifyListeners();
   }
-  
+
   /// Kullanıcı rozetlerini başlat
   void _initializeUserBadges() {
     if (_badgeProvider != null) {

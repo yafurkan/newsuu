@@ -16,7 +16,12 @@ class StatisticsScreen extends StatefulWidget {
   State<StatisticsScreen> createState() => _StatisticsScreenState();
 }
 
-class _StatisticsScreenState extends State<StatisticsScreen> {
+class _StatisticsScreenState extends State<StatisticsScreen>
+    with AutomaticKeepAliveClientMixin {
+  
+  @override
+  bool get wantKeepAlive => true; // Widget'ı bellekte tut
+  
   @override
   void initState() {
     super.initState();
@@ -27,6 +32,8 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin için gerekli
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -37,14 +44,6 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         backgroundColor: const Color(0xFF2196F3),
         elevation: 0,
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () {
-              context.read<StatisticsProvider>().refreshAll();
-            },
-          ),
-        ],
       ),
       body: Consumer<StatisticsProvider>(
         builder: (context, statsProvider, child) {
@@ -135,23 +134,26 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => statsProvider.refreshAll(),
-                  child: SingleChildScrollView(
+                  child: CustomScrollView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        // Main stats view
-                        _buildStatsView(statsProvider),
-                        const SizedBox(height: 20),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.all(16),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate([
+                            // Main stats view
+                            _buildStatsView(statsProvider),
+                            const SizedBox(height: 20),
 
-                        // Performance metrics
-                        if (statsProvider.currentPerformanceMetrics != null)
-                          StatsPerformanceView(
-                            performanceMetrics:
-                                statsProvider.currentPerformanceMetrics!,
-                          ),
-                      ],
-                    ),
+                            // Performance metrics (Lazy loading)
+                            if (statsProvider.currentPerformanceMetrics != null)
+                              _buildPerformanceSection(statsProvider)
+                            else if (statsProvider.isLoadingPerformance)
+                              _buildLoadingCard('Performans metrikleri yükleniyor...'),
+                          ]),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -244,5 +246,55 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   DateTime _getWeekStart(DateTime date) {
     final weekday = date.weekday;
     return date.subtract(Duration(days: weekday - 1));
+  }
+
+  /// Performans bölümü widget'ı
+  Widget _buildPerformanceSection(StatisticsProvider statsProvider) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      child: StatsPerformanceView(
+        performanceMetrics: statsProvider.currentPerformanceMetrics!,
+      ),
+    );
+  }
+
+  /// Loading kartı widget'ı
+  Widget _buildLoadingCard(String message) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          const SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2196F3)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            message,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Colors.grey,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
   }
 }
