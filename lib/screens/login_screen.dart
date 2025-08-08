@@ -11,7 +11,8 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen>
+    with TickerProviderStateMixin {
   bool _isLoading = false;
   late AnimationController _shimmerController;
   late AnimationController _pulseController;
@@ -20,17 +21,17 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
-    
+
     _shimmerController = AnimationController(
       duration: const Duration(seconds: 3),
       vsync: this,
     )..repeat();
-    
+
     _pulseController = AnimationController(
       duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat(reverse: true);
-    
+
     _floatController = AnimationController(
       duration: const Duration(seconds: 4),
       vsync: this,
@@ -69,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(height: 40),
-                
+
                 // Animasyonlu Logo
                 _buildAnimatedLogo(),
                 const SizedBox(height: 40),
@@ -104,111 +105,117 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   // Animasyonlu Logo
   Widget _buildAnimatedLogo() {
     return AnimatedBuilder(
-      animation: _floatController,
-      builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, -10 * _floatController.value),
-          child: AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, child) {
-              return Transform.scale(
-                scale: 1.0 + (_pulseController.value * 0.1),
-                child: Container(
-                  width: 140,
-                  height: 140,
-                  decoration: BoxDecoration(
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.9),
-                        Colors.blue.shade100.withOpacity(0.8),
-                        Colors.blue.shade300.withOpacity(0.6),
-                      ],
+          animation: _floatController,
+          builder: (context, child) {
+            return Transform.translate(
+              offset: Offset(0, -10 * _floatController.value),
+              child: AnimatedBuilder(
+                animation: _pulseController,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: 1.0 + (_pulseController.value * 0.1),
+                    child: Container(
+                      width: 140,
+                      height: 140,
+                      decoration: BoxDecoration(
+                        gradient: RadialGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.9),
+                            Colors.blue.shade100.withOpacity(0.8),
+                            Colors.blue.shade300.withOpacity(0.6),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(70),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.white.withOpacity(0.3),
+                            blurRadius: 30,
+                            spreadRadius: 10,
+                            offset: const Offset(0, 10),
+                          ),
+                          BoxShadow(
+                            color: Colors.blue.withOpacity(0.2),
+                            blurRadius: 50,
+                            spreadRadius: 20,
+                            offset: const Offset(0, 20),
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.water_drop,
+                        size: 70,
+                        color: Colors.blue.shade700,
+                        shadows: [
+                          Shadow(
+                            color: Colors.white.withOpacity(0.5),
+                            offset: const Offset(2, 2),
+                            blurRadius: 4,
+                          ),
+                        ],
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(70),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.3),
-                        blurRadius: 30,
-                        spreadRadius: 10,
-                        offset: const Offset(0, 10),
-                      ),
-                      BoxShadow(
-                        color: Colors.blue.withOpacity(0.2),
-                        blurRadius: 50,
-                        spreadRadius: 20,
-                        offset: const Offset(0, 20),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.water_drop,
-                    size: 70,
-                    color: Colors.blue.shade700,
-                    shadows: [
-                      Shadow(
-                        color: Colors.white.withOpacity(0.5),
-                        offset: const Offset(2, 2),
-                        blurRadius: 4,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        );
-      },
-    ).animate()
+                  );
+                },
+              ),
+            );
+          },
+        )
+        .animate()
         .fadeIn(duration: 1000.ms)
-        .scale(begin: const Offset(0.5, 0.5), duration: 800.ms, curve: Curves.elasticOut);
+        .scale(
+          begin: const Offset(0.5, 0.5),
+          duration: 800.ms,
+          curve: Curves.elasticOut,
+        );
   }
 
   // Gümüş Geçiş Efektli Başlık
   Widget _buildShimmerTitle() {
     return AnimatedBuilder(
-      animation: _shimmerController,
-      builder: (context, child) {
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return LinearGradient(
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-              colors: [
-                Colors.white.withOpacity(0.8),
-                Colors.white,
-                Colors.grey.shade300,
-                Colors.white,
-                Colors.white.withOpacity(0.8),
-              ],
-              stops: [
-                0.0,
-                0.2 + (_shimmerController.value * 0.6),
-                0.5 + (_shimmerController.value * 0.3),
-                0.8 + (_shimmerController.value * 0.2),
-                1.0,
-              ],
-            ).createShader(bounds);
-          },
-          child: const Text(
-            'SU TAKİP',
-            style: TextStyle(
-              fontSize: 42,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 3.0,
-              shadows: [
-                Shadow(
-                  color: Colors.black26,
-                  offset: Offset(2, 2),
-                  blurRadius: 4,
+          animation: _shimmerController,
+          builder: (context, child) {
+            return ShaderMask(
+              shaderCallback: (bounds) {
+                return LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Colors.white.withOpacity(0.8),
+                    Colors.white,
+                    Colors.grey.shade300,
+                    Colors.white,
+                    Colors.white.withOpacity(0.8),
+                  ],
+                  stops: [
+                    0.0,
+                    0.2 + (_shimmerController.value * 0.6),
+                    0.5 + (_shimmerController.value * 0.3),
+                    0.8 + (_shimmerController.value * 0.2),
+                    1.0,
+                  ],
+                ).createShader(bounds);
+              },
+              child: const Text(
+                'Suu',
+                style: TextStyle(
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: 3.0,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      offset: Offset(2, 2),
+                      blurRadius: 4,
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            textAlign: TextAlign.center,
-          ),
-        );
-      },
-    ).animate()
+                textAlign: TextAlign.center,
+              ),
+            );
+          },
+        )
+        .animate()
         .fadeIn(delay: 500.ms, duration: 800.ms)
         .slideY(begin: -0.3, duration: 600.ms, curve: Curves.easeOut);
   }
@@ -218,27 +225,29 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     return Column(
       children: [
         Text(
-          '💧 Sağlıklı Yaşamın Dijital Partneri',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.white.withOpacity(0.9),
-            letterSpacing: 0.5,
-          ),
-          textAlign: TextAlign.center,
-        ).animate()
+              'Sağlıklı Yaşamın Dijital Partneri',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.9),
+                letterSpacing: 0.5,
+              ),
+              textAlign: TextAlign.center,
+            )
+            .animate()
             .fadeIn(delay: 800.ms, duration: 600.ms)
             .slideY(begin: 0.3, duration: 500.ms),
         const SizedBox(height: 8),
         Text(
-          'Akıllı takip • Premium deneyim • Sınırsız motivasyon',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withOpacity(0.7),
-            fontStyle: FontStyle.italic,
-          ),
-          textAlign: TextAlign.center,
-        ).animate()
+              'Akıllı takip • Premium deneyim • Sınırsız motivasyon',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.7),
+                fontStyle: FontStyle.italic,
+              ),
+              textAlign: TextAlign.center,
+            )
+            .animate()
             .fadeIn(delay: 1000.ms, duration: 600.ms)
             .slideY(begin: 0.2, duration: 400.ms),
       ],
@@ -248,89 +257,92 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   // Premium Google Giriş Butonu
   Widget _buildAnimatedGoogleButton() {
     return AnimatedBuilder(
-      animation: _pulseController,
-      builder: (context, child) {
-        return Transform.scale(
-          scale: _isLoading ? 1.0 : (1.0 + (_pulseController.value * 0.02)),
-          child: Container(
-            width: double.infinity,
-            height: 64,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: _isLoading 
-                    ? [Colors.grey.shade400, Colors.grey.shade500]
-                    : [Colors.white, Colors.grey.shade50],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 20,
-                  spreadRadius: 2,
-                  offset: const Offset(0, 8),
-                ),
-                BoxShadow(
-                  color: Colors.white.withOpacity(0.8),
-                  blurRadius: 10,
-                  spreadRadius: -5,
-                  offset: const Offset(0, -2),
-                ),
-              ],
-            ),
-            child: ElevatedButton.icon(
-              onPressed: _isLoading ? null : _signInWithGoogle,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
-                shadowColor: Colors.transparent,
-                shape: RoundedRectangleBorder(
+          animation: _pulseController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _isLoading ? 1.0 : (1.0 + (_pulseController.value * 0.02)),
+              child: Container(
+                width: double.infinity,
+                height: 64,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: _isLoading
+                        ? [Colors.grey.shade400, Colors.grey.shade500]
+                        : [Colors.white, Colors.grey.shade50],
+                  ),
                   borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              icon: _isLoading
-                  ? SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 3,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Colors.blue.shade600,
-                        ),
-                      ),
-                    )
-                  : Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.login,
-                        color: Colors.blue,
-                        size: 18,
-                      ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                      offset: const Offset(0, 8),
                     ),
-              label: Text(
-                _isLoading ? 'Giriş Yapılıyor...' : 'Google ile Giriş Yap',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: _isLoading ? Colors.grey.shade600 : Colors.grey.shade800,
-                  letterSpacing: 0.5,
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.8),
+                      blurRadius: 10,
+                      spreadRadius: -5,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _signInWithGoogle,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  icon: _isLoading
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 3,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.blue.shade600,
+                            ),
+                          ),
+                        )
+                      : Container(
+                          width: 28,
+                          height: 28,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.login,
+                            color: Colors.blue,
+                            size: 18,
+                          ),
+                        ),
+                  label: Text(
+                    _isLoading ? 'Giriş Yapılıyor...' : 'Google ile Giriş Yap',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: _isLoading
+                          ? Colors.grey.shade600
+                          : Colors.grey.shade800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
-        );
-      },
-    ).animate()
+            );
+          },
+        )
+        .animate()
         .fadeIn(delay: 1200.ms, duration: 600.ms)
         .slideY(begin: 0.3, duration: 500.ms)
         .then()
@@ -340,33 +352,34 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
   // Güvenlik Mesajı
   Widget _buildSecurityMessage() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.security,
-            color: Colors.white.withOpacity(0.8),
-            size: 24,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              '🔒 Verileriniz güvenle saklanır ve sadece size aittir',
-              style: TextStyle(
-                fontSize: 14,
+          child: Row(
+            children: [
+              Icon(
+                Icons.security,
                 color: Colors.white.withOpacity(0.8),
-                fontWeight: FontWeight.w500,
+                size: 24,
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '🔒 Verileriniz güvenle saklanır ve sadece size aittir',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.8),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ).animate()
+        )
+        .animate()
         .fadeIn(delay: 1400.ms, duration: 600.ms)
         .slideY(begin: 0.2, duration: 400.ms);
   }
@@ -406,64 +419,69 @@ class _LoginScreenState extends State<LoginScreen> with TickerProviderStateMixin
     );
   }
 
-  Widget _buildPremiumFeatureRow(IconData icon, String title, String subtitle, int delay) {
+  Widget _buildPremiumFeatureRow(
+    IconData icon,
+    String title,
+    String subtitle,
+    int delay,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                colors: [
-                  Colors.white.withOpacity(0.3),
-                  Colors.white.withOpacity(0.1),
-                ],
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.white.withOpacity(0.3),
+                      Colors.white.withOpacity(0.1),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: Icon(icon, color: Colors.white, size: 24),
               ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-            ),
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 0.3,
-                  ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.7),
+                        height: 1.3,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.white.withOpacity(0.7),
-                    height: 1.3,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ).animate()
+        )
+        .animate()
         .fadeIn(delay: delay.ms, duration: 600.ms)
         .slideX(begin: -0.3, duration: 500.ms, curve: Curves.easeOut);
   }

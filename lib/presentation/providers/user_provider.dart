@@ -20,6 +20,7 @@ class UserProvider extends ChangeNotifier {
   bool _isFirstTime = true;
   bool _isLoading = false;
   String? _errorMessage;
+  String _profilePhotoUrl = '';
 
   UserProvider(this._cloudSyncService) {
     loadUserData();
@@ -43,6 +44,7 @@ class UserProvider extends ChangeNotifier {
   String get fullName => '$_firstName $_lastName';
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  String get profilePhotoUrl => _profilePhotoUrl;
 
   /// Kullanıcı verilerini Firebase'dan yükle
   Future<void> loadUserData() async {
@@ -65,6 +67,7 @@ class UserProvider extends ChangeNotifier {
         _activityLevel = userData['activityLevel'] ?? 'medium';
         _dailyWaterGoal = (userData['dailyWaterGoal'] ?? 2000.0).toDouble();
         _isFirstTime = userData['isFirstTime'] ?? true;
+        _profilePhotoUrl = userData['profilePhotoUrl'] ?? '';
         notifyListeners();
       }
     } catch (e) {
@@ -99,6 +102,7 @@ class UserProvider extends ChangeNotifier {
         'activityLevel': _activityLevel,
         'dailyWaterGoal': _dailyWaterGoal,
         'isFirstTime': _isFirstTime,
+        'profilePhotoUrl': _profilePhotoUrl,
         'updatedAt': DateTime.now().toIso8601String(),
       };
 
@@ -193,6 +197,31 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Profil fotoğrafını güncelle
+  Future<void> updateProfilePhoto(String photoUrl) async {
+    try {
+      _profilePhotoUrl = photoUrl;
+      
+      // Önce local'e kaydet
+      notifyListeners();
+      
+      // Sonra Firebase'e kaydet
+      await _saveUserData();
+      
+      DebugLogger.info(
+        '✅ Profil fotoğrafı güncellendi: $photoUrl',
+        tag: 'USER_PROVIDER',
+      );
+    } catch (e) {
+      _setError('Profil fotoğrafı güncelleme hatası: $e');
+      DebugLogger.info(
+        '❌ Profil fotoğrafı güncelleme hatası: $e',
+        tag: 'USER_PROVIDER',
+      );
+      rethrow;
+    }
+  }
+
   /// İlk kez setup'ı tamamla
   Future<void> completeFirstTime() async {
     try {
@@ -235,6 +264,7 @@ class UserProvider extends ChangeNotifier {
     _isFirstTime = true;
     _isLoading = false;
     _errorMessage = null;
+    _profilePhotoUrl = '';
     notifyListeners();
   }
 
