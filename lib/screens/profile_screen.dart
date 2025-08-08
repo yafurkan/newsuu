@@ -6,7 +6,7 @@ import '../presentation/providers/auth_provider.dart';
 import '../presentation/widgets/common/email_verification_banner.dart';
 import '../presentation/widgets/common/delete_account_dialog.dart';
 import '../presentation/widgets/common/email_preferences_card.dart';
-import 'profile_setup_screen.dart';
+import 'animated_onboarding_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -438,7 +438,7 @@ class ProfileScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const ProfileSetupScreen(isFirstSetup: false),
+        builder: (context) => const AnimatedOnboardingScreen(isFirstSetup: false),
       ),
     );
   }

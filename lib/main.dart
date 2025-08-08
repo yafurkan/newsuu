@@ -13,6 +13,7 @@ import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
+import 'screens/animated_onboarding_screen.dart';
 import 'screens/email_verification_success_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
@@ -308,7 +309,8 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                     routes: {
                       '/login': (context) => const LoginScreen(),
                       '/home': (context) => const HomeScreen(),
-                      '/onboarding': (context) => const OnboardingScreen(),
+                      '/onboarding': (context) => const AnimatedOnboardingScreen(),
+                      '/profile-setup': (context) => const AnimatedOnboardingScreen(),
                       '/email-verification-success': (context) => const EmailVerificationSuccessScreen(),
                     },
                     debugShowCheckedModeBanner: false,
