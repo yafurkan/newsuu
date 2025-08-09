@@ -209,14 +209,16 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           if (mounted && context.mounted) {
-            // Context'in hala geçerli olduğunu kontrol et
+            // Context'in hala geçerli olduğunu ve Provider'ın mevcut olduğunu kontrol et
             final waterProvider = Provider.of<WaterProvider>(context, listen: false);
-            waterProvider.refreshData();
-            DebugLogger.info('WaterProvider başarıyla yenilendi', tag: 'MAIN');
+            if (waterProvider != null) {
+              waterProvider.refreshData();
+              DebugLogger.info('WaterProvider başarıyla yenilendi', tag: 'MAIN');
+            }
           }
         } catch (e) {
-          DebugLogger.error('WaterProvider bulunamadı: $e', tag: 'MAIN');
-          // Provider bulunamazsa sessizce devam et
+          // Provider henüz hazır değilse sessizce devam et
+          DebugLogger.info('WaterProvider henüz hazır değil, atlanıyor: $e', tag: 'MAIN');
         }
       });
     }

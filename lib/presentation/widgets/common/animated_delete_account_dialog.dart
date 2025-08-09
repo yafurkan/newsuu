@@ -350,55 +350,77 @@ class _AnimatedDeleteAccountDialogState extends State<AnimatedDeleteAccountDialo
 
           const SizedBox(height: 32),
 
-          // Butonlar
-          Row(
+          // Butonlar - Responsive tasarım
+          Column(
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _previousStep,
-                  icon: const Icon(Icons.arrow_back),
-                  label: const Text('Geri'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: BorderSide(color: Colors.grey.shade300),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
+              // Ana karar butonu - Kalmaya karar verdim
+              SizedBox(
+                width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.favorite),
-                  label: const Text('Kalmaya Karar Verdim'),
+                  icon: const Icon(Icons.favorite, size: 20),
+                  label: const Text(
+                    'Kalmaya Karar Verdim! 💖',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green.shade600,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(16),
                     ),
-                    elevation: 4,
+                    elevation: 6,
+                    shadowColor: Colors.green.shade200,
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _nextStep,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade600,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              
+              const SizedBox(height: 16),
+              
+              // Alt butonlar - Geri ve Yine de Sil
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _previousStep,
+                      icon: const Icon(Icons.arrow_back, size: 18),
+                      label: const Text(
+                        'Geri',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
                     ),
-                    elevation: 4,
                   ),
-                  child: const Text('Yine de Sil'),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: _nextStep,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 4,
+                      ),
+                      child: const Text(
+                        'Yine de Sil',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ).animate().slideY(

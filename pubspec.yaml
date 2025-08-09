@@ -69,6 +69,11 @@ dependencies:
   image_picker: ^1.0.7
   firebase_storage: ^12.3.2
   
+  # Weather and location services
+  http: ^1.1.0
+  geolocator: ^10.1.0
+  geocoding: ^2.1.1
+  
   # Confetti animation
   confetti: ^0.7.0
 
