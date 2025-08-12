@@ -102,25 +102,25 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                 colors: [
                   Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF'))),
                   Color(int.parse(widget.badge.colors[1].replaceFirst('#', '0xFF'))),
-                  Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF'))).withOpacity(0.8),
+                  Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF'))).withValues(alpha: 0.8),
                 ],
                 stops: const [0.0, 0.7, 1.0],
               ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.white.withValues(alpha: 0.3),
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
                   color: Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')))
-                      .withOpacity(0.6),
+                      .withValues(alpha: 0.6),
                   blurRadius: 25,
                   spreadRadius: 5,
                   offset: const Offset(0, 10),
                 ),
                 BoxShadow(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   blurRadius: 15,
                   spreadRadius: -5,
                   offset: const Offset(0, -5),
@@ -139,7 +139,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
+                          color: Colors.white.withValues(alpha: 0.25),
                           borderRadius: BorderRadius.circular(30),
                           border: Border.all(color: Colors.white, width: 2),
                         ),
@@ -182,7 +182,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                                 letterSpacing: 0.5,
                                 shadows: [
                                   Shadow(
-                                    color: Colors.black.withOpacity(0.3),
+                                    color: Colors.black.withValues(alpha: 0.3),
                                     offset: const Offset(1, 1),
                                     blurRadius: 2,
                                   ),
@@ -197,7 +197,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                             child: Container(
                               padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -219,7 +219,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                           letterSpacing: 0.8,
                           shadows: [
                             Shadow(
-                              color: Colors.black.withOpacity(0.4),
+                              color: Colors.black.withValues(alpha: 0.4),
                               offset: const Offset(1, 1),
                               blurRadius: 3,
                             ),
@@ -232,9 +232,9 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
+                          color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
                         ),
                         child: Text(
                           '👆 TIKLA VE KUTLA! 🎊',
@@ -245,7 +245,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                             letterSpacing: 0.3,
                             shadows: [
                               Shadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 offset: const Offset(0.5, 0.5),
                                 blurRadius: 1,
                               ),
@@ -269,15 +269,15 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                         decoration: BoxDecoration(
                           gradient: RadialGradient(
                             colors: [
-                              Colors.white.withOpacity(0.4),
-                              Colors.white.withOpacity(0.1),
+                              Colors.white.withValues(alpha: 0.4),
+                              Colors.white.withValues(alpha: 0.1),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(25),
-                          border: Border.all(color: Colors.white.withOpacity(0.6), width: 2),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.white.withOpacity(0.3),
+                              color: Colors.white.withValues(alpha: 0.3),
                               blurRadius: 10 + (_pulseController.value * 5),
                               spreadRadius: 2,
                             ),
@@ -289,7 +289,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
                           color: Colors.white,
                           shadows: [
                             Shadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withValues(alpha: 0.3),
                               offset: const Offset(1, 1),
                               blurRadius: 2,
                             ),
@@ -308,7 +308,7 @@ class _BadgeNotificationOverlayState extends State<BadgeNotificationOverlay>
         .slideY(begin: -1.2, curve: Curves.elasticOut, duration: 1000.ms)
         .fadeIn(duration: 600.ms)
         .then()
-        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.3))
+        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3))
         .then()
         .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.02, 1.02), duration: 500.ms)
         .then()

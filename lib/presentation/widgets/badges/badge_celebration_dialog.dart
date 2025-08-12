@@ -32,8 +32,10 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
   @override
   void initState() {
     super.initState();
-    
-    _confettiController = ConfettiController(duration: const Duration(seconds: 3));
+
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -50,13 +52,13 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
   void _startCelebration() async {
     // Konfeti başlat
     _confettiController.play();
-    
+
     // Rozet animasyonunu başlat
     await Future.delayed(const Duration(milliseconds: 300));
     if (mounted) {
       _scaleController.forward();
     }
-    
+
     // Bounce animasyonunu başlat
     await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) {
@@ -74,8 +76,8 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false, // Geri tuşunu devre dışı bırak
+    return PopScope(
+      canPop: false, // Geri tuşunu devre dışı bırak
       child: Dialog(
         backgroundColor: Colors.transparent,
         child: Stack(
@@ -93,8 +95,12 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                 minBlastForce: 80,
                 gravity: 0.3,
                 colors: [
-                  Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF'))),
-                  Color(int.parse(widget.badge.colors[1].replaceFirst('#', '0xFF'))),
+                  Color(
+                    int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')),
+                  ),
+                  Color(
+                    int.parse(widget.badge.colors[1].replaceFirst('#', '0xFF')),
+                  ),
                   AppColors.secondary,
                   AppColors.accent,
                   Colors.yellow,
@@ -102,7 +108,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                 ],
               ),
             ),
-            
+
             // Sol konfeti
             Positioned(
               left: 50,
@@ -123,7 +129,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                 ],
               ),
             ),
-            
+
             // Sağ konfeti
             Positioned(
               right: 50,
@@ -156,15 +162,26 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF'))),
-                      Color(int.parse(widget.badge.colors[1].replaceFirst('#', '0xFF'))),
+                      Color(
+                        int.parse(
+                          widget.badge.colors[0].replaceFirst('#', '0xFF'),
+                        ),
+                      ),
+                      Color(
+                        int.parse(
+                          widget.badge.colors[1].replaceFirst('#', '0xFF'),
+                        ),
+                      ),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')))
-                          .withOpacity(0.4),
+                      color: Color(
+                        int.parse(
+                          widget.badge.colors[0].replaceFirst('#', '0xFF'),
+                        ),
+                      ).withValues(alpha: 0.4),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -183,9 +200,9 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                       ),
                       textAlign: TextAlign.center,
                     ).animate().fadeIn(delay: 200.ms).slideY(begin: -0.3),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Rozet ikonu (animasyonlu)
                     AnimatedBuilder(
                       animation: _scaleController,
@@ -194,17 +211,22 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                           animation: _bounceController,
                           builder: (context, child) {
                             return Transform.scale(
-                              scale: _scaleController.value * (1.0 + _bounceController.value * 0.1),
+                              scale:
+                                  _scaleController.value *
+                                  (1.0 + _bounceController.value * 0.1),
                               child: Container(
                                 width: 120,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
+                                  color: Colors.white.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(60),
-                                  border: Border.all(color: Colors.white, width: 4),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.white.withOpacity(0.3),
+                                      color: Colors.white.withValues(alpha: 0.3),
                                       blurRadius: 20,
                                       spreadRadius: 5,
                                     ),
@@ -231,9 +253,9 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Rozet adı
                     Text(
                       widget.badge.name,
@@ -244,14 +266,17 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                       ),
                       textAlign: TextAlign.center,
                     ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.3),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // Nadir seviye
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -263,26 +288,23 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                         ),
                       ),
                     ).animate().fadeIn(delay: 800.ms).scale(),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Açıklama
                     Text(
                       widget.badge.description,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
+                      style: const TextStyle(fontSize: 16, color: Colors.white),
                       textAlign: TextAlign.center,
                     ).animate().fadeIn(delay: 1000.ms),
-                    
+
                     const SizedBox(height: 16),
-                    
+
                     // Eğlenceli bilgi
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
+                        color: Colors.white.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -318,9 +340,9 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                         ],
                       ),
                     ).animate().fadeIn(delay: 1200.ms).slideY(begin: 0.3),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Butonlar
                     Row(
                       children: [
@@ -329,12 +351,15 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                           child: ElevatedButton.icon(
                             onPressed: _shareBadge,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withOpacity(0.2),
+                              backgroundColor: Colors.white.withValues(alpha: 0.2),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
-                                side: const BorderSide(color: Colors.white, width: 1),
+                                side: const BorderSide(
+                                  color: Colors.white,
+                                  width: 1,
+                                ),
                               ),
                             ),
                             icon: const Icon(Icons.share, size: 18),
@@ -344,9 +369,9 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(width: 12),
-                        
+
                         // Devam et butonu
                         Expanded(
                           child: ElevatedButton.icon(
@@ -356,8 +381,14 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
-                              foregroundColor: Color(int.parse(
-                                  widget.badge.colors[0].replaceFirst('#', '0xFF'))),
+                              foregroundColor: Color(
+                                int.parse(
+                                  widget.badge.colors[0].replaceFirst(
+                                    '#',
+                                    '0xFF',
+                                  ),
+                                ),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),

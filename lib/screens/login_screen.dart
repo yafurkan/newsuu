@@ -120,21 +120,21 @@ class _LoginScreenState extends State<LoginScreen>
                       decoration: BoxDecoration(
                         gradient: RadialGradient(
                           colors: [
-                            Colors.white.withOpacity(0.9),
-                            Colors.blue.shade100.withOpacity(0.8),
-                            Colors.blue.shade300.withOpacity(0.6),
+                            Colors.white.withValues(alpha: 0.9),
+                            Colors.blue.shade100.withValues(alpha: 0.8),
+                            Colors.blue.shade300.withValues(alpha: 0.6),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(70),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.white.withOpacity(0.3),
+                            color: Colors.white.withValues(alpha: 0.3),
                             blurRadius: 30,
                             spreadRadius: 10,
                             offset: const Offset(0, 10),
                           ),
                           BoxShadow(
-                            color: Colors.blue.withOpacity(0.2),
+                            color: Colors.blue.withValues(alpha: 0.2),
                             blurRadius: 50,
                             spreadRadius: 20,
                             offset: const Offset(0, 20),
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen>
                         color: Colors.blue.shade700,
                         shadows: [
                           Shadow(
-                            color: Colors.white.withOpacity(0.5),
+                            color: Colors.white.withValues(alpha: 0.5),
                             offset: const Offset(2, 2),
                             blurRadius: 4,
                           ),
@@ -180,11 +180,11 @@ class _LoginScreenState extends State<LoginScreen>
                   begin: Alignment.centerLeft,
                   end: Alignment.centerRight,
                   colors: [
-                    Colors.white.withOpacity(0.8),
+                    Colors.white.withValues(alpha: 0.8),
                     Colors.white,
                     Colors.grey.shade300,
                     Colors.white,
-                    Colors.white.withOpacity(0.8),
+                    Colors.white.withValues(alpha: 0.8),
                   ],
                   stops: [
                     0.0,
@@ -229,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen>
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
-                color: Colors.white.withOpacity(0.9),
+                color: Colors.white.withValues(alpha: 0.9),
                 letterSpacing: 0.5,
               ),
               textAlign: TextAlign.center,
@@ -242,7 +242,7 @@ class _LoginScreenState extends State<LoginScreen>
               'Akıllı takip • Premium deneyim • Sınırsız motivasyon',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
                 fontStyle: FontStyle.italic,
               ),
               textAlign: TextAlign.center,
@@ -273,13 +273,13 @@ class _LoginScreenState extends State<LoginScreen>
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 20,
                       spreadRadius: 2,
                       offset: const Offset(0, 8),
                     ),
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.8),
+                      color: Colors.white.withValues(alpha: 0.8),
                       blurRadius: 10,
                       spreadRadius: -5,
                       offset: const Offset(0, -2),
@@ -314,7 +314,7 @@ class _LoginScreenState extends State<LoginScreen>
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 4,
                                 offset: const Offset(0, 2),
                               ),
@@ -346,7 +346,7 @@ class _LoginScreenState extends State<LoginScreen>
         .fadeIn(delay: 1200.ms, duration: 600.ms)
         .slideY(begin: 0.3, duration: 500.ms)
         .then()
-        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.3));
+        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.3));
   }
 
   // Güvenlik Mesajı
@@ -354,15 +354,15 @@ class _LoginScreenState extends State<LoginScreen>
     return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
           ),
           child: Row(
             children: [
               Icon(
                 Icons.security,
-                color: Colors.white.withOpacity(0.8),
+                color: Colors.white.withValues(alpha: 0.8),
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -371,7 +371,7 @@ class _LoginScreenState extends State<LoginScreen>
                   '🔒 Verileriniz güvenle saklanır ve sadece size aittir',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -428,9 +428,9 @@ class _LoginScreenState extends State<LoginScreen>
     return Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1),
           ),
           child: Row(
             children: [
@@ -440,13 +440,13 @@ class _LoginScreenState extends State<LoginScreen>
                 decoration: BoxDecoration(
                   gradient: RadialGradient(
                     colors: [
-                      Colors.white.withOpacity(0.3),
-                      Colors.white.withOpacity(0.1),
+                      Colors.white.withValues(alpha: 0.3),
+                      Colors.white.withValues(alpha: 0.1),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.3),
+                    color: Colors.white.withValues(alpha: 0.3),
                     width: 1,
                   ),
                 ),
@@ -471,7 +471,7 @@ class _LoginScreenState extends State<LoginScreen>
                       subtitle,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.white.withOpacity(0.7),
+                        color: Colors.white.withValues(alpha: 0.7),
                         height: 1.3,
                       ),
                     ),

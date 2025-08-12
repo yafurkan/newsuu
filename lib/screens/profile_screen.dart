@@ -52,7 +52,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         _isUploadingPhoto = true;
       });
 
-      final File? imageFile = await ProfilePhotoService.showImageSourceDialog(context);
+      final userProvider = context.read<UserProvider>();
+      final File? imageFile = await ProfilePhotoService.showImageSourceDialog(
+        context,
+      );
       if (imageFile == null) {
         setState(() {
           _isUploadingPhoto = false;
@@ -60,16 +63,18 @@ class _ProfileScreenState extends State<ProfileScreen>
         return;
       }
 
-      final userProvider = context.read<UserProvider>();
       final String? newPhotoUrl = await ProfilePhotoService.updateProfilePhoto(
         imageFile,
-        userProvider.profilePhotoUrl.isNotEmpty ? userProvider.profilePhotoUrl : null,
+        userProvider.profilePhotoUrl.isNotEmpty
+            ? userProvider.profilePhotoUrl
+            : null,
       );
 
       if (newPhotoUrl != null && mounted) {
+        final scaffoldMessenger = ScaffoldMessenger.of(context);
         await userProvider.updateProfilePhoto(newPhotoUrl);
-        
-        ScaffoldMessenger.of(context).showSnackBar(
+
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: const Text('✅ Profil fotoğrafı güncellendi!'),
             backgroundColor: Colors.green,
@@ -122,9 +127,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppTheme.primaryBlue.withOpacity(0.1),
+              AppTheme.primaryBlue.withValues(alpha: 0.1),
               Colors.white,
-              AppTheme.primaryBlue.withOpacity(0.05),
+              AppTheme.primaryBlue.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -137,32 +142,32 @@ class _ProfileScreenState extends State<ProfileScreen>
                   children: [
                     // Premium Header
                     _buildPremiumHeader(userProvider, authProvider),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Profile Photo Section
                     _buildProfilePhotoSection(userProvider),
-                    
+
                     const SizedBox(height: 30),
-                    
+
                     // Water Goal Card
                     _buildWaterGoalCard(userProvider),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Personal Info Card
                     _buildPersonalInfoCard(userProvider),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Settings Cards
                     _buildSettingsSection(authProvider),
-                    
+
                     const SizedBox(height: 20),
-                    
+
                     // Account Management
                     _buildAccountManagementSection(),
-                    
+
                     const SizedBox(height: 30),
                   ],
                 ),
@@ -174,7 +179,10 @@ class _ProfileScreenState extends State<ProfileScreen>
     );
   }
 
-  Widget _buildPremiumHeader(UserProvider userProvider, AuthProvider authProvider) {
+  Widget _buildPremiumHeader(
+    UserProvider userProvider,
+    AuthProvider authProvider,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -186,7 +194,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -202,9 +210,9 @@ class _ProfileScreenState extends State<ProfileScreen>
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeOut,
           ),
-          
+
           const SizedBox(width: 16),
-          
+
           // Title with shimmer
           Expanded(
             child: AnimatedBuilder(
@@ -239,7 +247,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               },
             ),
           ).animate().fadeIn(delay: const Duration(milliseconds: 200)),
-          
+
           // Logout button
           Container(
             decoration: BoxDecoration(
@@ -278,15 +286,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.blue.shade50,
-          ],
+          colors: [Colors.white, Colors.blue.shade50],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -309,14 +314,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: LinearGradient(
-                          colors: [
-                            AppTheme.primaryBlue,
-                            Colors.blue.shade300,
-                          ],
+                          colors: [AppTheme.primaryBlue, Colors.blue.shade300],
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primaryBlue.withOpacity(0.3),
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.3),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -327,16 +329,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                               child: Image.network(
                                 userProvider.profilePhotoUrl,
                                 fit: BoxFit.cover,
-                                loadingBuilder: (context, child, loadingProgress) {
-                                  if (loadingProgress == null) return child;
-                                  return Center(
-                                    child: CircularProgressIndicator(
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  );
-                                },
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: CircularProgressIndicator(
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.white,
+                                              ),
+                                        ),
+                                      );
+                                    },
                                 errorBuilder: (context, error, stackTrace) {
                                   return _buildDefaultAvatar(userProvider);
                                 },
@@ -347,13 +351,13 @@ class _ProfileScreenState extends State<ProfileScreen>
                   );
                 },
               ),
-              
+
               // Upload indicator
               if (_isUploadingPhoto)
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withValues(alpha: 0.5),
                       shape: BoxShape.circle,
                     ),
                     child: const Center(
@@ -363,61 +367,67 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                 ),
-              
+
               // Edit button
               Positioned(
                 bottom: 0,
                 right: 0,
-                child: GestureDetector(
-                  onTap: _isUploadingPhoto ? null : _updateProfilePhoto,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.green.shade400, Colors.green.shade600],
-                      ),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.green.shade200,
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                child:
+                    GestureDetector(
+                      onTap: _isUploadingPhoto ? null : _updateProfilePhoto,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.green.shade400,
+                              Colors.green.shade600,
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.green.shade200,
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
+                        child: const Icon(
+                          Icons.camera_alt,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+                    ).animate().scale(
+                      delay: const Duration(milliseconds: 800),
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.elasticOut,
                     ),
-                    child: const Icon(
-                      Icons.camera_alt,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ).animate().scale(
-                  delay: const Duration(milliseconds: 800),
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.elasticOut,
-                ),
               ),
             ],
           ).animate().scale(
             duration: const Duration(milliseconds: 600),
             curve: Curves.elasticOut,
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // User name
           Text(
-            userProvider.fullName.isNotEmpty ? userProvider.fullName : 'Kullanıcı',
+            userProvider.fullName.isNotEmpty
+                ? userProvider.fullName
+                : 'Kullanıcı',
             style: AppTheme.titleStyle.copyWith(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: AppTheme.primaryBlue,
             ),
           ).animate().fadeIn(delay: const Duration(milliseconds: 400)),
-          
+
           const SizedBox(height: 8),
-          
+
           // User info
           Text(
             '${userProvider.age} yaş • ${userProvider.weight.toInt()}kg • ${userProvider.height.toInt()}cm',
@@ -459,18 +469,18 @@ class _ProfileScreenState extends State<ProfileScreen>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.primaryBlue.withOpacity(0.1),
+            AppTheme.primaryBlue.withValues(alpha: 0.1),
             Colors.blue.shade50,
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppTheme.primaryBlue.withOpacity(0.2),
+          color: AppTheme.primaryBlue.withValues(alpha: 0.2),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryBlue.withOpacity(0.1),
+            color: AppTheme.primaryBlue.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -490,7 +500,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primaryBlue.withOpacity(0.3),
+                      color: AppTheme.primaryBlue.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -528,9 +538,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Goal amount
           Container(
             padding: const EdgeInsets.all(20),
@@ -539,7 +549,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -589,15 +599,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.grey.shade50,
-          ],
+          colors: [Colors.white, Colors.grey.shade50],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 15,
             offset: const Offset(0, 6),
           ),
@@ -616,11 +623,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(
-                  Icons.person,
-                  color: Colors.white,
-                  size: 24,
-                ),
+                child: const Icon(Icons.person, color: Colors.white, size: 24),
               ),
               const SizedBox(width: 16),
               Text(
@@ -645,13 +648,21 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Info items
           _buildInfoItem('Yaş', '${userProvider.age} yaş', Icons.cake),
-          _buildInfoItem('Kilo', '${userProvider.weight.toInt()}kg', Icons.monitor_weight),
-          _buildInfoItem('Boy', '${userProvider.height.toInt()}cm', Icons.height),
+          _buildInfoItem(
+            'Kilo',
+            '${userProvider.weight.toInt()}kg',
+            Icons.monitor_weight,
+          ),
+          _buildInfoItem(
+            'Boy',
+            '${userProvider.height.toInt()}cm',
+            Icons.height,
+          ),
           _buildInfoItem(
             'Cinsiyet',
             userProvider.gender == 'male' ? 'Erkek' : 'Kadın',
@@ -724,7 +735,11 @@ class _ProfileScreenState extends State<ProfileScreen>
                 // TODO: Implement dark mode
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(_isDarkMode ? '🌙 Karanlık mod aktif' : '☀️ Aydınlık mod aktif'),
+                    content: Text(
+                      _isDarkMode
+                          ? '🌙 Karanlık mod aktif'
+                          : '☀️ Aydınlık mod aktif',
+                    ),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -735,9 +750,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               activeColor: Colors.indigo.shade600,
             ),
           ),
-          
+
           const SizedBox(height: 16),
-          
+
           // Notifications
           _buildSettingCard(
             title: 'Bildirimler',
@@ -776,15 +791,12 @@ class _ProfileScreenState extends State<ProfileScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            Colors.grey.shade50,
-          ],
+          colors: [Colors.white, Colors.grey.shade50],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -795,7 +807,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.1),
+            color: iconColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, color: iconColor, size: 24),
@@ -816,9 +828,7 @@ class _ProfileScreenState extends State<ProfileScreen>
         ),
         trailing: trailing,
         onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     );
   }
@@ -831,16 +841,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.red.shade50,
-            Colors.pink.shade50,
-          ],
+          colors: [Colors.red.shade50, Colors.pink.shade50],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.red.shade200,
-          width: 1,
-        ),
+        border: Border.all(color: Colors.red.shade200, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.red.shade100,
@@ -879,9 +883,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ],
           ),
-          
+
           const SizedBox(height: 20),
-          
+
           // Delete Account Button
           Container(
             width: double.infinity,
@@ -972,124 +976,133 @@ class _ProfileScreenState extends State<ProfileScreen>
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 350),
-            child: Card(
-              elevation: 20,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
+              backgroundColor: Colors.transparent,
               child: Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Colors.white,
-                      Colors.blue.shade50,
-                    ],
+                constraints: const BoxConstraints(maxWidth: 350),
+                child: Card(
+                  elevation: 20,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                ),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.orange.shade400, Colors.orange.shade600],
-                        ),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.logout_rounded,
-                        color: Colors.white,
-                        size: 30,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Colors.white, Colors.blue.shade50],
                       ),
                     ),
-                    
-                    const SizedBox(height: 20),
-                    
-                    Text(
-                      'Çıkış Yapmak İstiyor Musun?',
-                      style: AppTheme.titleStyle.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange.shade700,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    Text(
-                      'Verileriniz güvende kalacak, istediğin zaman geri dönebilirsin! 😊',
-                      style: AppTheme.bodyStyle.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    Row(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: OutlinedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              side: BorderSide(color: Colors.grey.shade300),
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.orange.shade400,
+                                Colors.orange.shade600,
+                              ],
                             ),
-                            child: const Text('İptal'),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.white,
+                            size: 30,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                              
-                              // Çıkış yap
-                              await context.read<AuthProvider>().signOut();
-                              
-                              if (context.mounted) {
-                                Navigator.of(context).pushNamedAndRemoveUntil(
-                                  '/login',
-                                  (route) => false,
-                                );
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange.shade600,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 4,
-                            ),
-                            child: const Text('Çıkış Yap'),
+
+                        const SizedBox(height: 20),
+
+                        Text(
+                          'Çıkış Yapmak İstiyor Musun?',
+                          style: AppTheme.titleStyle.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.orange.shade700,
                           ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Text(
+                          'Verileriniz güvende kalacak, istediğin zaman geri dönebilirsin! 😊',
+                          style: AppTheme.bodyStyle.copyWith(
+                            color: Colors.grey.shade600,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child: OutlinedButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                style: OutlinedButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  side: BorderSide(color: Colors.grey.shade300),
+                                ),
+                                child: const Text('İptal'),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+
+                                  // Çıkış yap
+                                  await context.read<AuthProvider>().signOut();
+
+                                  if (context.mounted) {
+                                    Navigator.of(
+                                      context,
+                                    ).pushNamedAndRemoveUntil(
+                                      '/login',
+                                      (route) => false,
+                                    );
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange.shade600,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 14,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 4,
+                                ),
+                                child: const Text('Çıkış Yap'),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ).animate().scale(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.elasticOut,
-        ).fadeIn();
+            )
+            .animate()
+            .scale(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.elasticOut,
+            )
+            .fadeIn();
       },
     );
   }
@@ -1112,13 +1125,13 @@ class _ProfileScreenState extends State<ProfileScreen>
             const AnimatedOnboardingScreen(isFirstSetup: false),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return SlideTransition(
-            position: Tween<Offset>(
-              begin: const Offset(1.0, 0.0),
-              end: Offset.zero,
-            ).animate(CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOut,
-            )),
+            position:
+                Tween<Offset>(
+                  begin: const Offset(1.0, 0.0),
+                  end: Offset.zero,
+                ).animate(
+                  CurvedAnimation(parent: animation, curve: Curves.easeInOut),
+                ),
             child: child,
           );
         },

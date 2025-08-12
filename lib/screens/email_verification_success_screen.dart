@@ -99,7 +99,7 @@ class _EmailVerificationSuccessScreenState
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.green.shade200.withOpacity(0.5),
+                                color: Colors.green.shade200.withValues(alpha: 0.5),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -159,7 +159,7 @@ class _EmailVerificationSuccessScreenState
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.shade200.withOpacity(0.5),
+                            color: Colors.grey.shade200.withValues(alpha: 0.5),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -257,7 +257,7 @@ class _EmailVerificationSuccessScreenState
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(icon, color: color, size: 20),

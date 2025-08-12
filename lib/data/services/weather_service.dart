@@ -1,14 +1,8 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter/foundation.dart';
 
 class WeatherService {
-  // OpenWeatherMap API key (ücretsiz)
-  static const String _apiKey = 'demo_key'; // Gerçek projede API key kullanın
-  static const String _baseUrl = 'https://api.openweathermap.org/data/2.5';
-
   /// Konum izni al ve mevcut konumu bul
   static Future<Position?> getCurrentLocation() async {
     try {
@@ -51,12 +45,14 @@ class WeatherService {
         latitude,
         longitude,
       );
-      
+
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
-        return placemark.locality ?? placemark.administrativeArea ?? 'Bilinmeyen Şehir';
+        return placemark.locality ??
+            placemark.administrativeArea ??
+            'Bilinmeyen Şehir';
       }
-      
+
       return 'Bilinmeyen Şehir';
     } catch (e) {
       debugPrint('Şehir adı alma hatası: $e');
@@ -69,12 +65,17 @@ class WeatherService {
     try {
       // Önce konum iznini kontrol et
       Position? position = await getCurrentLocation();
-      
+
       if (position != null) {
         // Gerçek konum varsa şehir adını al
-        String cityName = await getCityName(position.latitude, position.longitude);
-        debugPrint('Konum bulundu: $cityName (${position.latitude}, ${position.longitude})');
-        
+        String cityName = await getCityName(
+          position.latitude,
+          position.longitude,
+        );
+        debugPrint(
+          'Konum bulundu: $cityName (${position.latitude}, ${position.longitude})',
+        );
+
         // Gerçek hava durumu verisi (demo olarak konum bazlı)
         return await _getLocationBasedWeatherData(position, cityName);
       } else {
@@ -89,23 +90,27 @@ class WeatherService {
   }
 
   /// Konum bazlı hava durumu verisi (demo)
-  static Future<WeatherData> _getLocationBasedWeatherData(Position position, String cityName) async {
+  static Future<WeatherData> _getLocationBasedWeatherData(
+    Position position,
+    String cityName,
+  ) async {
     await Future.delayed(const Duration(seconds: 1)); // API çağrısı simülasyonu
-    
+
     final now = DateTime.now();
     final hour = now.hour;
-    
+
     // Konum bazlı sıcaklık hesaplama (demo)
     double baseTemp = 20.0;
-    
+
     // Enlem bazlı sıcaklık ayarlaması (kuzey = soğuk, güney = sıcak)
-    double latitudeAdjustment = (41.0 - position.latitude) * 0.5; // İstanbul referans
-    
+    double latitudeAdjustment =
+        (41.0 - position.latitude) * 0.5; // İstanbul referans
+
     // Saate göre sıcaklık
     double timeAdjustment;
     String condition;
     String icon;
-    
+
     if (hour >= 6 && hour < 12) {
       // Sabah
       timeAdjustment = (hour - 6) * 2; // +0 ile +12°C arası
@@ -122,9 +127,9 @@ class WeatherService {
       condition = 'Açık';
       icon = 'night';
     }
-    
+
     double temperature = baseTemp + latitudeAdjustment + timeAdjustment;
-    
+
     return WeatherData(
       temperature: temperature,
       condition: condition,
@@ -139,15 +144,15 @@ class WeatherService {
   /// Demo hava durumu verisi
   static Future<WeatherData> _getDemoWeatherData() async {
     await Future.delayed(const Duration(seconds: 1)); // API çağrısı simülasyonu
-    
+
     final now = DateTime.now();
     final hour = now.hour;
-    
+
     // Saate göre demo sıcaklık
     double temperature;
     String condition;
     String icon;
-    
+
     if (hour >= 6 && hour < 12) {
       // Sabah
       temperature = 18.0 + (hour - 6) * 2; // 18-30°C arası
@@ -164,7 +169,7 @@ class WeatherService {
       condition = 'Açık';
       icon = 'night';
     }
-    
+
     return WeatherData(
       temperature: temperature,
       condition: condition,
@@ -174,48 +179,6 @@ class WeatherService {
       windSpeed: 12.5,
       lastUpdated: now,
     );
-  }
-
-  /// Gerçek API çağrısı (kullanım için API key gerekli)
-  static Future<WeatherData?> _getWeatherFromAPI(double lat, double lon) async {
-    try {
-      final url = '$_baseUrl/weather?lat=$lat&lon=$lon&appid=$_apiKey&units=metric&lang=tr';
-      final response = await http.get(Uri.parse(url));
-      
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        
-        return WeatherData(
-          temperature: data['main']['temp'].toDouble(),
-          condition: data['weather'][0]['description'],
-          icon: _getIconFromCondition(data['weather'][0]['icon']),
-          cityName: data['name'],
-          humidity: data['main']['humidity'],
-          windSpeed: data['wind']['speed'].toDouble(),
-          lastUpdated: DateTime.now(),
-        );
-      }
-      
-      return null;
-    } catch (e) {
-      debugPrint('API hava durumu hatası: $e');
-      return null;
-    }
-  }
-
-  /// Hava durumu ikonunu belirle
-  static String _getIconFromCondition(String apiIcon) {
-    final hour = DateTime.now().hour;
-    
-    if (apiIcon.contains('01')) return hour >= 6 && hour < 18 ? 'sunny' : 'night';
-    if (apiIcon.contains('02') || apiIcon.contains('03')) return 'cloudy';
-    if (apiIcon.contains('04')) return 'overcast';
-    if (apiIcon.contains('09') || apiIcon.contains('10')) return 'rainy';
-    if (apiIcon.contains('11')) return 'stormy';
-    if (apiIcon.contains('13')) return 'snowy';
-    if (apiIcon.contains('50')) return 'foggy';
-    
-    return hour >= 6 && hour < 18 ? 'sunny' : 'night';
   }
 }
 

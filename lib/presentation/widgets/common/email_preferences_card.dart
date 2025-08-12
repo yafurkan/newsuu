@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../data/services/email_service.dart';
 import '../../../data/services/deep_link_service.dart';
 import '../../../core/utils/debug_logger.dart';
 
@@ -14,7 +13,6 @@ class EmailPreferencesCard extends StatefulWidget {
 }
 
 class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
-  final EmailService _emailService = EmailService();
   bool _dailySummary = false;
   bool _goalCompletion = true;
   bool _verificationReminder = true;
@@ -38,13 +36,13 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
 
   Future<void> _sendTestEmail() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Firebase Auth e-posta doğrulama gönder (bu çalışıyor)
         await user.sendEmailVerification();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -56,13 +54,10 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
       }
     } catch (e) {
       DebugLogger.error('Test e-postası hatası: $e', tag: 'EMAIL_PREFS');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('❌ Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -74,17 +69,19 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
 
   Future<void> _sendWelcomeEmail() async {
     setState(() => _isLoading = true);
-    
+
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
         // Firebase Auth e-posta doğrulama gönder (hoş geldin yerine)
         await user.sendEmailVerification();
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('🎉 E-posta doğrulama gönderildi! (Hoş Geldin Test)'),
+              content: Text(
+                '🎉 E-posta doğrulama gönderildi! (Hoş Geldin Test)',
+              ),
               backgroundColor: Colors.green,
             ),
           );
@@ -92,13 +89,10 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
       }
     } catch (e) {
       DebugLogger.error('Hoş geldin e-postası hatası: $e', tag: 'EMAIL_PREFS');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('❌ Hata: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('❌ Hata: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -111,10 +105,10 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    
+
     return Card(
       elevation: 8,
-      shadowColor: Colors.blue.withOpacity(0.3),
+      shadowColor: Colors.blue.withValues(alpha: 0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         decoration: BoxDecoration(
@@ -122,10 +116,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade50,
-              Colors.indigo.shade50,
-            ],
+            colors: [Colors.blue.shade50, Colors.indigo.shade50],
           ),
         ),
         child: Padding(
@@ -165,25 +156,22 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                         ),
                         Text(
                           'E-posta bildirimlerinizi yönetin',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.black54,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.black54),
                         ),
                       ],
                     ),
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // E-posta adresi
               if (user?.email != null) ...[
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.blue.shade200),
                   ),
@@ -202,7 +190,10 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                       ),
                       if (user.emailVerified)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.green.shade100,
                             borderRadius: BorderRadius.circular(12),
@@ -218,7 +209,10 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                         )
                       else
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.orange.shade100,
                             borderRadius: BorderRadius.circular(12),
@@ -237,7 +231,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                 ),
                 const SizedBox(height: 20),
               ],
-              
+
               // E-posta tercihleri
               const Text(
                 'Bildirim Tercihleri',
@@ -248,7 +242,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               // Günlük özet
               _buildPreferenceSwitch(
                 title: 'Günlük Özet',
@@ -257,27 +251,29 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                 value: _dailySummary,
                 onChanged: (value) => setState(() => _dailySummary = value),
               ),
-              
+
               // Hedef tamamlama
               _buildPreferenceSwitch(
                 title: 'Hedef Tamamlama',
-                subtitle: 'Günlük hedefinizi tamamladığınızda tebrik e-postası alın',
+                subtitle:
+                    'Günlük hedefinizi tamamladığınızda tebrik e-postası alın',
                 icon: Icons.emoji_events_outlined,
                 value: _goalCompletion,
                 onChanged: (value) => setState(() => _goalCompletion = value),
               ),
-              
+
               // Doğrulama hatırlatması
               _buildPreferenceSwitch(
                 title: 'Doğrulama Hatırlatması',
                 subtitle: 'E-posta doğrulama hatırlatmaları alın',
                 icon: Icons.verified_outlined,
                 value: _verificationReminder,
-                onChanged: (value) => setState(() => _verificationReminder = value),
+                onChanged: (value) =>
+                    setState(() => _verificationReminder = value),
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // E-posta işlemleri
               const Text(
                 'E-posta İşlemleri',
@@ -288,19 +284,19 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                 ),
               ),
               const SizedBox(height: 12),
-              
+
               Row(
                 children: [
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _sendTestEmail,
                       icon: _isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.science_outlined),
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.science_outlined),
                       label: const Text('E-posta Doğrulama'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade600,
@@ -317,12 +313,12 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                     child: ElevatedButton.icon(
                       onPressed: _isLoading ? null : _sendWelcomeEmail,
                       icon: _isLoading
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.waving_hand_outlined),
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.waving_hand_outlined),
                       label: const Text('Doğrulama Gönder'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.indigo.shade600,
@@ -336,9 +332,9 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 12),
-              
+
               // Doğrulama Başarı Ekranı Test Butonu
               SizedBox(
                 width: double.infinity,
@@ -374,7 +370,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.7),
+        color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blue.shade100),
       ),
@@ -407,10 +403,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                 ),
                 Text(
                   subtitle,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
               ],
             ),
@@ -427,9 +420,12 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
 
   Future<void> _testDeepLink() async {
     try {
-      final deepLinkService = Provider.of<DeepLinkService>(context, listen: false);
+      final deepLinkService = Provider.of<DeepLinkService>(
+        context,
+        listen: false,
+      );
       await deepLinkService.testDeepLink();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -440,7 +436,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
       }
     } catch (e) {
       DebugLogger.error('Deep Link test hatası: $e', tag: 'EMAIL_PREFS');
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

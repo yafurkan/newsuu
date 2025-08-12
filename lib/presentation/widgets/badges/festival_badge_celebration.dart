@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:confetti/confetti.dart';
 import '../../../data/models/badge_model.dart';
 import '../../../data/services/social_share_service.dart';
-import '../../../core/constants/colors.dart';
 
 class FestivalBadgeCelebration extends StatefulWidget {
   final BadgeModel badge;
@@ -18,7 +17,8 @@ class FestivalBadgeCelebration extends StatefulWidget {
   });
 
   @override
-  State<FestivalBadgeCelebration> createState() => _FestivalBadgeCelebrationState();
+  State<FestivalBadgeCelebration> createState() =>
+      _FestivalBadgeCelebrationState();
 }
 
 class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
@@ -27,26 +27,34 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
   late ConfettiController _leftConfettiController;
   late ConfettiController _rightConfettiController;
   late ConfettiController _centerConfettiController;
-  
+
   late AnimationController _scaleController;
   late AnimationController _bounceController;
   late AnimationController _rotateController;
   late AnimationController _sparkleController;
   late AnimationController _textController;
-  
+
   final GlobalKey _repaintBoundaryKey = GlobalKey();
   final SocialShareService _socialShareService = SocialShareService();
 
   @override
   void initState() {
     super.initState();
-    
+
     // Konfeti controller'ları
-    _confettiController = ConfettiController(duration: const Duration(seconds: 4));
-    _leftConfettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _rightConfettiController = ConfettiController(duration: const Duration(seconds: 3));
-    _centerConfettiController = ConfettiController(duration: const Duration(seconds: 5));
-    
+    _confettiController = ConfettiController(
+      duration: const Duration(seconds: 4),
+    );
+    _leftConfettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
+    _rightConfettiController = ConfettiController(
+      duration: const Duration(seconds: 3),
+    );
+    _centerConfettiController = ConfettiController(
+      duration: const Duration(seconds: 5),
+    );
+
     // Animasyon controller'ları
     _scaleController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -78,37 +86,37 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
     _confettiController.play();
     _leftConfettiController.play();
     _rightConfettiController.play();
-    
+
     // 2. Rozet animasyonu - büyük giriş
     await Future.delayed(const Duration(milliseconds: 200));
     if (mounted) {
       _scaleController.forward();
     }
-    
+
     // 3. Döndürme animasyonu
     await Future.delayed(const Duration(milliseconds: 400));
     if (mounted) {
       _rotateController.forward();
     }
-    
+
     // 4. Merkez konfeti patlaması
     await Future.delayed(const Duration(milliseconds: 600));
     if (mounted) {
       _centerConfettiController.play();
     }
-    
+
     // 5. Bounce animasyonu
     await Future.delayed(const Duration(milliseconds: 800));
     if (mounted) {
       _bounceController.repeat(reverse: true);
     }
-    
+
     // 6. Sparkle efekti
     await Future.delayed(const Duration(milliseconds: 1000));
     if (mounted) {
       _sparkleController.repeat();
     }
-    
+
     // 7. Text animasyonu
     await Future.delayed(const Duration(milliseconds: 1200));
     if (mounted) {
@@ -132,8 +140,8 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.all(16),
@@ -145,233 +153,268 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
               center: Alignment.center,
               radius: 1.0,
               colors: [
-                Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')))
-                    .withOpacity(0.3),
-                Colors.black.withOpacity(0.7),
+                Color(
+                  int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')),
+                ).withValues(alpha: 0.3),
+                Colors.black.withValues(alpha: 0.7),
               ],
             ),
           ),
           child: Stack(
             alignment: Alignment.center,
             children: [
-            
-            // Konfeti efektleri - çoklu yönlü
-            ..._buildConfettiEffects(),
-            
-            // Ana kutlama dialog'u
-            RepaintBoundary(
-              key: _repaintBoundaryKey,
-              child: Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.85,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF'))),
-                      Color(int.parse(widget.badge.colors[1].replaceFirst('#', '0xFF'))),
+              // Konfeti efektleri - çoklu yönlü
+              ..._buildConfettiEffects(),
+
+              // Ana kutlama dialog'u
+              RepaintBoundary(
+                key: _repaintBoundaryKey,
+                child: Container(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(context).size.height * 0.85,
+                  ),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(
+                          int.parse(
+                            widget.badge.colors[0].replaceFirst('#', '0xFF'),
+                          ),
+                        ),
+                        Color(
+                          int.parse(
+                            widget.badge.colors[1].replaceFirst('#', '0xFF'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(32),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(
+                          int.parse(
+                            widget.badge.colors[0].replaceFirst('#', '0xFF'),
+                          ),
+                        ).withValues(alpha: 0.6),
+                        blurRadius: 30,
+                        spreadRadius: 10,
+                        offset: const Offset(0, 15),
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(32),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')))
-                          .withOpacity(0.6),
-                      blurRadius: 30,
-                      spreadRadius: 10,
-                      offset: const Offset(0, 15),
-                    ),
-                  ],
-                ),
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(32),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                    // Festival başlığı
-                    AnimatedBuilder(
-                      animation: _textController,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: 1.0 + (_textController.value * 0.1),
-                          child: Text(
-                            '🎊 MUHTEŞEM! 🎊',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black26,
-                                  offset: Offset(2, 2),
-                                  blurRadius: 4,
-                                ),
-                              ],
-                            ),
-                            textAlign: TextAlign.center,
-                          ).animate().fadeIn(delay: 100.ms).slideY(begin: -0.5)
-                              .then().shimmer(duration: 2000.ms, color: Colors.white),
-                        );
-                      },
-                    ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // Motivasyonel alt başlık
-                    Text(
-                      _getMotivationalSubtitle(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Animasyonlu rozet ikonu
-                    _buildAnimatedBadgeIcon(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Rozet adı ve seviye
-                    AnimatedBuilder(
-                      animation: _textController,
-                      builder: (context, child) {
-                        return Column(
-                          children: [
-                            Text(
-                              widget.badge.name,
-                              style: const TextStyle(
-                                fontSize: 28,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                shadows: [
-                                  Shadow(
-                                    color: Colors.black26,
-                                    offset: Offset(1, 1),
-                                    blurRadius: 2,
-                                  ),
-                                ],
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const SizedBox(height: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.25),
-                                borderRadius: BorderRadius.circular(25),
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: Text(
-                                '${_getRarityEmoji()} ${widget.badge.rarityText} Seviye',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    ).animate().fadeIn(delay: 800.ms).scale(),
-                    
-                    const SizedBox(height: 20),
-                    
-                    // Tebrik mesajı
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            _getCelebrationMessage(),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              height: 1.4,
-                            ),
-                            textAlign: TextAlign.center,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Festival başlığı
+                        AnimatedBuilder(
+                          animation: _textController,
+                          builder: (context, child) {
+                            return Transform.scale(
+                              scale: 1.0 + (_textController.value * 0.1),
+                              child:
+                                  Text(
+                                        '🎊 MUHTEŞEM! 🎊',
+                                        style: const TextStyle(
+                                          fontSize: 32,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          shadows: [
+                                            Shadow(
+                                              color: Colors.black26,
+                                              offset: Offset(2, 2),
+                                              blurRadius: 4,
+                                            ),
+                                          ],
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      )
+                                      .animate()
+                                      .fadeIn(delay: 100.ms)
+                                      .slideY(begin: -0.5)
+                                      .then()
+                                      .shimmer(
+                                        duration: 2000.ms,
+                                        color: Colors.white,
+                                      ),
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // Motivasyonel alt başlık
+                        Text(
+                          _getMotivationalSubtitle(),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
-                          const SizedBox(height: 12),
-                          Text(
-                            widget.badge.description,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
-                              fontStyle: FontStyle.italic,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 1200.ms).slideY(begin: 0.3),
-                    
-                    const SizedBox(height: 16),
-                    
-                    // Sosyal paylaşım teşviki
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.share, color: Colors.white, size: 20),
-                              SizedBox(width: 8),
-                              Flexible(
-                                child: Text(
-                                  '🚀 Arkadaşlarınla Paylaş!',
-                                  style: TextStyle(
-                                    fontSize: 16,
+                          textAlign: TextAlign.center,
+                        ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3),
+
+                        const SizedBox(height: 24),
+
+                        // Animasyonlu rozet ikonu
+                        _buildAnimatedBadgeIcon(),
+
+                        const SizedBox(height: 24),
+
+                        // Rozet adı ve seviye
+                        AnimatedBuilder(
+                          animation: _textController,
+                          builder: (context, child) {
+                            return Column(
+                              children: [
+                                Text(
+                                  widget.badge.name,
+                                  style: const TextStyle(
+                                    fontSize: 28,
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black26,
+                                        offset: Offset(1, 1),
+                                        blurRadius: 2,
+                                      ),
+                                    ],
                                   ),
-                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
                                 ),
+                                const SizedBox(height: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 8,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(25),
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '${_getRarityEmoji()} ${widget.badge.rarityText} Seviye',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ).animate().fadeIn(delay: 800.ms).scale(),
+
+                        const SizedBox(height: 20),
+
+                        // Tebrik mesajı
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Text(
+                                _getCelebrationMessage(),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  height: 1.4,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                widget.badge.description,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.center,
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _getShareEncouragementMessage(),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.white70,
+                        ).animate().fadeIn(delay: 1200.ms).slideY(begin: 0.3),
+
+                        const SizedBox(height: 16),
+
+                        // Sosyal paylaşım teşviki
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
                             ),
-                            textAlign: TextAlign.center,
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-                    ).animate().fadeIn(delay: 1600.ms).slideY(begin: 0.4),
-                    
-                    const SizedBox(height: 28),
-                    
-                      // Aksiyon butonları
-                      _buildActionButtons(),
-                    ],
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.share,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                  SizedBox(width: 8),
+                                  Flexible(
+                                    child: Text(
+                                      '🚀 Arkadaşlarınla Paylaş!',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _getShareEncouragementMessage(),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white70,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(delay: 1600.ms).slideY(begin: 0.4),
+
+                        const SizedBox(height: 28),
+
+                        // Aksiyon butonları
+                        _buildActionButtons(),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
             ],
           ),
         ),
@@ -405,7 +448,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
           ],
         ),
       ),
-      
+
       // Sol üstten konfeti
       Positioned(
         top: 50,
@@ -418,15 +461,10 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
           maxBlastForce: 100,
           minBlastForce: 60,
           gravity: 0.3,
-          colors: [
-            Colors.red,
-            Colors.orange,
-            Colors.yellow,
-            Colors.green,
-          ],
+          colors: [Colors.red, Colors.orange, Colors.yellow, Colors.green],
         ),
       ),
-      
+
       // Sağ üstten konfeti
       Positioned(
         top: 50,
@@ -439,15 +477,10 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
           maxBlastForce: 100,
           minBlastForce: 60,
           gravity: 0.3,
-          colors: [
-            Colors.blue,
-            Colors.purple,
-            Colors.pink,
-            Colors.cyan,
-          ],
+          colors: [Colors.blue, Colors.purple, Colors.pink, Colors.cyan],
         ),
       ),
-      
+
       // Merkez patlaması
       Positioned(
         top: MediaQuery.of(context).size.height * 0.3,
@@ -487,19 +520,23 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                   animation: _sparkleController,
                   builder: (context, child) {
                     return Transform.scale(
-                      scale: _scaleController.value * (1.0 + _bounceController.value * 0.15),
+                      scale:
+                          _scaleController.value *
+                          (1.0 + _bounceController.value * 0.15),
                       child: Transform.rotate(
                         angle: _rotateController.value * 0.5,
                         child: Container(
                           width: 140,
                           height: 140,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.25),
+                            color: Colors.white.withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(70),
                             border: Border.all(color: Colors.white, width: 4),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.white.withOpacity(0.4 + _sparkleController.value * 0.3),
+                                color: Colors.white.withValues(
+                                  alpha: 0.4 + _sparkleController.value * 0.3,
+                                ),
                                 blurRadius: 30 + _sparkleController.value * 20,
                                 spreadRadius: 10 + _sparkleController.value * 5,
                               ),
@@ -541,7 +578,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
           child: ElevatedButton.icon(
             onPressed: _shareBadge,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.2),
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
@@ -552,16 +589,13 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
             icon: const Icon(Icons.share, size: 20),
             label: const Text(
               'Paylaş 🚀',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         ),
-        
+
         const SizedBox(width: 16),
-        
+
         // Devam et butonu
         Expanded(
           child: ElevatedButton.icon(
@@ -571,8 +605,9 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
-              foregroundColor: Color(int.parse(
-                  widget.badge.colors[0].replaceFirst('#', '0xFF'))),
+              foregroundColor: Color(
+                int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')),
+              ),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -581,10 +616,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
             icon: const Icon(Icons.celebration, size: 20),
             label: const Text(
               'Harika! 🎉',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
           ),
         ),
@@ -647,7 +679,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
       '🚀 Harika! Sağlıklı yaşam yolculuğunda bir adım daha!',
       '🎯 Mükemmel! Bu başarı seni daha da motive edecek!',
     ];
-    
+
     return messages[widget.badge.id.hashCode % messages.length];
   }
 
@@ -660,7 +692,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
       'Bu motivasyonu arkadaşlarınla paylaş, birlikte daha güçlü olun! 💪',
       'Başarı paylaşıldıkça çoğalır! Hemen arkadaşlarına göster! 🎊',
     ];
-    
+
     return messages[DateTime.now().millisecond % messages.length];
   }
 

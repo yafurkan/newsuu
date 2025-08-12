@@ -12,7 +12,6 @@ import 'data/services/deep_link_service.dart';
 import 'screens/splash_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/onboarding_screen.dart';
 import 'screens/animated_onboarding_screen.dart';
 import 'screens/email_verification_success_screen.dart';
 import 'presentation/providers/user_provider.dart';
@@ -154,7 +153,7 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    
+
     // Deep link callback'lerini ayarla
     _setupDeepLinkCallbacks();
   }
@@ -162,8 +161,11 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
   /// Deep link callback'lerini ayarla
   void _setupDeepLinkCallbacks() {
     widget.deepLinkService.onEmailVerificationSuccess = () {
-      DebugLogger.success('E-posta doğrulama başarılı - UI yönlendirme', tag: 'MAIN');
-      
+      DebugLogger.success(
+        'E-posta doğrulama başarılı - UI yönlendirme',
+        tag: 'MAIN',
+      );
+
       // Ana thread'de navigation yap
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && navigatorKey.currentContext != null) {
@@ -179,7 +181,7 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
 
     widget.deepLinkService.onEmailVerificationError = (error) {
       DebugLogger.error('E-posta doğrulama hatası: $error', tag: 'MAIN');
-      
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && navigatorKey.currentContext != null) {
           ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
@@ -210,15 +212,19 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
         try {
           if (mounted && context.mounted) {
             // Context'in hala geçerli olduğunu ve Provider'ın mevcut olduğunu kontrol et
-            final waterProvider = Provider.of<WaterProvider>(context, listen: false);
-            if (waterProvider != null) {
-              waterProvider.refreshData();
-              DebugLogger.info('WaterProvider başarıyla yenilendi', tag: 'MAIN');
-            }
+            final waterProvider = Provider.of<WaterProvider>(
+              context,
+              listen: false,
+            );
+            waterProvider.refreshData();
+            DebugLogger.info('WaterProvider başarıyla yenilendi', tag: 'MAIN');
           }
         } catch (e) {
           // Provider henüz hazır değilse sessizce devam et
-          DebugLogger.info('WaterProvider henüz hazır değil, atlanıyor: $e', tag: 'MAIN');
+          DebugLogger.info(
+            'WaterProvider henüz hazır değil, atlanıyor: $e',
+            tag: 'MAIN',
+          );
         }
       });
     }
@@ -256,10 +262,10 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                 source: source,
               );
             });
-            
+
             // UserProvider'ı set et
             waterProvider?.setUserProvider(userProvider);
-            
+
             // Context'i burada set etme - HomeScreen'de yapılacak
 
             return waterProvider!;
@@ -296,7 +302,7 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                   // Badge provider'ı diğer provider'lara bağla
                   waterProvider.setBadgeProvider(badgeProvider);
                   authProvider.setBadgeProvider(badgeProvider);
-                  
+
                   // Çıkış yapıldığında diğer provider'ları temizle
                   authProvider.setSignOutCallback(() {
                     userProvider.clearUserData();
@@ -316,9 +322,12 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
                     routes: {
                       '/login': (context) => const LoginScreen(),
                       '/home': (context) => const HomeScreen(),
-                      '/onboarding': (context) => const AnimatedOnboardingScreen(),
-                      '/profile-setup': (context) => const AnimatedOnboardingScreen(),
-                      '/email-verification-success': (context) => const EmailVerificationSuccessScreen(),
+                      '/onboarding': (context) =>
+                          const AnimatedOnboardingScreen(),
+                      '/profile-setup': (context) =>
+                          const AnimatedOnboardingScreen(),
+                      '/email-verification-success': (context) =>
+                          const EmailVerificationSuccessScreen(),
                     },
                     debugShowCheckedModeBanner: false,
                   );

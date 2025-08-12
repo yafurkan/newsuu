@@ -33,16 +33,16 @@ class BadgeCategoryTabs extends StatelessWidget {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.white.withOpacity(0.2),
+                color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(25),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.3),
+                  color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.3),
                   width: 1,
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
+                          color: AppColors.primary.withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -72,7 +72,7 @@ class BadgeCategoryTabs extends StatelessWidget {
           ).animate(target: isSelected ? 1 : 0)
               .scale(begin: const Offset(1.0, 1.0), end: const Offset(1.05, 1.05))
               .then()
-              .shimmer(duration: 1000.ms, color: Colors.white.withOpacity(0.3));
+              .shimmer(duration: 1000.ms, color: Colors.white.withValues(alpha: 0.3));
         },
       ),
     );

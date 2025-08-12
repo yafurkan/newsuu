@@ -25,17 +25,17 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late AnimationController _shimmerController;
-  
+
   @override
   void initState() {
     super.initState();
-    
+
     _shimmerController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
     _shimmerController.repeat();
-    
+
     // Verileri yükle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -73,9 +73,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.primaryBlue.withOpacity(0.1),
+              AppTheme.primaryBlue.withValues(alpha: 0.1),
               Colors.white,
-              AppTheme.primaryBlue.withOpacity(0.05),
+              AppTheme.primaryBlue.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -93,7 +93,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   children: [
                     // Premium Header
                     _buildPremiumHeader(),
-                    
+
                     // Konum izni banner'ı
                     LocationPermissionBanner(
                       onPermissionGranted: () {
@@ -101,16 +101,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         setState(() {});
                       },
                     ),
-                    
+
                     // Hava durumu ve saat widget'ı
                     WeatherTimeWidget(
                       userName: userProvider.firstName.isNotEmpty
                           ? userProvider.firstName
                           : 'Kullanıcı',
                     ),
-                    
+
                     const SizedBox(height: 8),
-                    
+
                     // E-posta doğrulama banner'ı
                     const EmailVerificationBanner(),
 
@@ -122,7 +122,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     // Hızlı ekleme butonları (E-posta doğrulama guard'ı ile)
                     EmailVerificationGuard(
-                      customMessage: 'Su ekleyebilmek için lütfen e-posta adresinizi doğrulayın.',
+                      customMessage:
+                          'Su ekleyebilmek için lütfen e-posta adresinizi doğrulayın.',
                       child: const QuickAddButtons(),
                     ),
                     const SizedBox(height: 16),
@@ -138,11 +139,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                           color: AppTheme.primaryBlue,
                         ),
                       ),
-                    ).animate().fadeIn(delay: const Duration(milliseconds: 1000)),
-                    
+                    ).animate().fadeIn(
+                      delay: const Duration(milliseconds: 1000),
+                    ),
+
                     const SizedBox(height: 8),
                     const TodayIntakeList(),
-                    
+
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -165,39 +168,40 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               children: [
                 // Animasyonlu logo
                 Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        AppTheme.primaryBlue,
-                        Colors.blue.shade300,
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primaryBlue.withOpacity(0.3),
-                        blurRadius: 15,
-                        offset: const Offset(0, 5),
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [AppTheme.primaryBlue, Colors.blue.shade300],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: const Icon(
-                    Icons.water_drop,
-                    color: Colors.white,
-                    size: 28,
-                  ),
-                ).animate().scale(
-                  duration: const Duration(milliseconds: 600),
-                  curve: Curves.elasticOut,
-                ).then().shimmer(
-                  duration: const Duration(milliseconds: 1500),
-                  color: Colors.blue.shade200,
-                ),
-                
+                      child: const Icon(
+                        Icons.water_drop,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    )
+                    .animate()
+                    .scale(
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.elasticOut,
+                    )
+                    .then()
+                    .shimmer(
+                      duration: const Duration(milliseconds: 1500),
+                      color: Colors.blue.shade200,
+                    ),
+
                 const SizedBox(width: 16),
-                
+
                 // Shimmer başlık
                 AnimatedBuilder(
                   animation: _shimmerController,
@@ -233,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-          
+
           // Action buttons
           Row(
             children: [
@@ -249,28 +253,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 },
                 color: Colors.green.shade600,
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               _buildActionButton(
                 icon: Icons.emoji_events,
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const BadgesScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const BadgesScreen(),
+                    ),
                   );
                 },
                 color: Colors.orange.shade600,
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               _buildActionButton(
                 icon: Icons.person,
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    MaterialPageRoute(
+                      builder: (context) => const ProfileScreen(),
+                    ),
                   );
                 },
                 color: Colors.purple.shade600,
@@ -289,13 +297,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color, color.withOpacity(0.8)],
-        ),
+        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -306,14 +312,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: InkWell(
           onTap: onPressed,
           borderRadius: BorderRadius.circular(16),
-          child: Container(
+          child: SizedBox(
             width: 48,
             height: 48,
-            child: Icon(
-              icon,
-              color: Colors.white,
-              size: 24,
-            ),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
         ),
       ),

@@ -67,8 +67,8 @@ class _BadgeAchievementDialogState extends State<BadgeAchievementDialog>
               BoxShadow(
                 color: widget.badge.isUnlocked
                     ? Color(int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')))
-                        .withOpacity(0.4)
-                    : Colors.grey.withOpacity(0.3),
+                        .withValues(alpha: 0.4)
+                    : Colors.grey.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -96,7 +96,7 @@ class _BadgeAchievementDialogState extends State<BadgeAchievementDialog>
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(60),
                   border: Border.all(color: Colors.white, width: 3),
                 ),
@@ -122,7 +122,7 @@ class _BadgeAchievementDialogState extends State<BadgeAchievementDialog>
                 duration: 1500.ms,
               ).then().shimmer(
                 duration: 2000.ms,
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
               ),
               
               const SizedBox(height: 20),
@@ -144,7 +144,7 @@ class _BadgeAchievementDialogState extends State<BadgeAchievementDialog>
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -175,7 +175,7 @@ class _BadgeAchievementDialogState extends State<BadgeAchievementDialog>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -222,7 +222,7 @@ class _BadgeAchievementDialogState extends State<BadgeAchievementDialog>
                     child: TextButton(
                       onPressed: () => Navigator.pop(context),
                       style: TextButton.styleFrom(
-                        backgroundColor: Colors.white.withOpacity(0.2),
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

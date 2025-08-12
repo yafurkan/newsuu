@@ -47,8 +47,8 @@ class BadgeProgressCard extends StatelessWidget {
             BoxShadow(
               color: isCompleted
                   ? Color(int.parse(badge.colors[0].replaceFirst('#', '0xFF')))
-                      .withOpacity(0.3)
-                  : Colors.grey.withOpacity(0.2),
+                      .withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -66,8 +66,8 @@ class BadgeProgressCard extends StatelessWidget {
                   height: 50,
                   decoration: BoxDecoration(
                     color: isCompleted 
-                        ? Colors.white.withOpacity(0.2)
-                        : AppColors.primary.withOpacity(0.1),
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : AppColors.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(25),
                   ),
                   child: Column(
@@ -112,7 +112,7 @@ class BadgeProgressCard extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Text(
@@ -132,7 +132,7 @@ class BadgeProgressCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           color: isCompleted 
-                              ? Colors.white.withOpacity(0.9)
+                              ? Colors.white.withValues(alpha: 0.9)
                               : AppColors.textSecondary,
                         ),
                         maxLines: 2,
@@ -177,7 +177,7 @@ class BadgeProgressCard extends StatelessWidget {
                   lineHeight: 8,
                   percent: progressPercentage,
                   backgroundColor: isCompleted 
-                      ? Colors.white.withOpacity(0.3)
+                      ? Colors.white.withValues(alpha: 0.3)
                       : AppColors.border,
                   progressColor: isCompleted
                       ? Colors.white
@@ -195,7 +195,7 @@ class BadgeProgressCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
+                  color: AppColors.info.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -212,7 +212,7 @@ class BadgeProgressCard extends StatelessWidget {
         ),
       ),
     ).animate(target: isCompleted ? 1 : 0)
-        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.5))
+        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.5))
         .then()
         .shake(hz: 2, curve: Curves.easeInOut);
   }

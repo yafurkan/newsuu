@@ -93,7 +93,7 @@ class BadgeService {
           .toList();
 
       final unlockedBadges = badges.where((badge) => badge.isUnlocked).toList();
-      
+
       return UserBadgeStats(
         totalBadges: badges.length,
         unlockedBadges: unlockedBadges.length,
@@ -103,19 +103,32 @@ class BadgeService {
         mythicBadges: unlockedBadges.where((b) => b.rarity == 4).length,
         lastUnlockedAt: unlockedBadges.isNotEmpty
             ? unlockedBadges
-                .reduce((a, b) => 
-                    (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ?? false) ? a : b)
-                .unlockedAt
+                  .reduce(
+                    (a, b) =>
+                        (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ??
+                            false)
+                        ? a
+                        : b,
+                  )
+                  .unlockedAt
             : null,
         lastUnlockedBadgeId: unlockedBadges.isNotEmpty
             ? unlockedBadges
-                .reduce((a, b) => 
-                    (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ?? false) ? a : b)
-                .id
+                  .reduce(
+                    (a, b) =>
+                        (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ??
+                            false)
+                        ? a
+                        : b,
+                  )
+                  .id
             : null,
       );
     } catch (e) {
-      DebugLogger.error('Kullanıcı rozet istatistikleri alma hatası: $e', tag: 'BADGE');
+      DebugLogger.error(
+        'Kullanıcı rozet istatistikleri alma hatası: $e',
+        tag: 'BADGE',
+      );
       return UserBadgeStats();
     }
   }
@@ -131,9 +144,9 @@ class BadgeService {
           .collection('badges')
           .doc(badgeId)
           .update({
-        'isUnlocked': true,
-        'unlockedAt': FieldValue.serverTimestamp(),
-      });
+            'isUnlocked': true,
+            'unlockedAt': FieldValue.serverTimestamp(),
+          });
 
       DebugLogger.success('Rozet kilidi açıldı: $badgeId', tag: 'BADGE');
       return true;
@@ -157,7 +170,7 @@ class BadgeService {
       if (_currentUserId == null) return newlyUnlockedBadges;
 
       final badges = await getAllBadges();
-      
+
       for (final badge in badges) {
         if (badge.isUnlocked) continue;
 
@@ -180,19 +193,23 @@ class BadgeService {
             shouldUnlock = consecutiveDays >= badge.requiredValue;
             break;
           case 'button_250ml_first':
-            shouldUnlock = buttonUsage['250'] != null && buttonUsage['250']! >= 1;
+            shouldUnlock =
+                buttonUsage['250'] != null && buttonUsage['250']! >= 1;
             break;
           case 'button_500ml_10_times':
-            shouldUnlock = buttonUsage['500'] != null && buttonUsage['500']! >= 10;
+            shouldUnlock =
+                buttonUsage['500'] != null && buttonUsage['500']! >= 10;
             break;
           case 'button_750ml_5_times':
-            shouldUnlock = buttonUsage['750'] != null && buttonUsage['750']! >= 5;
+            shouldUnlock =
+                buttonUsage['750'] != null && buttonUsage['750']! >= 5;
             break;
           case 'button_1000ml_first':
-            shouldUnlock = buttonUsage['1000'] != null && buttonUsage['1000']! >= 1;
+            shouldUnlock =
+                buttonUsage['1000'] != null && buttonUsage['1000']! >= 1;
             break;
           case 'all_buttons_used':
-            shouldUnlock = buttonUsage.values.every((count) => count > 0);
+            shouldUnlock = buttonUsage.values.every((usage) => usage > 0);
             break;
         }
 
@@ -264,7 +281,8 @@ class BadgeService {
         description: 'Günlük hedefinizi tamamladınız!',
         category: 'water_drinking',
         iconPath: 'assets/badges/water_lover.png',
-        funFact: 'Günde 8 bardak su içmek genel bir tavsiyedir, ama kişisel ihtiyaçlar değişir.',
+        funFact:
+            'Günde 8 bardak su içmek genel bir tavsiyedir, ama kişisel ihtiyaçlar değişir.',
         requiredValue: 1,
         requiredAction: 'daily_goal_complete',
         rarity: 1,
@@ -276,7 +294,8 @@ class BadgeService {
         description: 'Günde 3 litre su içtiniz!',
         category: 'water_drinking',
         iconPath: 'assets/badges/water_monster.png',
-        funFact: 'Dünyanın en çok su içen hayvanı fil, günde 300 litreye kadar su içebilir!',
+        funFact:
+            'Dünyanın en çok su içen hayvanı fil, günde 300 litreye kadar su içebilir!',
         requiredValue: 3000,
         requiredAction: 'daily_amount_3000',
         rarity: 2,
@@ -288,7 +307,8 @@ class BadgeService {
         description: 'Günde 5 litre su içtiniz!',
         category: 'water_drinking',
         iconPath: 'assets/badges/ocean_king.png',
-        funFact: 'Mavi balina, dünyanın en büyük hayvanı olarak günde 16 ton su filtreler!',
+        funFact:
+            'Mavi balina, dünyanın en büyük hayvanı olarak günde 16 ton su filtreler!',
         requiredValue: 5000,
         requiredAction: 'daily_amount_5000',
         rarity: 3,
@@ -376,7 +396,8 @@ class BadgeService {
         description: '7 gün üst üste su ekleme yaptınız!',
         category: 'consistency',
         iconPath: 'assets/badges/determined.png',
-        funFact: 'Bir hafta boyunca düzenli su içmek, vücut fonksiyonlarını iyileştirir.',
+        funFact:
+            'Bir hafta boyunca düzenli su içmek, vücut fonksiyonlarını iyileştirir.',
         requiredValue: 7,
         requiredAction: 'consecutive_days',
         rarity: 2,
@@ -388,7 +409,8 @@ class BadgeService {
         description: '15 gün üst üste su ekleme yaptınız!',
         category: 'consistency',
         iconPath: 'assets/badges/persistent.png',
-        funFact: 'İki hafta düzenli su tüketimi, cilt sağlığını belirgin şekilde iyileştirir.',
+        funFact:
+            'İki hafta düzenli su tüketimi, cilt sağlığını belirgin şekilde iyileştirir.',
         requiredValue: 15,
         requiredAction: 'consecutive_days',
         rarity: 2,
@@ -400,7 +422,8 @@ class BadgeService {
         description: '30 gün üst üste su ekleme yaptınız!',
         category: 'consistency',
         iconPath: 'assets/badges/legendary.png',
-        funFact: 'Bir ay boyunca düzenli su içmek, kalıcı bir yaşam tarzı değişikliğidir!',
+        funFact:
+            'Bir ay boyunca düzenli su içmek, kalıcı bir yaşam tarzı değişikliğidir!',
         requiredValue: 30,
         requiredAction: 'consecutive_days',
         rarity: 3,
@@ -412,7 +435,8 @@ class BadgeService {
         description: '100 gün üst üste su ekleme yaptınız!',
         category: 'consistency',
         iconPath: 'assets/badges/water_god.png',
-        funFact: 'Poseidon, Yunan mitolojisinde denizlerin ve suların tanrısıdır. Siz de artık bir su tanrısısınız!',
+        funFact:
+            'Poseidon, Yunan mitolojisinde denizlerin ve suların tanrısıdır. Siz de artık bir su tanrısısınız!',
         requiredValue: 100,
         requiredAction: 'consecutive_days',
         rarity: 4,
@@ -449,9 +473,11 @@ class BadgeService {
         .orderBy('category')
         .orderBy('requiredValue')
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => BadgeModel.fromJson(doc.data()))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => BadgeModel.fromJson(doc.data()))
+              .toList(),
+        );
   }
 
   /// Kullanıcı rozet istatistikleri stream'i
@@ -462,7 +488,7 @@ class BadgeService {
 
     return getBadgesStream().map((badges) {
       final unlockedBadges = badges.where((badge) => badge.isUnlocked).toList();
-      
+
       return UserBadgeStats(
         totalBadges: badges.length,
         unlockedBadges: unlockedBadges.length,
@@ -472,15 +498,25 @@ class BadgeService {
         mythicBadges: unlockedBadges.where((b) => b.rarity == 4).length,
         lastUnlockedAt: unlockedBadges.isNotEmpty
             ? unlockedBadges
-                .reduce((a, b) => 
-                    (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ?? false) ? a : b)
-                .unlockedAt
+                  .reduce(
+                    (a, b) =>
+                        (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ??
+                            false)
+                        ? a
+                        : b,
+                  )
+                  .unlockedAt
             : null,
         lastUnlockedBadgeId: unlockedBadges.isNotEmpty
             ? unlockedBadges
-                .reduce((a, b) => 
-                    (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ?? false) ? a : b)
-                .id
+                  .reduce(
+                    (a, b) =>
+                        (a.unlockedAt?.isAfter(b.unlockedAt ?? DateTime(0)) ??
+                            false)
+                        ? a
+                        : b,
+                  )
+                  .id
             : null,
       );
     });

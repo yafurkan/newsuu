@@ -18,19 +18,19 @@ class WaterProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   bool _isOfflineMode = false;
-  
+
   // Offline queue for pending operations
   final List<Map<String, dynamic>> _pendingOperations = [];
 
   // Statistics update callback
   Function(double amount, String type, String source)? _onStatsUpdate;
-  
+
   // Badge provider reference
   BadgeProvider? _badgeProvider;
-  
+
   // Context for showing dialogs
   BuildContext? _context;
-  
+
   // User provider for user name
   UserProvider? _userProvider;
 
@@ -44,17 +44,17 @@ class WaterProvider extends ChangeNotifier {
   ) {
     _onStatsUpdate = callback;
   }
-  
+
   /// Badge provider'ı ayarla
   void setBadgeProvider(BadgeProvider badgeProvider) {
     _badgeProvider = badgeProvider;
   }
-  
+
   /// Context'i ayarla (dialog göstermek için)
   void setContext(BuildContext context) {
     _context = context;
   }
-  
+
   /// User provider'ı ayarla
   void setUserProvider(UserProvider userProvider) {
     _userProvider = userProvider;
@@ -122,7 +122,10 @@ class WaterProvider extends ChangeNotifier {
 
     // 3. Rozet kontrolü yap (offline'da da çalışır)
     try {
-      DebugLogger.info('🏆 Rozet kontrolü başlatılıyor...', tag: 'WATER_PROVIDER');
+      DebugLogger.info(
+        '🏆 Rozet kontrolü başlatılıyor...',
+        tag: 'WATER_PROVIDER',
+      );
       await _checkBadgeAchievements(amount);
     } catch (e) {
       DebugLogger.error('Rozet kontrolü hatası: $e', tag: 'WATER_PROVIDER');
@@ -142,14 +145,15 @@ class WaterProvider extends ChangeNotifier {
     Future.microtask(() async {
       try {
         // Kısa timeout ile Firebase'e kaydet
-        await _cloudSyncService.syncDailyWaterIntake(timestamp, _todayIntakes)
+        await _cloudSyncService
+            .syncDailyWaterIntake(timestamp, _todayIntakes)
             .timeout(const Duration(seconds: 3));
 
         DebugLogger.success(
           '🔄 Firebase sync başarılı: ${intake.amount}ml',
           tag: 'WATER_PROVIDER',
         );
-        
+
         // Başarılı olursa offline mode'dan çık
         if (_isOfflineMode) {
           _setOfflineMode(false);
@@ -160,7 +164,7 @@ class WaterProvider extends ChangeNotifier {
         if (_isFirebaseError(e)) {
           _setOfflineMode(true);
           _addToPendingOperations('add_water', {'intake': intake.toJson()});
-          
+
           DebugLogger.warning(
             '📱 Firebase sync hatası, offline mode aktif: ${intake.amount}ml - $e',
             tag: 'WATER_PROVIDER',
@@ -200,14 +204,16 @@ class WaterProvider extends ChangeNotifier {
   }
 
   /// Background'da Firebase'den sil - kullanıcı deneyimini etkilemez
-  void _removeFromFirebaseInBackground(WaterIntakeModel removedIntake, int originalIndex) {
+  void _removeFromFirebaseInBackground(
+    WaterIntakeModel removedIntake,
+    int originalIndex,
+  ) {
     Future.microtask(() async {
       try {
         // Firebase'i güncelle - kısa timeout ile
-        await _cloudSyncService.syncDailyWaterIntake(
-          DateTime.now(),
-          _todayIntakes,
-        ).timeout(const Duration(seconds: 3));
+        await _cloudSyncService
+            .syncDailyWaterIntake(DateTime.now(), _todayIntakes)
+            .timeout(const Duration(seconds: 3));
 
         DebugLogger.success(
           '🔄 Background Firebase silme başarılı: ${removedIntake.amount}ml',
@@ -219,10 +225,10 @@ class WaterProvider extends ChangeNotifier {
           // Silinen kaydı geri ekle
           _todayIntakes.insert(originalIndex, removedIntake);
           notifyListeners();
-          
+
           // Statistics'i geri al
           _onStatsUpdate?.call(removedIntake.amount, 'add', 'restore');
-          
+
           DebugLogger.warning(
             '📱 Background silme hatası, kayıt geri eklendi: ${removedIntake.amount}ml - $e',
             tag: 'WATER_PROVIDER',
@@ -355,22 +361,22 @@ class WaterProvider extends ChangeNotifier {
   void _clearError() {
     _errorMessage = null;
   }
-  
+
   void _setOfflineMode(bool offline) {
     _isOfflineMode = offline;
     notifyListeners();
   }
-  
+
   /// Firebase hatası olup olmadığını kontrol et
   bool _isFirebaseError(dynamic error) {
     final errorString = error.toString().toLowerCase();
     return errorString.contains('unavailable') ||
-           errorString.contains('timeout') ||
-           errorString.contains('network') ||
-           errorString.contains('connection') ||
-           errorString.contains('firestore');
+        errorString.contains('timeout') ||
+        errorString.contains('network') ||
+        errorString.contains('connection') ||
+        errorString.contains('firestore');
   }
-  
+
   /// Pending operations'a ekle
   void _addToPendingOperations(String operation, Map<String, dynamic> data) {
     _pendingOperations.add({
@@ -380,72 +386,23 @@ class WaterProvider extends ChangeNotifier {
     });
     notifyListeners();
   }
-  
-  /// Retry mekanizması ile sync
-  Future<void> _syncWithRetry(
-    Future<void> Function() operation,
-    String operationType,
-    Map<String, dynamic> data,
-  ) async {
-    int retryCount = 0;
-    const maxRetries = 3;
-    const retryDelays = [1, 3, 5]; // saniye
-    
-    while (retryCount < maxRetries) {
-      try {
-        await operation();
-        
-        // Başarılı olursa offline mode'dan çık
-        if (_isOfflineMode) {
-          _setOfflineMode(false);
-          await _processPendingOperations();
-        }
-        return;
-      } catch (e) {
-        retryCount++;
-        
-        if (_isFirebaseError(e)) {
-          if (retryCount < maxRetries) {
-            DebugLogger.info(
-              '🔄 Retry ${retryCount}/${maxRetries} - ${retryDelays[retryCount - 1]}s bekliyor...',
-              tag: 'WATER_PROVIDER',
-            );
-            await Future.delayed(Duration(seconds: retryDelays[retryCount - 1]));
-          } else {
-            // Max retry'a ulaştı, offline mode'a geç
-            _setOfflineMode(true);
-            _addToPendingOperations(operationType, data);
-            DebugLogger.info(
-              '📱 Max retry ulaşıldı, offline mode aktif',
-              tag: 'WATER_PROVIDER',
-            );
-            return;
-          }
-        } else {
-          // Firebase hatası değilse direkt throw et
-          rethrow;
-        }
-      }
-    }
-  }
-  
+
   /// Pending operations'ları işle
   Future<void> _processPendingOperations() async {
     if (_pendingOperations.isEmpty) return;
-    
+
     DebugLogger.info(
       '🔄 ${_pendingOperations.length} pending operation işleniyor...',
       tag: 'WATER_PROVIDER',
     );
-    
+
     final operationsToProcess = List.from(_pendingOperations);
     _pendingOperations.clear();
-    
+
     for (final operation in operationsToProcess) {
       try {
         switch (operation['operation']) {
           case 'add_water':
-            final intakeData = operation['data']['intake'];
             await _cloudSyncService.syncDailyWaterIntake(
               DateTime.now(),
               _todayIntakes,
@@ -462,10 +419,10 @@ class WaterProvider extends ChangeNotifier {
         );
       }
     }
-    
+
     notifyListeners();
   }
-  
+
   /// Manuel sync tetikle
   Future<void> forceSyncPendingOperations() async {
     if (_isOfflineMode && _pendingOperations.isNotEmpty) {
@@ -475,18 +432,15 @@ class WaterProvider extends ChangeNotifier {
           _setOfflineMode(false);
         }
       } catch (e) {
-        DebugLogger.error(
-          'Manuel sync hatası: $e',
-          tag: 'WATER_PROVIDER',
-        );
+        DebugLogger.error('Manuel sync hatası: $e', tag: 'WATER_PROVIDER');
       }
     }
   }
-  
+
   /// Rozet başarılarını kontrol et
   Future<void> _checkBadgeAchievements(double addedAmount) async {
     if (_badgeProvider == null) return;
-    
+
     try {
       // Buton kullanım istatistiklerini hesapla (basit implementasyon)
       final buttonUsage = <String, int>{
@@ -495,10 +449,10 @@ class WaterProvider extends ChangeNotifier {
         '750': _todayIntakes.where((i) => i.amount == 750).length,
         '1000': _todayIntakes.where((i) => i.amount == 1000).length,
       };
-      
+
       // Ardışık gün sayısını hesapla (basit implementasyon - gerçekte daha karmaşık olmalı)
       final consecutiveDays = await _calculateConsecutiveDays();
-      
+
       final newBadges = await _badgeProvider!.checkWaterAdditionBadges(
         amount: addedAmount.toInt(),
         dailyTotal: todayIntake.toInt(),
@@ -506,14 +460,14 @@ class WaterProvider extends ChangeNotifier {
         consecutiveDays: consecutiveDays,
         buttonUsage: buttonUsage,
       );
-      
+
       // Yeni rozetler varsa festival kutlaması göster
       if (newBadges.isNotEmpty) {
         DebugLogger.success(
           'Yeni rozetler kazanıldı: ${newBadges.map((b) => b.name).join(', ')}',
           tag: 'WATER_PROVIDER',
         );
-        
+
         // Her yeni rozet için önce overlay notification göster
         for (final badge in newBadges) {
           _showBadgeNotificationOverlay(badge);
@@ -523,54 +477,66 @@ class WaterProvider extends ChangeNotifier {
       DebugLogger.error('Rozet kontrolü hatası: $e', tag: 'WATER_PROVIDER');
     }
   }
-  
+
   /// Ardışık gün sayısını hesapla (basit implementasyon)
   Future<int> _calculateConsecutiveDays() async {
     try {
       // Son 30 günü kontrol et
       final now = DateTime.now();
       int consecutiveDays = 0;
-      
+
       for (int i = 0; i < 30; i++) {
         final checkDate = now.subtract(Duration(days: i));
         final dayIntakes = await getWaterIntakeForDate(checkDate);
-        
+
         if (dayIntakes != null && dayIntakes.isNotEmpty) {
           consecutiveDays++;
         } else {
           break;
         }
       }
-      
+
       return consecutiveDays;
     } catch (e) {
-      DebugLogger.error('Ardışık gün hesaplama hatası: $e', tag: 'WATER_PROVIDER');
+      DebugLogger.error(
+        'Ardışık gün hesaplama hatası: $e',
+        tag: 'WATER_PROVIDER',
+      );
       return 1; // En az bugün var
     }
   }
-  
+
   /// Overlay notification göster
   void _showBadgeNotificationOverlay(BadgeModel badge) {
-    DebugLogger.info('🎊 Overlay notification gösteriliyor: ${badge.name}', tag: 'WATER_PROVIDER');
-    
+    DebugLogger.info(
+      '🎊 Overlay notification gösteriliyor: ${badge.name}',
+      tag: 'WATER_PROVIDER',
+    );
+
     if (_context == null || !_context!.mounted) {
-      DebugLogger.warning('❌ Context null veya unmounted!', tag: 'WATER_PROVIDER');
+      DebugLogger.warning(
+        '❌ Context null veya unmounted!',
+        tag: 'WATER_PROVIDER',
+      );
       return;
     }
-    
+
     try {
       // Overlay'in mevcut olup olmadığını kontrol et
       final overlay = Overlay.maybeOf(_context!);
       if (overlay == null) {
-        DebugLogger.warning('❌ Overlay widget bulunamadı, direkt festival kutlaması gösteriliyor', tag: 'WATER_PROVIDER');
+        DebugLogger.warning(
+          '❌ Overlay widget bulunamadı, direkt festival kutlaması gösteriliyor',
+          tag: 'WATER_PROVIDER',
+        );
         // Overlay yoksa direkt festival kutlaması göster
         _showFestivalCelebration(badge);
         return;
       }
-      
+
       // Overlay entry oluştur
       late OverlayEntry overlayEntry;
-      
+
       overlayEntry = OverlayEntry(
         builder: (context) => Positioned(
           top: MediaQuery.of(context).padding.top + 10,
@@ -579,7 +545,10 @@ class WaterProvider extends ChangeNotifier {
           child: BadgeNotificationOverlay(
             badge: badge,
             onTap: () {
-              DebugLogger.info('🎊 Overlay tıklandı, festival kutlaması başlatılıyor', tag: 'WATER_PROVIDER');
+              DebugLogger.info(
+                '🎊 Overlay tıklandı, festival kutlaması başlatılıyor',
+                tag: 'WATER_PROVIDER',
+              );
               // Overlay'i kapat ve festival kutlaması göster
               overlayEntry.remove();
               _showFestivalCelebration(badge);
@@ -592,21 +561,27 @@ class WaterProvider extends ChangeNotifier {
           ),
         ),
       );
-      
+
       // Overlay'i güvenli şekilde göster
       overlay.insert(overlayEntry);
-      DebugLogger.success('✅ Overlay başarıyla gösterildi', tag: 'WATER_PROVIDER');
+      DebugLogger.success(
+        '✅ Overlay başarıyla gösterildi',
+        tag: 'WATER_PROVIDER',
+      );
     } catch (e) {
-      DebugLogger.error('❌ ❌ Overlay gösterme hatası: $e', tag: 'WATER_PROVIDER');
+      DebugLogger.error(
+        '❌ ❌ Overlay gösterme hatası: $e',
+        tag: 'WATER_PROVIDER',
+      );
       // Hata durumunda direkt festival kutlaması göster
       _showFestivalCelebration(badge);
     }
   }
-  
+
   /// Festival kutlaması göster
   void _showFestivalCelebration(BadgeModel badge) {
     if (_context == null || !_context!.mounted) return;
-    
+
     // Biraz gecikme ile dialog göster (animasyonların tamamlanması için)
     Future.delayed(const Duration(milliseconds: 300), () {
       if (_context != null && _context!.mounted) {

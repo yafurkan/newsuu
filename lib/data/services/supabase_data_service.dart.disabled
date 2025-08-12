@@ -1,0 +1,246 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../core/config/supabase_config.dart';
+import '../../core/utils/debug_logger.dart';
+
+/// Firebase Auth + Supabase Data hybrid service
+class SupabaseDataService {
+  static SupabaseDataService? _instance;
+  static SupabaseDataService get instance {
+    _instance ??= SupabaseDataService._internal();
+    return _instance!;
+  }
+
+  SupabaseDataService._internal();
+
+  /// Current Firebase user ID (authentication)
+  String? get currentUserId => FirebaseAuth.instance.currentUser?.uid;
+
+  /// Ensure user is authenticated
+  String _requireAuth() {
+    final uid = currentUserId;
+    if (uid == null) {
+      throw Exception('User not authenticated');
+    }
+    return uid;
+  }
+
+  /// Create or update user in Supabase
+  Future<void> syncUser({
+    required String firebaseUid,
+    required String email,
+    String? displayName,
+    String? photoUrl,
+    double dailyGoal = 2000,
+  }) async {
+    try {
+      await SupabaseConfig.serviceClient.from('users').upsert({
+        'firebase_uid': firebaseUid,
+        'email': email,
+        'display_name': displayName,
+        'photo_url': photoUrl,
+        'daily_goal': dailyGoal,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      }).select();
+
+      DebugLogger.success(
+        'User synced to Supabase: $firebaseUid',
+        tag: 'SUPABASE_DATA',
+      );
+    } catch (e) {
+      DebugLogger.error('User sync error: $e', tag: 'SUPABASE_DATA');
+      rethrow;
+    }
+  }
+
+  /// Add water entry to Supabase
+  Future<String> addWaterEntry({
+    required double amount,
+    required DateTime timestamp,
+    String source = 'manual',
+    String? note,
+    String? clientTag,
+    String? firebaseId, // Firebase ID'yi de kaydet
+  }) async {
+    final userId = _requireAuth();
+
+    try {
+      final insertData = {
+        'user_id': userId,
+        'amount': amount,
+        'source': source,
+        'note': note,
+        'timestamp': timestamp.toUtc().toIso8601String(),
+        'client_tag': clientTag,
+      };
+
+      // Firebase ID varsa kaydet
+      if (firebaseId != null) {
+        insertData['firebase_id'] = firebaseId;
+      }
+
+      final response = await SupabaseConfig.serviceClient
+          .from('water_entries')
+          .insert(insertData)
+          .select('id')
+          .single();
+
+      final entryId = response['id'] as String;
+
+      DebugLogger.success(
+        'Water entry added to Supabase: ${amount}ml → $entryId (firebase_id: $firebaseId)',
+        tag: 'SUPABASE_DATA',
+      );
+
+      return entryId;
+    } catch (e) {
+      DebugLogger.error('Add water entry error: $e', tag: 'SUPABASE_DATA');
+      rethrow;
+    }
+  }
+
+  /// Get today's water entries
+  Future<List<Map<String, dynamic>>> getTodayWaterEntries() async {
+    final userId = _requireAuth();
+    final today = DateTime.now();
+    final startOfDay = DateTime(today.year, today.month, today.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+
+    try {
+      final response = await SupabaseConfig.serviceClient
+          .from('water_entries')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('timestamp', startOfDay.toUtc().toIso8601String())
+          .lt('timestamp', endOfDay.toUtc().toIso8601String())
+          .order('timestamp', ascending: false);
+
+      DebugLogger.info(
+        'Today water entries loaded: ${response.length} entries',
+        tag: 'SUPABASE_DATA',
+      );
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      DebugLogger.error('Get today entries error: $e', tag: 'SUPABASE_DATA');
+      rethrow;
+    }
+  }
+
+  /// Delete water entry from Supabase
+  Future<void> deleteWaterEntry(String entryId) async {
+    try {
+      DebugLogger.info(
+        'Attempting delete: entryId=$entryId (length: ${entryId.length})',
+        tag: 'SUPABASE_DATA',
+      );
+
+      // Service client ile delete - RLS bypass, sadece ID ile sil
+      final client = SupabaseConfig.serviceClient;
+      DebugLogger.info(
+        'Using service client for delete (RLS bypass)',
+        tag: 'SUPABASE_DATA',
+      );
+
+      // WORKAROUND: Firebase ID'leri UUID değil, text olarak kullan
+      // Supabase table'da id column TEXT olmalı veya farklı field kullan
+      await client
+          .from('water_entries')
+          .delete()
+          .eq('firebase_id', entryId); // firebase_id field'ı kullan
+
+      DebugLogger.success(
+        'Water entry deleted from Supabase: $entryId',
+        tag: 'SUPABASE_DATA',
+      );
+    } catch (e) {
+      DebugLogger.error('Delete water entry error: $e', tag: 'SUPABASE_DATA');
+
+      // Debug: Error details
+      DebugLogger.error(
+        'Error type: ${e.runtimeType}, Details: $e',
+        tag: 'SUPABASE_DATA',
+      );
+
+      rethrow;
+    }
+  }
+
+  /// Update daily stats
+  Future<void> updateDailyStats({
+    required DateTime date,
+    required double totalAmount,
+    required int entryCount,
+    required double goalAmount,
+  }) async {
+    final userId = _requireAuth();
+    final dateOnly = DateTime(date.year, date.month, date.day);
+
+    try {
+      await SupabaseConfig.serviceClient.from('daily_stats').upsert({
+        'user_id': userId,
+        'date': dateOnly.toIso8601String().split('T')[0], // YYYY-MM-DD
+        'total_amount': totalAmount,
+        'entry_count': entryCount,
+        'goal_amount': goalAmount,
+        'goal_reached': totalAmount >= goalAmount,
+        'updated_at': DateTime.now().toUtc().toIso8601String(),
+      });
+
+      DebugLogger.success(
+        'Daily stats updated: ${dateOnly.toIso8601String().split('T')[0]} → ${totalAmount}ml',
+        tag: 'SUPABASE_DATA',
+      );
+    } catch (e) {
+      DebugLogger.error('Update daily stats error: $e', tag: 'SUPABASE_DATA');
+      rethrow;
+    }
+  }
+
+  /// Get daily stats for date range
+  Future<List<Map<String, dynamic>>> getDailyStats({
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final userId = _requireAuth();
+
+    try {
+      final response = await SupabaseConfig.serviceClient
+          .from('daily_stats')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('date', startDate.toIso8601String().split('T')[0])
+          .lte('date', endDate.toIso8601String().split('T')[0])
+          .order('date', ascending: false);
+
+      DebugLogger.info(
+        'Daily stats loaded: ${response.length} days',
+        tag: 'SUPABASE_DATA',
+      );
+
+      return List<Map<String, dynamic>>.from(response);
+    } catch (e) {
+      DebugLogger.error('Get daily stats error: $e', tag: 'SUPABASE_DATA');
+      rethrow;
+    }
+  }
+
+  /// Test connection
+  Future<bool> testConnection() async {
+    try {
+      // Test with service client - should bypass RLS
+      await SupabaseConfig.serviceClient.from('users').select('*').limit(0);
+
+      DebugLogger.success(
+        'Supabase connection test successful (service client)',
+        tag: 'SUPABASE_DATA',
+      );
+      return true;
+    } catch (e) {
+      DebugLogger.error(
+        'Supabase connection test failed: $e',
+        tag: 'SUPABASE_DATA',
+      );
+      return false;
+    }
+  }
+}

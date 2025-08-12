@@ -9,7 +9,6 @@ class EmailService {
   EmailService._internal();
 
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Hoş geldin e-postası gönder
   Future<void> sendWelcomeEmail(User user) async {
@@ -52,7 +51,8 @@ class EmailService {
           'data': {
             'displayName': user.displayName ?? 'Değerli Kullanıcı',
             'email': user.email,
-            'verificationLink': 'Lütfen Firebase Auth verification linkini kullanın',
+            'verificationLink':
+                'Lütfen Firebase Auth verification linkini kullanın',
           },
         },
       });
@@ -67,7 +67,10 @@ class EmailService {
   }
 
   /// Günlük özet e-postası gönder
-  Future<void> sendDailySummary(User user, Map<String, dynamic> summaryData) async {
+  Future<void> sendDailySummary(
+    User user,
+    Map<String, dynamic> summaryData,
+  ) async {
     try {
       if (user.email == null) return;
 

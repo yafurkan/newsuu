@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
 import '../presentation/providers/user_provider.dart';
-import '../core/utils/app_theme.dart';
 
 class AnimatedOnboardingScreen extends StatefulWidget {
   final bool isFirstSetup;
@@ -10,7 +9,8 @@ class AnimatedOnboardingScreen extends StatefulWidget {
   const AnimatedOnboardingScreen({super.key, this.isFirstSetup = true});
 
   @override
-  State<AnimatedOnboardingScreen> createState() => _AnimatedOnboardingScreenState();
+  State<AnimatedOnboardingScreen> createState() =>
+      _AnimatedOnboardingScreenState();
 }
 
 class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
@@ -18,7 +18,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
   late PageController _pageController;
   late AnimationController _backgroundController;
   late AnimationController _progressController;
-  
+
   int _currentStep = 0;
   bool _isLoading = false;
 
@@ -39,7 +39,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
     'Boyunuz Kaç? 📏',
     'Cinsiyetiniz? 👫',
     'Aktivite Seviyeniz? 🏃‍♂️',
-    'Tamamlandı! 🎉'
+    'Tamamlandı! 🎉',
   ];
 
   @override
@@ -54,7 +54,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
       duration: const Duration(milliseconds: 500),
       vsync: this,
     );
-    
+
     if (!widget.isFirstSetup) {
       _loadExistingData();
     }
@@ -68,7 +68,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
     _heightController.text = userProvider.height.toString();
     _weightController.text = userProvider.weight.toString();
     _selectedGender = userProvider.gender;
-    
+
     final activityLevel = userProvider.activityLevel;
     if (activityLevel == 'moderate') {
       _selectedActivityLevel = 'medium';
@@ -122,10 +122,12 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
 
   bool _canProceed() {
     switch (_currentStep) {
-      case 0: return true; // Welcome screen
-      case 1: return _firstNameController.text.trim().isNotEmpty && 
-                     _lastNameController.text.trim().isNotEmpty;
-      case 2: 
+      case 0:
+        return true; // Welcome screen
+      case 1:
+        return _firstNameController.text.trim().isNotEmpty &&
+            _lastNameController.text.trim().isNotEmpty;
+      case 2:
         final age = int.tryParse(_ageController.text);
         return age != null && age >= 1 && age <= 120;
       case 3:
@@ -134,9 +136,12 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
       case 4:
         final height = double.tryParse(_heightController.text);
         return height != null && height >= 50 && height <= 250;
-      case 5: return _selectedGender.isNotEmpty;
-      case 6: return _selectedActivityLevel.isNotEmpty;
-      default: return false;
+      case 5:
+        return _selectedGender.isNotEmpty;
+      case 6:
+        return _selectedActivityLevel.isNotEmpty;
+      default:
+        return false;
     }
   }
 
@@ -166,10 +171,10 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
 
       // Success animation
       _nextStep();
-      
+
       // Navigate after animation
       await Future.delayed(const Duration(milliseconds: 2000));
-      
+
       if (mounted) {
         if (widget.isFirstSetup) {
           Navigator.of(context).pushReplacementNamed('/home');
@@ -208,7 +213,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
             children: [
               // Progress Bar
               _buildProgressBar(),
-              
+
               // Content
               Expanded(
                 child: PageView(
@@ -226,7 +231,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
                   ],
                 ),
               ),
-              
+
               // Navigation Buttons
               _buildNavigationButtons(),
             ],
@@ -238,17 +243,26 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
 
   List<Color> _getBackgroundColors() {
     switch (_currentStep) {
-      case 0: return [Colors.blue.shade300, Colors.blue.shade600];
-      case 1: return [Colors.green.shade300, Colors.green.shade600];
-      case 2: return [Colors.orange.shade300, Colors.orange.shade600];
-      case 3: return [Colors.purple.shade300, Colors.purple.shade600];
-      case 4: return [Colors.teal.shade300, Colors.teal.shade600];
-      case 5: return _selectedGender == 'female' 
-          ? [Colors.pink.shade300, Colors.pink.shade600]
-          : [Colors.blue.shade300, Colors.blue.shade600];
-      case 6: return [Colors.red.shade300, Colors.red.shade600];
-      case 7: return [Colors.green.shade400, Colors.green.shade700];
-      default: return [Colors.blue.shade300, Colors.blue.shade600];
+      case 0:
+        return [Colors.blue.shade300, Colors.blue.shade600];
+      case 1:
+        return [Colors.green.shade300, Colors.green.shade600];
+      case 2:
+        return [Colors.orange.shade300, Colors.orange.shade600];
+      case 3:
+        return [Colors.purple.shade300, Colors.purple.shade600];
+      case 4:
+        return [Colors.teal.shade300, Colors.teal.shade600];
+      case 5:
+        return _selectedGender == 'female'
+            ? [Colors.pink.shade300, Colors.pink.shade600]
+            : [Colors.blue.shade300, Colors.blue.shade600];
+      case 6:
+        return [Colors.red.shade300, Colors.red.shade600];
+      case 7:
+        return [Colors.green.shade400, Colors.green.shade700];
+      default:
+        return [Colors.blue.shade300, Colors.blue.shade600];
     }
   }
 
@@ -268,17 +282,14 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: (_currentStep + 1) / _stepTitles.length,
-            backgroundColor: Colors.white.withOpacity(0.3),
+            backgroundColor: Colors.white.withValues(alpha: 0.3),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             minHeight: 6,
           ).animate().scaleX(duration: 500.ms),
           const SizedBox(height: 8),
           Text(
             '${_currentStep + 1} / ${_stepTitles.length}',
-            style: const TextStyle(
-              color: Colors.white70,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
         ],
       ),
@@ -310,10 +321,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           const Text(
             'Günlük su ihtiyacınızı hesaplayabilmek için\nbirkaç bilgiye ihtiyacımız var.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white70,
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.white70),
           ).animate().fadeIn(delay: 800.ms, duration: 600.ms),
         ],
       ),
@@ -327,11 +335,21 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.person_add,
-              size: 80,
-              color: Colors.white,
-            ).animate().scale(duration: 600.ms).then().scale(begin: const Offset(1.0, 1.0), end: const Offset(1.1, 1.1), duration: 500.ms).then().scale(begin: const Offset(1.1, 1.1), end: const Offset(1.0, 1.0), duration: 500.ms),
+            Icon(Icons.person_add, size: 80, color: Colors.white)
+                .animate()
+                .scale(duration: 600.ms)
+                .then()
+                .scale(
+                  begin: const Offset(1.0, 1.0),
+                  end: const Offset(1.1, 1.1),
+                  duration: 500.ms,
+                )
+                .then()
+                .scale(
+                  begin: const Offset(1.1, 1.1),
+                  end: const Offset(1.0, 1.0),
+                  duration: 500.ms,
+                ),
             const SizedBox(height: 24),
             _buildAnimatedTextField(
               controller: _firstNameController,
@@ -376,10 +394,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           if (_ageController.text.isNotEmpty)
             Text(
               _getAgeMessage(),
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
             ).animate().fadeIn(duration: 400.ms),
         ],
       ),
@@ -392,11 +407,13 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.monitor_weight,
-            size: 100,
-            color: Colors.white,
-          ).animate().scale(duration: 600.ms).then().slideY(begin: -0.1, end: 0.1).then().slideY(begin: 0.1, end: -0.1),
+          Icon(Icons.monitor_weight, size: 100, color: Colors.white)
+              .animate()
+              .scale(duration: 600.ms)
+              .then()
+              .slideY(begin: -0.1, end: 0.1)
+              .then()
+              .slideY(begin: 0.1, end: -0.1),
           const SizedBox(height: 32),
           _buildAnimatedTextField(
             controller: _weightController,
@@ -410,10 +427,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           if (_weightController.text.isNotEmpty)
             Text(
               _getWeightMessage(),
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
             ).animate().fadeIn(duration: 400.ms),
         ],
       ),
@@ -426,11 +440,13 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.height,
-            size: 100,
-            color: Colors.white,
-          ).animate().scale(duration: 600.ms).then().slideY(begin: 0, end: -0.2).then().slideY(begin: -0.2, end: 0),
+          Icon(Icons.height, size: 100, color: Colors.white)
+              .animate()
+              .scale(duration: 600.ms)
+              .then()
+              .slideY(begin: 0, end: -0.2)
+              .then()
+              .slideY(begin: -0.2, end: 0),
           const SizedBox(height: 32),
           _buildAnimatedTextField(
             controller: _heightController,
@@ -444,10 +460,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           if (_heightController.text.isNotEmpty)
             Text(
               _getHeightMessage(),
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 16,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 16),
             ).animate().fadeIn(duration: 400.ms),
         ],
       ),
@@ -504,11 +517,13 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.fitness_center,
-              size: 80,
-              color: Colors.white,
-            ).animate().scale(duration: 600.ms).then().rotate(begin: -0.1, end: 0.1).then().rotate(begin: 0.1, end: -0.1),
+            Icon(Icons.fitness_center, size: 80, color: Colors.white)
+                .animate()
+                .scale(duration: 600.ms)
+                .then()
+                .rotate(begin: -0.1, end: 0.1)
+                .then()
+                .rotate(begin: 0.1, end: -0.1),
             const SizedBox(height: 24),
             const Text(
               'Aktivite Seviyenizi Seçin',
@@ -519,11 +534,29 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
               ),
             ).animate().fadeIn(duration: 400.ms),
             const SizedBox(height: 20),
-            _buildActivityCard('low', 'Düşük', 'Hareketsiz yaşam', Icons.airline_seat_recline_normal, 0),
+            _buildActivityCard(
+              'low',
+              'Düşük',
+              'Hareketsiz yaşam',
+              Icons.airline_seat_recline_normal,
+              0,
+            ),
             const SizedBox(height: 12),
-            _buildActivityCard('medium', 'Orta', 'Haftada 1-3 gün spor', Icons.directions_walk, 200),
+            _buildActivityCard(
+              'medium',
+              'Orta',
+              'Haftada 1-3 gün spor',
+              Icons.directions_walk,
+              200,
+            ),
             const SizedBox(height: 12),
-            _buildActivityCard('high', 'Yüksek', 'Haftada 3+ gün spor', Icons.directions_run, 400),
+            _buildActivityCard(
+              'high',
+              'Yüksek',
+              'Haftada 3+ gün spor',
+              Icons.directions_run,
+              400,
+            ),
           ],
         ),
       ),
@@ -536,11 +569,21 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.check_circle,
-            size: 120,
-            color: Colors.white,
-          ).animate().scale(duration: 800.ms).then().scale(begin: const Offset(1.0, 1.0), end: const Offset(1.2, 1.2), duration: 600.ms).then().scale(begin: const Offset(1.2, 1.2), end: const Offset(1.0, 1.0), duration: 600.ms),
+          Icon(Icons.check_circle, size: 120, color: Colors.white)
+              .animate()
+              .scale(duration: 800.ms)
+              .then()
+              .scale(
+                begin: const Offset(1.0, 1.0),
+                end: const Offset(1.2, 1.2),
+                duration: 600.ms,
+              )
+              .then()
+              .scale(
+                begin: const Offset(1.2, 1.2),
+                end: const Offset(1.0, 1.0),
+                duration: 600.ms,
+              ),
           const SizedBox(height: 32),
           const Text(
             'Tebrikler! 🎉',
@@ -554,10 +597,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           const Text(
             'Profiliniz başarıyla oluşturuldu!\nArtık su takibinize başlayabilirsiniz.',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.white70,
-            ),
+            style: TextStyle(fontSize: 18, color: Colors.white70),
           ).animate().fadeIn(delay: 800.ms, duration: 600.ms),
         ],
       ),
@@ -591,56 +631,71 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           borderSide: const BorderSide(color: Colors.white, width: 2),
         ),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: Colors.white.withValues(alpha: 0.1),
       ),
       onChanged: (value) => setState(() {}),
     ).animate().fadeIn(delay: delay.ms, duration: 600.ms).slideX(begin: 0.3);
   }
 
-  Widget _buildGenderCard(String value, String title, IconData icon, Color color, int delay) {
+  Widget _buildGenderCard(
+    String value,
+    String title,
+    IconData icon,
+    Color color,
+    int delay,
+  ) {
     final isSelected = _selectedGender == value;
     return GestureDetector(
-      onTap: () => setState(() => _selectedGender = value),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? color : Colors.white70,
-            width: isSelected ? 3 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 60,
-              color: isSelected ? color : Colors.white70,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+          onTap: () => setState(() => _selectedGender = value),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
                 color: isSelected ? color : Colors.white70,
+                width: isSelected ? 3 : 1,
               ),
             ),
-          ],
-        ),
-      ),
-    ).animate().fadeIn(delay: delay.ms, duration: 600.ms).scale(begin: const Offset(0.8, 0.8));
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  size: 60,
+                  color: isSelected ? color : Colors.white70,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: isSelected ? color : Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        )
+        .animate()
+        .fadeIn(delay: delay.ms, duration: 600.ms)
+        .scale(begin: const Offset(0.8, 0.8));
   }
 
-  Widget _buildActivityCard(String value, String title, String subtitle, IconData icon, int delay) {
+  Widget _buildActivityCard(
+    String value,
+    String title,
+    String subtitle,
+    IconData icon,
+    int delay,
+  ) {
     final isSelected = _selectedActivityLevel == value;
     return GestureDetector(
       onTap: () => setState(() => _selectedActivityLevel = value),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withOpacity(0.1),
+          color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? Colors.orange : Colors.white70,
@@ -671,7 +726,9 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: isSelected ? Colors.orange.shade700 : Colors.white70,
+                      color: isSelected
+                          ? Colors.orange.shade700
+                          : Colors.white70,
                     ),
                   ),
                 ],
@@ -731,8 +788,8 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
                             _currentStep == 0
                                 ? 'Başlayalım!'
                                 : _currentStep == 6
-                                    ? 'Tamamla'
-                                    : 'Devam',
+                                ? 'Tamamla'
+                                : 'Devam',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,

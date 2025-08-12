@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/utils/app_theme.dart';
 import '../../providers/auth_provider.dart';
 
 /// E-posta doğrulama uyarı banner'ı
@@ -8,7 +7,8 @@ class EmailVerificationBanner extends StatefulWidget {
   const EmailVerificationBanner({super.key});
 
   @override
-  State<EmailVerificationBanner> createState() => _EmailVerificationBannerState();
+  State<EmailVerificationBanner> createState() =>
+      _EmailVerificationBannerState();
 }
 
 class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
@@ -28,21 +28,15 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Colors.amber.shade50,
-                Colors.orange.shade50,
-              ],
+              colors: [Colors.amber.shade50, Colors.orange.shade50],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.orange.shade200,
-              width: 1,
-            ),
+            border: Border.all(color: Colors.orange.shade200, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.orange.shade100.withOpacity(0.5),
+                color: Colors.orange.shade100.withValues(alpha: 0.5),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -97,12 +91,9 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.orange.shade200,
-                      width: 1,
-                    ),
+                    border: Border.all(color: Colors.orange.shade200, width: 1),
                   ),
                   child: Row(
                     children: [
@@ -137,15 +128,13 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
                                 height: 18,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(
-                                    Colors.white,
-                                  ),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                 ),
                               )
-                            : const Icon(
-                                Icons.send_rounded,
-                                size: 18,
-                              ),
+                            : const Icon(Icons.send_rounded, size: 18),
                         label: Text(
                           _isResending ? 'Gönderiliyor...' : 'Doğrulama Gönder',
                           style: const TextStyle(
@@ -168,7 +157,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
                     const SizedBox(width: 12),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Colors.orange.shade300,
@@ -248,9 +237,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
           content: const Text('🎉 E-posta başarıyla doğrulandı!'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     }

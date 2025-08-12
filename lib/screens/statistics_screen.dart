@@ -18,10 +18,9 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen>
     with AutomaticKeepAliveClientMixin {
-  
   @override
   bool get wantKeepAlive => true; // Widget'ı bellekte tut
-  
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +32,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context); // AutomaticKeepAliveClientMixin için gerekli
-    
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
@@ -149,7 +148,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                             if (statsProvider.currentPerformanceMetrics != null)
                               _buildPerformanceSection(statsProvider)
                             else if (statsProvider.isLoadingPerformance)
-                              _buildLoadingCard('Performans metrikleri yükleniyor...'),
+                              _buildLoadingCard(
+                                'Performans metrikleri yükleniyor...',
+                              ),
                           ]),
                         ),
                       ),
@@ -268,7 +269,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -287,10 +288,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           const SizedBox(height: 16),
           Text(
             message,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Colors.grey,
-            ),
+            style: const TextStyle(fontSize: 14, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
         ],

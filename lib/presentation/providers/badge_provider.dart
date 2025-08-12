@@ -11,8 +11,7 @@ class BadgeProvider with ChangeNotifier {
   UserBadgeStats _stats = UserBadgeStats();
   bool _isLoading = false;
   String? _error;
-  List<BadgeModel> _recentlyUnlocked = [];
-  Map<String, double> _badgeProgress = {};
+  final List<BadgeModel> _recentlyUnlocked = [];
 
   // Getters
   List<BadgeModel> get badges => _badges;
@@ -50,7 +49,10 @@ class BadgeProvider with ChangeNotifier {
       _badges = await _badgeService.getAllBadges();
       _stats = await _badgeService.getUserBadgeStats();
 
-      DebugLogger.success('Rozetler yüklendi: ${_badges.length}', tag: 'BADGE_PROVIDER');
+      DebugLogger.success(
+        'Rozetler yüklendi: ${_badges.length}',
+        tag: 'BADGE_PROVIDER',
+      );
     } catch (e) {
       _error = 'Rozetler yüklenirken hata oluştu: $e';
       DebugLogger.error(_error!, tag: 'BADGE_PROVIDER');
@@ -64,7 +66,10 @@ class BadgeProvider with ChangeNotifier {
     try {
       await _badgeService.initializeUserBadges();
       await loadBadges();
-      DebugLogger.success('Kullanıcı rozetleri başlatıldı', tag: 'BADGE_PROVIDER');
+      DebugLogger.success(
+        'Kullanıcı rozetleri başlatıldı',
+        tag: 'BADGE_PROVIDER',
+      );
     } catch (e) {
       _error = 'Rozetler başlatılırken hata oluştu: $e';
       DebugLogger.error(_error!, tag: 'BADGE_PROVIDER');
@@ -90,7 +95,7 @@ class BadgeProvider with ChangeNotifier {
 
       if (newlyUnlocked.isNotEmpty) {
         _recentlyUnlocked.addAll(newlyUnlocked);
-        
+
         // Rozet listesini güncelle
         for (final unlockedBadge in newlyUnlocked) {
           final index = _badges.indexWhere((b) => b.id == unlockedBadge.id);
@@ -101,9 +106,9 @@ class BadgeProvider with ChangeNotifier {
 
         // İstatistikleri güncelle
         _stats = await _badgeService.getUserBadgeStats();
-        
+
         notifyListeners();
-        
+
         DebugLogger.success(
           'Yeni rozetler açıldı: ${newlyUnlocked.map((b) => b.name).join(', ')}',
           tag: 'BADGE_PROVIDER',
@@ -112,7 +117,10 @@ class BadgeProvider with ChangeNotifier {
 
       return newlyUnlocked;
     } catch (e) {
-      DebugLogger.error('Su ekleme rozet kontrolü hatası: $e', tag: 'BADGE_PROVIDER');
+      DebugLogger.error(
+        'Su ekleme rozet kontrolü hatası: $e',
+        tag: 'BADGE_PROVIDER',
+      );
       return [];
     }
   }
@@ -184,8 +192,10 @@ class BadgeProvider with ChangeNotifier {
   double getCategoryProgress(String category) {
     final categoryBadges = getBadgesByCategory(category);
     if (categoryBadges.isEmpty) return 0.0;
-    
-    final unlockedCount = categoryBadges.where((badge) => badge.isUnlocked).length;
+
+    final unlockedCount = categoryBadges
+        .where((badge) => badge.isUnlocked)
+        .length;
     return (unlockedCount / categoryBadges.length) * 100;
   }
 
@@ -193,10 +203,12 @@ class BadgeProvider with ChangeNotifier {
   BadgeModel? get lastUnlockedBadge {
     final unlockedBadges = _badges.where((badge) => badge.isUnlocked).toList();
     if (unlockedBadges.isEmpty) return null;
-    
-    unlockedBadges.sort((a, b) => 
-        (b.unlockedAt ?? DateTime(0)).compareTo(a.unlockedAt ?? DateTime(0)));
-    
+
+    unlockedBadges.sort(
+      (a, b) =>
+          (b.unlockedAt ?? DateTime(0)).compareTo(a.unlockedAt ?? DateTime(0)),
+    );
+
     return unlockedBadges.first;
   }
 
@@ -204,10 +216,10 @@ class BadgeProvider with ChangeNotifier {
   BadgeModel? getNextTargetBadge() {
     final lockedBadges = _badges.where((badge) => !badge.isUnlocked).toList();
     if (lockedBadges.isEmpty) return null;
-    
+
     // En düşük gereksinimi olan rozeti bul
     lockedBadges.sort((a, b) => a.requiredValue.compareTo(b.requiredValue));
-    
+
     return lockedBadges.first;
   }
 
@@ -275,13 +287,11 @@ class BadgeProvider with ChangeNotifier {
         notifyListeners();
       },
       onError: (error) {
-        DebugLogger.error('Rozet istatistik stream hatası: $error', tag: 'BADGE_PROVIDER');
+        DebugLogger.error(
+          'Rozet istatistik stream hatası: $error',
+          tag: 'BADGE_PROVIDER',
+        );
       },
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }

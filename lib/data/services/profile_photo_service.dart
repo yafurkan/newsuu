@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter/foundation.dart';
 
 class ProfilePhotoService {
   static final FirebaseStorage _storage = FirebaseStorage.instance;
@@ -11,7 +10,9 @@ class ProfilePhotoService {
   static final ImagePicker _picker = ImagePicker();
 
   /// Galeri veya kameradan fotoğraf seç
-  static Future<File?> pickImage({ImageSource source = ImageSource.gallery}) async {
+  static Future<File?> pickImage({
+    ImageSource source = ImageSource.gallery,
+  }) async {
     try {
       final XFile? image = await _picker.pickImage(
         source: source,
@@ -19,7 +20,7 @@ class ProfilePhotoService {
         maxHeight: 1024,
         imageQuality: 85,
       );
-      
+
       if (image != null) {
         return File(image.path);
       }
@@ -40,8 +41,12 @@ class ProfilePhotoService {
       }
 
       // Dosya yolu oluştur
-      final String fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final Reference ref = _storage.ref().child('profile_photos').child(fileName);
+      final String fileName =
+          'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final Reference ref = _storage
+          .ref()
+          .child('profile_photos')
+          .child(fileName);
 
       // Metadata ekle
       final SettableMetadata metadata = SettableMetadata(
@@ -54,20 +59,22 @@ class ProfilePhotoService {
 
       // Dosyayı yükle
       final UploadTask uploadTask = ref.putFile(imageFile, metadata);
-      
+
       // Yükleme ilerlemesini takip et
       uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
         final double progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        debugPrint('Yükleme ilerlemesi: ${(progress * 100).toStringAsFixed(1)}%');
+        debugPrint(
+          'Yükleme ilerlemesi: ${(progress * 100).toStringAsFixed(1)}%',
+        );
       });
 
       // Yükleme tamamlanmasını bekle
       final TaskSnapshot snapshot = await uploadTask;
-      
+
       // Download URL'i al
       final String downloadUrl = await snapshot.ref.getDownloadURL();
       debugPrint('Profil fotoğrafı yüklendi: $downloadUrl');
-      
+
       return downloadUrl;
     } catch (e) {
       debugPrint('Profil fotoğrafı yükleme hatası: $e');
@@ -93,16 +100,21 @@ class ProfilePhotoService {
   }
 
   /// Profil fotoğrafını güncelle (eski sil, yeni yükle)
-  static Future<String?> updateProfilePhoto(File newImageFile, String? oldPhotoUrl) async {
+  static Future<String?> updateProfilePhoto(
+    File newImageFile,
+    String? oldPhotoUrl,
+  ) async {
     try {
       // Yeni fotoğrafı yükle
       final String? newPhotoUrl = await uploadProfilePhoto(newImageFile);
-      
-      if (newPhotoUrl != null && oldPhotoUrl != null && oldPhotoUrl.isNotEmpty) {
+
+      if (newPhotoUrl != null &&
+          oldPhotoUrl != null &&
+          oldPhotoUrl.isNotEmpty) {
         // Eski fotoğrafı sil (arka planda)
         deleteOldProfilePhoto(oldPhotoUrl);
       }
-      
+
       return newPhotoUrl;
     } catch (e) {
       debugPrint('Profil fotoğrafı güncelleme hatası: $e');
@@ -124,18 +136,24 @@ class ProfilePhotoService {
                 leading: const Icon(Icons.photo_library),
                 title: const Text('Galeriden Seç'),
                 onTap: () async {
-                  Navigator.pop(context);
-                  final File? image = await pickImage(source: ImageSource.gallery);
-                  Navigator.pop(context, image);
+                  final navigator = Navigator.of(context);
+                  navigator.pop();
+                  final File? image = await pickImage(
+                    source: ImageSource.gallery,
+                  );
+                  navigator.pop(image);
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt),
                 title: const Text('Kamera'),
                 onTap: () async {
-                  Navigator.pop(context);
-                  final File? image = await pickImage(source: ImageSource.camera);
-                  Navigator.pop(context, image);
+                  final navigator = Navigator.of(context);
+                  navigator.pop();
+                  final File? image = await pickImage(
+                    source: ImageSource.camera,
+                  );
+                  navigator.pop(image);
                 },
               ),
             ],
