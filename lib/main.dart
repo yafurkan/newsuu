@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -21,6 +22,8 @@ import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/statistics_provider.dart';
 import 'presentation/providers/badge_provider.dart';
 import 'core/utils/debug_logger.dart';
+import 'core/security/security_validator.dart';
+import 'core/config/app_config.dart';
 
 // Background message handler
 @pragma('vm:entry-point')
@@ -35,6 +38,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // 🔒 Güvenlik kontrollerini yap
+    await _performSecurityChecks();
+    
     // Firebase'i kontrollü şekilde initialize et
     await _initializeFirebase();
 
@@ -127,6 +133,69 @@ Future<void> _initializeFirebase() async {
     DebugLogger.error('Firebase initialization failed: $e', tag: 'MAIN');
     rethrow;
   }
+}
+
+/// Güvenlik kontrollerini gerçekleştir
+Future<void> _performSecurityChecks() async {
+  try {
+    DebugLogger.info('🔒 Güvenlik kontrolleri başlatılıyor...', tag: 'SECURITY');
+    
+    final securityResult = await SecurityValidator.validateSecurity();
+    
+    if (kDebugMode) {
+      // Debug modda detaylı raporu göster
+      print('\n${securityResult.detailedReport}');
+    } else {
+      // Production'da sadece özet göster
+      DebugLogger.info(securityResult.summary, tag: 'SECURITY');
+    }
+    
+    // Kritik hatalar varsa uygulamayı durdur
+    if (securityResult.hasErrors) {
+      final errorMessage = 'Kritik güvenlik hataları tespit edildi! '
+          'Uygulama güvenli şekilde çalışamaz.';
+      
+      DebugLogger.error(errorMessage, tag: 'SECURITY');
+      
+      if (kDebugMode) {
+        // Debug modda hataları göster ama devam et
+        print('\n❌ UYARI: $errorMessage');
+        print('Debug modda olduğunuz için uygulama çalışmaya devam ediyor.');
+        print('Production için .env dosyasını düzgün yapılandırın!\n');
+      } else {
+        // Production'da uygulamayı durdur
+        throw SecurityException(errorMessage);
+      }
+    }
+    
+    if (securityResult.hasWarnings) {
+      DebugLogger.warning(
+        '⚠️ ${securityResult.warningCount} güvenlik uyarısı var',
+        tag: 'SECURITY',
+      );
+    }
+    
+    DebugLogger.success(
+      '✅ Güvenlik kontrolleri tamamlandı (${securityResult.successCount} başarılı)',
+      tag: 'SECURITY',
+    );
+    
+  } catch (e) {
+    DebugLogger.error('Güvenlik kontrolü hatası: $e', tag: 'SECURITY');
+    
+    if (!kDebugMode) {
+      rethrow; // Production'da hatayı yukarı fırlat
+    }
+  }
+}
+
+/// Güvenlik exception sınıfı
+class SecurityException implements Exception {
+  final String message;
+  SecurityException(this.message);
+  
+  @override
+  String toString() => 'SecurityException: $message';
 }
 
 class SuTakipApp extends StatefulWidget {

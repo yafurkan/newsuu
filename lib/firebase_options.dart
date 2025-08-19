@@ -41,46 +41,46 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBvThKNRNVH6J2RflAOWXHgTrkCOhGlpOQ',
-    appId: '1:429615468598:web:a1b2c3d4e5f6g7h8i9j0',
-    messagingSenderId: '429615468598',
-    projectId: 'su-takip-app',
-    authDomain: 'su-takip-app.firebaseapp.com',
-    storageBucket: 'su-takip-app.appspot.com',
-    measurementId: 'G-MEASUREMENT_ID',
+    apiKey: String.fromEnvironment('FIREBASE_API_KEY_WEB', defaultValue: ''),
+    appId: String.fromEnvironment('FIREBASE_APP_ID_WEB', defaultValue: ''),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID_WEB', defaultValue: ''),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID_WEB', defaultValue: ''),
+    authDomain: String.fromEnvironment('FIREBASE_AUTH_DOMAIN', defaultValue: ''),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET', defaultValue: ''),
+    measurementId: String.fromEnvironment('FIREBASE_MEASUREMENT_ID', defaultValue: ''),
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC8kQ9uojJaPII8VhD0DWdk8p7HCvB70aM',
-    appId: '1:36993591963:android:326da5d1aa9a34131cb43e',
-    messagingSenderId: '36993591963',
-    projectId: 'sutakip-fcm-app-furkan-da7fe',
-    storageBucket: 'sutakip-fcm-app-furkan-da7fe.firebasestorage.app',
+    apiKey: String.fromEnvironment('FIREBASE_API_KEY_ANDROID', defaultValue: ''),
+    appId: String.fromEnvironment('FIREBASE_APP_ID_ANDROID', defaultValue: ''),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID_ANDROID', defaultValue: ''),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID_ANDROID', defaultValue: ''),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET_ANDROID', defaultValue: ''),
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyBvThKNRNVH6J2RflAOWXHgTrkCOhGlpOQ',
-    appId: '1:429615468598:ios:a1b2c3d4e5f6g7h8i9j0',
-    messagingSenderId: '429615468598',
-    projectId: 'su-takip-app',
-    storageBucket: 'su-takip-app.appspot.com',
-    iosBundleId: 'com.example.suu',
+    apiKey: String.fromEnvironment('FIREBASE_API_KEY_IOS', defaultValue: ''),
+    appId: String.fromEnvironment('FIREBASE_APP_ID_IOS', defaultValue: ''),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID_IOS', defaultValue: ''),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID_IOS', defaultValue: ''),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET_IOS', defaultValue: ''),
+    iosBundleId: String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID', defaultValue: ''),
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyBvThKNRNVH6J2RflAOWXHgTrkCOhGlpOQ',
-    appId: '1:429615468598:macos:a1b2c3d4e5f6g7h8i9j0',
-    messagingSenderId: '429615468598',
-    projectId: 'su-takip-app',
-    storageBucket: 'su-takip-app.appspot.com',
-    iosBundleId: 'com.example.suu',
+    apiKey: String.fromEnvironment('FIREBASE_API_KEY_IOS', defaultValue: ''),
+    appId: String.fromEnvironment('FIREBASE_APP_ID_IOS', defaultValue: ''),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID_IOS', defaultValue: ''),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID_IOS', defaultValue: ''),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET_IOS', defaultValue: ''),
+    iosBundleId: String.fromEnvironment('FIREBASE_IOS_BUNDLE_ID', defaultValue: ''),
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBvThKNRNVH6J2RflAOWXHgTrkCOhGlpOQ',
-    appId: '1:429615468598:windows:a1b2c3d4e5f6g7h8i9j0',
-    messagingSenderId: '429615468598',
-    projectId: 'su-takip-app',
-    storageBucket: 'su-takip-app.appspot.com',
+    apiKey: String.fromEnvironment('FIREBASE_API_KEY_WEB', defaultValue: ''),
+    appId: String.fromEnvironment('FIREBASE_APP_ID_WEB', defaultValue: ''),
+    messagingSenderId: String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID_WEB', defaultValue: ''),
+    projectId: String.fromEnvironment('FIREBASE_PROJECT_ID_WEB', defaultValue: ''),
+    storageBucket: String.fromEnvironment('FIREBASE_STORAGE_BUCKET', defaultValue: ''),
   );
 }

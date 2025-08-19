@@ -45,5 +45,29 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- Firebase Messaging -->
+	<key>FirebaseMessagingAutoInitEnabled</key>
+	<false/>
+	
+	<!-- Location permissions for weather feature -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Bu uygulama hava durumu bilgilerini almak için konumunuzu kullanır.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Bu uygulama hava durumu bilgilerini almak için konumunuzu kullanır.</string>
+	
+	<!-- Camera permission for profile photo -->
+	<key>NSCameraUsageDescription</key>
+	<string>Profil fotoğrafı çekmek için kamera erişimi gereklidir.</string>
+	
+	<!-- Photo library permission -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil fotoğrafı seçmek için fotoğraf kütüphanesi erişimi gereklidir.</string>
+	
+	<!-- Notification permissions -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

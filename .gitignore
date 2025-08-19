@@ -43,3 +43,36 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Environment variables and secrets
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# Firebase and API keys
+firebase_options.dart.backup
+google-services.json.backup
+GoogleService-Info.plist.backup
+
+# Sensitive configuration files
+config/secrets.dart
+lib/config/api_keys.dart
+lib/config/secrets.dart
+
+# Database and storage
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs and debug files
+*.log
+debug.log
+error.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
