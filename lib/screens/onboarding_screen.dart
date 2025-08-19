@@ -206,9 +206,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: ElevatedButton(
                           onPressed: _previousPage,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.2,
-                            ),
+                            backgroundColor: Colors.white.withOpacity(0.2),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 15),
                           ),

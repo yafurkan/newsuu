@@ -534,8 +534,8 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                             border: Border.all(color: Colors.white, width: 4),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.white.withValues(
-                                  alpha: 0.4 + _sparkleController.value * 0.3,
+                                color: Colors.white.withOpacity(
+                                  0.4 + _sparkleController.value * 0.3,
                                 ),
                                 blurRadius: 30 + _sparkleController.value * 20,
                                 spreadRadius: 10 + _sparkleController.value * 5,
