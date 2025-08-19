@@ -23,7 +23,6 @@ import 'presentation/providers/statistics_provider.dart';
 import 'presentation/providers/badge_provider.dart';
 import 'core/utils/debug_logger.dart';
 import 'core/security/security_validator.dart';
-import 'core/config/app_config.dart';
 
 // Background message handler
 @pragma('vm:entry-point')

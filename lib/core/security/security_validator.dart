@@ -192,7 +192,7 @@ class SecurityValidationResult {
   
   /// Özet rapor
   String get summary {
-    return 'Güvenlik Kontrolü: ${successCount} başarılı, ${warningCount} uyarı, ${errorCount} hata';
+    return 'Güvenlik Kontrolü: $successCount başarılı, $warningCount uyarı, $errorCount hata';
   }
   
   /// Detaylı rapor
