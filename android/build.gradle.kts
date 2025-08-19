@@ -22,8 +22,18 @@ subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
+    
+    // Android konfigürasyonu için
+    afterEvaluate {
+        if (hasProperty("android")) {
+            configure<com.android.build.gradle.BaseExtension> {
+                compileSdkVersion(35)
+            }
+        }
+    }
 }
 
 tasks.register<Delete>("clean") {
