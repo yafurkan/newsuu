@@ -155,8 +155,8 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
               colors: [
                 Color(
                   int.parse(widget.badge.colors[0].replaceFirst('#', '0xFF')),
-                ).withValues(alpha: 0.3),
-                Colors.black.withValues(alpha: 0.7),
+                ).withOpacity(0.3),
+                Colors.black.withOpacity(0.7),
               ],
             ),
           ),
@@ -198,7 +198,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                           int.parse(
                             widget.badge.colors[0].replaceFirst('#', '0xFF'),
                           ),
-                        ).withValues(alpha: 0.6),
+                        ).withOpacity(0.6),
                         blurRadius: 30,
                         spreadRadius: 10,
                         offset: const Offset(0, 15),
@@ -294,7 +294,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                                     vertical: 8,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.25),
+                                    color: Colors.white.withOpacity(0.25),
                                     borderRadius: BorderRadius.circular(25),
                                     border: Border.all(
                                       color: Colors.white,
@@ -321,10 +321,10 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
+                            color: Colors.white.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.3),
+                              color: Colors.white.withOpacity(0.3),
                               width: 1,
                             ),
                           ),
@@ -359,10 +359,10 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: Colors.white.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.2),
+                              color: Colors.white.withOpacity(0.2),
                               width: 1,
                             ),
                           ),
@@ -529,7 +529,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
                           width: 140,
                           height: 140,
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
+                            color: Colors.white.withOpacity(0.25),
                             borderRadius: BorderRadius.circular(70),
                             border: Border.all(color: Colors.white, width: 4),
                             boxShadow: [
@@ -578,7 +578,7 @@ class _FestivalBadgeCelebrationState extends State<FestivalBadgeCelebration>
           child: ElevatedButton.icon(
             onPressed: _shareBadge,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              backgroundColor: Colors.white.withOpacity(0.2),
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(

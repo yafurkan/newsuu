@@ -51,7 +51,7 @@ class StatsWeeklyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -89,7 +89,7 @@ class StatsWeeklyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -207,7 +207,7 @@ class StatsWeeklyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -281,7 +281,7 @@ class StatsWeeklyView extends StatelessWidget {
                     isStrokeCapRound: true,
                     belowBarData: BarAreaData(
                       show: true,
-                      color: const Color(0xFF2196F3).withValues(alpha: 0.1),
+                      color: const Color(0xFF2196F3).withOpacity(0.1),
                     ),
                     dotData: FlDotData(
                       show: true,
@@ -375,7 +375,7 @@ class StatsWeeklyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -502,9 +502,9 @@ class StatsWeeklyView extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: messageColor.withValues(alpha: 0.1),
+        color: messageColor.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: messageColor.withValues(alpha: 0.3)),
+        border: Border.all(color: messageColor.withOpacity(0.3)),
       ),
       child: Row(
         children: [

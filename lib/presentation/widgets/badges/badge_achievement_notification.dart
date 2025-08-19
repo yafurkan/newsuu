@@ -101,7 +101,7 @@ class _BadgeAchievementNotificationState
                       int.parse(
                         widget.badge.colors[0].replaceFirst('#', '0xFF'),
                       ),
-                    ).withValues(alpha: 0.4),
+                    ).withOpacity(0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -114,7 +114,7 @@ class _BadgeAchievementNotificationState
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Column(
@@ -142,7 +142,7 @@ class _BadgeAchievementNotificationState
                       .then()
                       .shimmer(
                         duration: 1500.ms,
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: Colors.white.withOpacity(0.5),
                       ),
 
                   const SizedBox(width: 16),
@@ -168,7 +168,7 @@ class _BadgeAchievementNotificationState
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: Colors.white.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(

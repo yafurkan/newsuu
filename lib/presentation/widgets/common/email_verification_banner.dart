@@ -36,7 +36,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
             border: Border.all(color: Colors.orange.shade200, width: 1),
             boxShadow: [
               BoxShadow(
-                color: Colors.orange.shade100.withValues(alpha: 0.5),
+                color: Colors.orange.shade100.withOpacity(0.5),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),
@@ -91,7 +91,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Colors.white.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.orange.shade200, width: 1),
                   ),
@@ -157,7 +157,7 @@ class _EmailVerificationBannerState extends State<EmailVerificationBanner> {
                     const SizedBox(width: 12),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: Colors.white.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Colors.orange.shade300,

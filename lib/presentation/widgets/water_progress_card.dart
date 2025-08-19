@@ -30,18 +30,18 @@ class WaterProgressCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.primary.withValues(alpha: 0.1),
-                AppColors.accent.withValues(alpha: 0.1),
+                AppColors.primary.withOpacity(0.1),
+                AppColors.accent.withOpacity(0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(AppDimensions.radiusL),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
+              color: AppColors.primary.withOpacity(0.2),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -81,7 +81,7 @@ class WaterProgressCard extends StatelessWidget {
                 progressColor: isCompleted
                     ? AppColors.secondary
                     : AppColors.primary,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.2),
+                backgroundColor: AppColors.primary.withOpacity(0.2),
                 circularStrokeCap: CircularStrokeCap.round,
                 animation: true,
                 animationDuration: 800,
@@ -123,7 +123,7 @@ class WaterProgressCard extends StatelessWidget {
                       Container(
                         width: 2,
                         height: 40,
-                        color: AppColors.primary.withValues(alpha: 0.3),
+                        color: AppColors.primary.withOpacity(0.3),
                       ),
                       Expanded(
                         child: Column(
@@ -179,8 +179,8 @@ class WaterProgressCard extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: isCompleted
-                          ? AppColors.secondary.withValues(alpha: 0.15)
-                          : AppColors.primary.withValues(alpha: 0.15),
+                          ? AppColors.secondary.withOpacity(0.15)
+                          : AppColors.primary.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(
                         AppDimensions.radiusM,
                       ),

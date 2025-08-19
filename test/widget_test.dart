@@ -6,7 +6,6 @@ import 'package:su_takip/main.dart';
 import 'package:su_takip/presentation/providers/auth_provider.dart';
 import 'package:su_takip/presentation/providers/user_provider.dart';
 import 'package:su_takip/presentation/providers/water_provider.dart';
-import 'package:su_takip/presentation/providers/notification_provider.dart';
 import 'package:su_takip/presentation/providers/statistics_provider.dart';
 import 'package:su_takip/presentation/providers/badge_provider.dart';
 import 'package:su_takip/data/services/notification_service.dart';

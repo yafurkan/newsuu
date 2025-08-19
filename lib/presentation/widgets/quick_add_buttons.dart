@@ -307,16 +307,16 @@ class _QuickAddButton extends StatelessWidget {
     return ElevatedButton(
       onPressed: isLoading ? null : onPressed,
       style: ElevatedButton.styleFrom(
-        backgroundColor: isLoading ? AppColors.surface.withValues(alpha: 0.5) : AppColors.surface,
+        backgroundColor: isLoading ? AppColors.surface.withOpacity(0.5) : AppColors.surface,
         foregroundColor: isLoading ? AppColors.textSecondary : AppColors.primary,
         elevation: isLoading ? 0 : 2,
-        shadowColor: AppColors.primary.withValues(alpha: 0.3),
+        shadowColor: AppColors.primary.withOpacity(0.3),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppDimensions.radiusM),
           side: BorderSide(
             color: isLoading
-                ? AppColors.textSecondary.withValues(alpha: 0.3)
-                : AppColors.primary.withValues(alpha: 0.3),
+                ? AppColors.textSecondary.withOpacity(0.3)
+                : AppColors.primary.withOpacity(0.3),
             width: 1,
           ),
         ),
@@ -358,7 +358,7 @@ class _QuickAddButton extends StatelessWidget {
     .then(delay: const Duration(milliseconds: 200))
     .shimmer(
       duration: const Duration(milliseconds: 800),
-      color: AppColors.primary.withValues(alpha: 0.1),
+      color: AppColors.primary.withOpacity(0.1),
     );
   }
 }

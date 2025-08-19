@@ -73,9 +73,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppTheme.primaryBlue.withValues(alpha: 0.1),
+              AppTheme.primaryBlue.withOpacity(0.1),
               Colors.white,
-              AppTheme.primaryBlue.withValues(alpha: 0.05),
+              AppTheme.primaryBlue.withOpacity(0.05),
             ],
           ),
         ),
@@ -177,7 +177,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                            color: AppTheme.primaryBlue.withOpacity(0.3),
                             blurRadius: 15,
                             offset: const Offset(0, 5),
                           ),
@@ -297,11 +297,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [color, color.withValues(alpha: 0.8)]),
+        gradient: LinearGradient(colors: [color, color.withOpacity(0.8)]),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.3),
+            color: color.withOpacity(0.3),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),

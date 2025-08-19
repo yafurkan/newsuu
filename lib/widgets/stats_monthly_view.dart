@@ -55,7 +55,7 @@ class StatsMonthlyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -93,7 +93,7 @@ class StatsMonthlyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -216,7 +216,7 @@ class StatsMonthlyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -365,7 +365,7 @@ class StatsMonthlyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -461,7 +461,7 @@ class StatsMonthlyView extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -511,10 +511,10 @@ class StatsMonthlyView extends StatelessWidget {
             height: 50,
             decoration: BoxDecoration(
               color: percentage >= 80
-                  ? const Color(0xFF4CAF50).withValues(alpha: 0.1)
+                  ? const Color(0xFF4CAF50).withOpacity(0.1)
                   : percentage >= 60
-                  ? const Color(0xFF2196F3).withValues(alpha: 0.1)
-                  : const Color(0xFFFF9800).withValues(alpha: 0.1),
+                  ? const Color(0xFF2196F3).withOpacity(0.1)
+                  : const Color(0xFFFF9800).withOpacity(0.1),
               borderRadius: BorderRadius.circular(25),
             ),
             child: Center(

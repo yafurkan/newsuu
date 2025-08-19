@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:su_takip/core/utils/calculations.dart';
 import 'package:su_takip/core/utils/debug_logger.dart';
 import 'package:su_takip/data/models/water_intake_model.dart';
 import 'package:su_takip/data/models/user_model.dart';

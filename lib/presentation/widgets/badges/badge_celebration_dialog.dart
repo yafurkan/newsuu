@@ -181,7 +181,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                         int.parse(
                           widget.badge.colors[0].replaceFirst('#', '0xFF'),
                         ),
-                      ).withValues(alpha: 0.4),
+                      ).withOpacity(0.4),
                       blurRadius: 20,
                       offset: const Offset(0, 8),
                     ),
@@ -218,7 +218,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                                 width: 120,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: Colors.white.withOpacity(0.2),
                                   borderRadius: BorderRadius.circular(60),
                                   border: Border.all(
                                     color: Colors.white,
@@ -226,7 +226,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.white.withValues(alpha: 0.3),
+                                      color: Colors.white.withOpacity(0.3),
                                       blurRadius: 20,
                                       spreadRadius: 5,
                                     ),
@@ -276,7 +276,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: Colors.white.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -304,7 +304,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: Colors.white.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Column(
@@ -351,7 +351,7 @@ class _BadgeCelebrationDialogState extends State<BadgeCelebrationDialog>
                           child: ElevatedButton.icon(
                             onPressed: _shareBadge,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(alpha: 0.2),
+                              backgroundColor: Colors.white.withOpacity(0.2),
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(

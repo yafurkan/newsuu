@@ -282,7 +282,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           const SizedBox(height: 16),
           LinearProgressIndicator(
             value: (_currentStep + 1) / _stepTitles.length,
-            backgroundColor: Colors.white.withValues(alpha: 0.3),
+            backgroundColor: Colors.white.withOpacity(0.3),
             valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
             minHeight: 6,
           ).animate().scaleX(duration: 500.ms),
@@ -631,7 +631,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           borderSide: const BorderSide(color: Colors.white, width: 2),
         ),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
+        fillColor: Colors.white.withOpacity(0.1),
       ),
       onChanged: (value) => setState(() {}),
     ).animate().fadeIn(delay: delay.ms, duration: 600.ms).slideX(begin: 0.3);
@@ -650,7 +650,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.1),
+              color: isSelected ? Colors.white : Colors.white.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected ? color : Colors.white70,
@@ -695,7 +695,7 @@ class _AnimatedOnboardingScreenState extends State<AnimatedOnboardingScreen>
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.1),
+          color: isSelected ? Colors.white : Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? Colors.orange : Colors.white70,

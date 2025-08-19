@@ -108,7 +108,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
 
     return Card(
       elevation: 8,
-      shadowColor: Colors.blue.withValues(alpha: 0.3),
+      shadowColor: Colors.blue.withOpacity(0.3),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         decoration: BoxDecoration(
@@ -171,7 +171,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.7),
+                    color: Colors.white.withOpacity(0.7),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(color: Colors.blue.shade200),
                   ),
@@ -370,7 +370,7 @@ class _EmailPreferencesCardState extends State<EmailPreferencesCard> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.7),
+        color: Colors.white.withOpacity(0.7),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.blue.shade100),
       ),

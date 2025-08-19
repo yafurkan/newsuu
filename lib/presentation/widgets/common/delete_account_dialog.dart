@@ -83,7 +83,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   border: Border.all(color: Colors.blue.shade200),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.blue.shade100.withValues(alpha: 0.5),
+                      color: Colors.blue.shade100.withOpacity(0.5),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -135,7 +135,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   border: Border.all(color: Colors.red.shade200),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.shade100.withValues(alpha: 0.5),
+                      color: Colors.red.shade100.withOpacity(0.5),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -292,7 +292,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                   border: Border.all(color: Colors.red.shade300, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.shade200.withValues(alpha: 0.5),
+                      color: Colors.red.shade200.withOpacity(0.5),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -319,7 +319,7 @@ class _DeleteAccountDialogState extends State<DeleteAccountDialog> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: Colors.white.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(

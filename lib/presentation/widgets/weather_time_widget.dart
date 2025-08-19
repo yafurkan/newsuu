@@ -96,7 +96,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: _getTimeBasedColor().withValues(alpha: 0.3),
+            color: _getTimeBasedColor().withOpacity(0.3),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -261,10 +261,10 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: Colors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
+          color: Colors.white.withOpacity(0.3),
           width: 1,
         ),
       ),
@@ -275,7 +275,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
             children: [
               Icon(
                 Icons.access_time,
-                color: Colors.white.withValues(alpha: 0.8),
+                color: Colors.white.withOpacity(0.8),
                 size: 16,
               ),
               const SizedBox(width: 6),
@@ -283,7 +283,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
                 'Türkiye Saati',
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.white.withOpacity(0.8),
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -302,7 +302,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
             DateFormat('dd MMMM yyyy', 'tr_TR').format(_currentTime),
             style: TextStyle(
               fontSize: 11,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.white.withOpacity(0.7),
             ),
           ),
         ],
@@ -319,10 +319,10 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: Colors.white.withOpacity(0.2),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.3),
+            color: Colors.white.withOpacity(0.3),
             width: 1,
           ),
         ),
@@ -343,9 +343,9 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
+          color: Colors.white.withOpacity(0.2),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+          border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -354,7 +354,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
               children: [
                 Icon(
                   Icons.cloud_off,
-                  color: Colors.white.withValues(alpha: 0.8),
+                  color: Colors.white.withOpacity(0.8),
                   size: 16,
                 ),
                 const SizedBox(width: 6),
@@ -362,7 +362,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
                   'Hava Durumu',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: Colors.white.withOpacity(0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -373,7 +373,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
               'Yüklenemedi',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.7),
+                color: Colors.white.withOpacity(0.7),
               ),
             ),
           ],
@@ -384,9 +384,9 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.2),
+        color: Colors.white.withOpacity(0.2),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -395,7 +395,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
             children: [
               Icon(
                 Icons.thermostat,
-                color: Colors.white.withValues(alpha: 0.8),
+                color: Colors.white.withOpacity(0.8),
                 size: 14,
               ),
               const SizedBox(width: 4),
@@ -404,7 +404,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
                   _weatherData!.cityName,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: Colors.white.withOpacity(0.8),
                     fontWeight: FontWeight.w500,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -434,7 +434,7 @@ class _WeatherTimeWidgetState extends State<WeatherTimeWidget>
             _weatherData!.condition,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: Colors.white.withOpacity(0.7),
             ),
             overflow: TextOverflow.ellipsis,
           ),

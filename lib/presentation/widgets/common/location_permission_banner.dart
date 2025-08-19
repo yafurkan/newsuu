@@ -173,10 +173,10 @@ class _LocationPermissionBannerState extends State<LocationPermissionBanner>
                                 width: 48,
                                 height: 48,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: Colors.white.withOpacity(0.2),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.3),
+                                    color: Colors.white.withOpacity(0.3),
                                     width: 2,
                                   ),
                                 ),
@@ -210,7 +210,7 @@ class _LocationPermissionBannerState extends State<LocationPermissionBanner>
                                 'Size özel hava durumu bilgisi için konum iznine ihtiyacımız var',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white.withValues(alpha: 0.9),
+                                  color: Colors.white.withOpacity(0.9),
                                 ),
                               ),
                             ],
@@ -231,7 +231,7 @@ class _LocationPermissionBannerState extends State<LocationPermissionBanner>
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.1),
+                                    color: Colors.black.withOpacity(0.1),
                                     blurRadius: 4,
                                     offset: const Offset(0, 2),
                                   ),
@@ -277,12 +277,12 @@ class _LocationPermissionBannerState extends State<LocationPermissionBanner>
                               child: Container(
                                 padding: const EdgeInsets.all(3),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
+                                  color: Colors.white.withOpacity(0.2),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Icon(
                                   Icons.close,
-                                  color: Colors.white.withValues(alpha: 0.8),
+                                  color: Colors.white.withOpacity(0.8),
                                   size: 14,
                                 ),
                               ),

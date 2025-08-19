@@ -34,8 +34,8 @@ class BadgeCard extends StatelessWidget {
                   color: badge.isUnlocked
                       ? Color(
                           int.parse(badge.colors[0].replaceFirst('#', '0xFF')),
-                        ).withValues(alpha: 0.3)
-                      : Colors.grey.withValues(alpha: 0.2),
+                        ).withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -54,7 +54,7 @@ class BadgeCard extends StatelessWidget {
                         width: 60,
                         height: 60,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: Icon(
@@ -86,7 +86,7 @@ class BadgeCard extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: Colors.white.withOpacity(0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -110,7 +110,7 @@ class BadgeCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: Colors.black.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Icon(
@@ -166,7 +166,7 @@ class BadgeCard extends StatelessWidget {
           ),
         )
         .animate(target: badge.isUnlocked ? 1 : 0)
-        .shimmer(duration: 2000.ms, color: Colors.white.withValues(alpha: 0.5))
+        .shimmer(duration: 2000.ms, color: Colors.white.withOpacity(0.5))
         .then()
         .shake(hz: 2, curve: Curves.easeInOut);
   }
