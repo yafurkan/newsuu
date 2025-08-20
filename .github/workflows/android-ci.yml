@@ -83,13 +83,13 @@ jobs:
       run: |
         flutter clean
         flutter pub get
-        flutter build apk --release --verbose
+        flutter build apk --debug
       
     - name: 📤 Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: android-apk
-        path: build/app/outputs/flutter-apk/app-release.apk
+        path: build/app/outputs/flutter-apk/app-debug.apk
         
     - name: 📊 APK Info
       run: |
@@ -98,11 +98,11 @@ jobs:
         echo "### 📊 Build Bilgileri:" >> $GITHUB_STEP_SUMMARY
         echo "- **Flutter Version:** ${{ env.FLUTTER_VERSION }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Java Version:** ${{ env.JAVA_VERSION }}" >> $GITHUB_STEP_SUMMARY
-        echo "- **Build Type:** Release APK" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Type:** Debug APK" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if [ -f "build/app/outputs/flutter-apk/app-release.apk" ]; then
-          size=$(du -h build/app/outputs/flutter-apk/app-release.apk | cut -f1)
+        if [ -f "build/app/outputs/flutter-apk/app-debug.apk" ]; then
+          size=$(du -h build/app/outputs/flutter-apk/app-debug.apk | cut -f1)
           echo "- **APK Size:** $size" >> $GITHUB_STEP_SUMMARY
         fi
         echo "" >> $GITHUB_STEP_SUMMARY
@@ -131,7 +131,7 @@ jobs:
         appId: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
         serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
         groups: testers
-        file: app-release.apk
+        file: app-debug.apk
         releaseNotes: |
           🚀 Su Takip App - Yeni Sürüm!
           
