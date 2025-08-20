@@ -95,12 +95,12 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "✅ APK başarıyla oluşturuldu ve artifacts'a yüklendi!" >> $GITHUB_STEP_SUMMARY
 
-  # 🚀 Firebase App Distribution (Opsiyonel)
+  # 🚀 Firebase App Distribution
   deploy-firebase:
-    name: 🚀 Deploy to Firebase
+    name: 🚀 Deploy to Firebase App Distribution
     runs-on: ubuntu-latest
     needs: build-android
-    if: github.ref == 'refs/heads/main' && false  # Şimdilik devre dışı
+    if: github.ref == 'refs/heads/main'  # Ana branch'e push olduğunda çalışır
     
     steps:
     - name: 📥 Checkout code
@@ -120,11 +120,17 @@ jobs:
         groups: testers
         file: app-release.apk
         releaseNotes: |
-          🚀 Yeni sürüm hazır!
+          🚀 Su Takip App - Yeni Sürüm!
           
-          📱 Bu sürümde:
-          - Performans iyileştirmeleri
-          - Hata düzeltmeleri
-          - Yeni özellikler
+          📝 Son Değişiklikler:
+          ${{ github.event.head_commit.message }}
           
-          🔗 Commit: ${{ github.sha }}
+          📊 Build Bilgileri:
+          • Flutter: ${{ env.FLUTTER_VERSION }}
+          • Build: #${{ github.run_number }}
+          • Commit: ${{ github.sha }}
+          • Branch: ${{ github.ref_name }}
+          
+          📱 Test için uygulamayı indirin ve geri bildirimlerinizi paylaşın!
+          
+          🔗 GitHub: https://github.com/${{ github.repository }}/commit/${{ github.sha }}
