@@ -69,8 +69,21 @@ jobs:
     - name: 📦 Get dependencies
       run: flutter pub get
       
+    - name: 🔧 Setup Gradle Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+          
     - name: 🔧 Build APK
-      run: flutter build apk --release
+      run: |
+        flutter clean
+        flutter pub get
+        flutter build apk --release --verbose
       
     - name: 📤 Upload APK
       uses: actions/upload-artifact@v4
