@@ -5,6 +5,12 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: "Manuel tetikleme nedeni (opsiyonel)"
+        required: false
+        default: "manual run"
 
 env:
   FLUTTER_VERSION: '3.24.3'
