@@ -32,8 +32,8 @@ extensions.extraProperties.set(
 )
 
 // Tüm projelerde değerlendirme başlamadan önce hazır et
-gradle.beforeProject {
-    it.extensions.extraProperties.set(
+gradle.beforeProject { project ->
+    project.extensions.extraProperties.set(
         "flutter",
         mapOf(
             "compileSdkVersion" to legacyCompileSdk,
