@@ -1,23 +1,20 @@
 pluginManagement {
-    // Flutter SDK yolunu bulmak için esnek çözüm:
-    // 1) Gradle property: flutter.sdk
-    // 2) local.properties içindeki flutter.sdk (varsa)
-    // 3) Ortam değişkenleri: FLUTTER_HOME veya FLUTTER_ROOT (GitHub Actions/subosito/flutter-action bunları set eder)
+    // Basitleştirilmiş Flutter SDK yolu çözümlemesi - CI/CD uyumlu
     val flutterSdkPath: String = run {
-        // 1) gradle.properties veya -Pflutter.sdk ile verilen değer
-        val fromGradleProp = providers.gradleProperty("flutter.sdk").orNull
-        if (fromGradleProp != null) return@run fromGradleProp
-
-        // 2) local.properties (opsiyonel)
-        val propsFile = file("local.properties")
-        if (propsFile.exists()) {
+        // 1) local.properties dosyasından oku (CI'da oluşturulan)
+        val localPropsFile = file("local.properties")
+        if (localPropsFile.exists()) {
             val properties = java.util.Properties()
-            propsFile.inputStream().use { properties.load(it) }
-            properties.getProperty("flutter.sdk")
-        } else null
-    } ?: System.getenv("FLUTTER_HOME")
-      ?: System.getenv("FLUTTER_ROOT")
-      ?: throw GradleException("Flutter SDK bulunamadı. local.properties içinde flutter.sdk belirtin ya da FLUTTER_HOME/FLUTTER_ROOT ortam değişkenini ayarlayın.")
+            localPropsFile.inputStream().use { properties.load(it) }
+            val sdkPath = properties.getProperty("flutter.sdk")
+            if (sdkPath != null) return@run sdkPath
+        }
+        
+        // 2) Ortam değişkenlerinden oku (GitHub Actions)
+        System.getenv("FLUTTER_HOME")
+            ?: System.getenv("FLUTTER_ROOT")
+            ?: throw GradleException("Flutter SDK path not found. Please ensure local.properties contains flutter.sdk or set FLUTTER_HOME environment variable.")
+    }
 
     includeBuild("$flutterSdkPath/packages/flutter_tools/gradle")
 

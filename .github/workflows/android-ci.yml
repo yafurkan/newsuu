@@ -100,7 +100,28 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
-          
+
+    - name: 🔧 Create .env file for CI
+      run: |
+        echo "# CI Environment Variables" > .env
+        echo "FLUTTER_ENV=production" >> .env
+        echo "API_BASE_URL=https://api.example.com" >> .env
+        
+    - name: 🛠️ Write absolute flutter.source to gradle.properties
+      shell: bash
+      run: |
+        set -e
+        echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+        # flutter.source mutlak yol olsun (plugin add-to-app modunda 'source' arıyor)
+        if grep -q '^flutter.source=' android/gradle.properties; then
+          sed -i.bak "s#^flutter.source=.*#flutter.source=$GITHUB_WORKSPACE#g" android/gradle.properties
+        else
+          echo "flutter.source=$GITHUB_WORKSPACE" >> android/gradle.properties
+        fi
+        echo "---- android/gradle.properties ----"
+        cat android/gradle.properties
+        echo "-----------------------------------"
+
     - name: 🔧 Build APK
       run: |
         flutter clean
