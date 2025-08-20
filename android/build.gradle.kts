@@ -15,6 +15,46 @@ allprojects {
     }
 }
 
+// Legacy "flutter" map'ini çok erken aşamada (tüm projeler ve root için) yayınla.
+// Eski eklentiler (ör. geolocator_android 4.x) android { compileSdkVersion flutter.compileSdkVersion } beklentisini bu sayede karşılar.
+val legacyCompileSdk = (findProperty("flutter.compileSdkVersion") as String?)?.toInt() ?: 35
+val legacyMinSdk = (findProperty("flutter.minSdkVersion") as String?)?.toInt() ?: 23
+val legacyTargetSdk = (findProperty("flutter.targetSdkVersion") as String?)?.toInt() ?: 35
+
+// Root projeye koy
+extensions.extraProperties.set(
+    "flutter",
+    mapOf(
+        "compileSdkVersion" to legacyCompileSdk,
+        "minSdkVersion" to legacyMinSdk,
+        "targetSdkVersion" to legacyTargetSdk
+    )
+)
+
+// Tüm projelerde değerlendirme başlamadan önce hazır et
+gradle.beforeProject {
+    it.extensions.extraProperties.set(
+        "flutter",
+        mapOf(
+            "compileSdkVersion" to legacyCompileSdk,
+            "minSdkVersion" to legacyMinSdk,
+            "targetSdkVersion" to legacyTargetSdk
+        )
+    )
+}
+
+// Ek olarak allprojects içinde de set et (bazı çözümleme senaryolarında gerekli olabilir)
+allprojects {
+    extensions.extraProperties.set(
+        "flutter",
+        mapOf(
+            "compileSdkVersion" to legacyCompileSdk,
+            "minSdkVersion" to legacyMinSdk,
+            "targetSdkVersion" to legacyTargetSdk
+        )
+    )
+}
+
 val newBuildDir: Directory = rootProject.layout.buildDirectory.dir("../../build").get()
 rootProject.layout.buildDirectory.value(newBuildDir)
 
