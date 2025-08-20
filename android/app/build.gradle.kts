@@ -2,7 +2,20 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("com.google.gms.google-services")
+    // Flutter plugin'i apply etmeden önce kontrol edelim
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Flutter SDK yolunu manuel olarak belirtelim
+val flutterRoot: String = run {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        val properties = java.util.Properties()
+        localPropertiesFile.inputStream().use { properties.load(it) }
+        properties.getProperty("flutter.sdk") ?: System.getenv("FLUTTER_ROOT") ?: System.getenv("FLUTTER_HOME") ?: ""
+    } else {
+        System.getenv("FLUTTER_ROOT") ?: System.getenv("FLUTTER_HOME") ?: ""
+    }
 }
 
 android {
@@ -24,7 +37,8 @@ android {
         applicationId = "com.sutakip.app2025"
         minSdk = 23
         targetSdk = 35
-        // Flutter plugin will set these automatically
+        versionCode = 1
+        versionName = "1.0.0"
         multiDexEnabled = true
     }
 
@@ -56,6 +70,8 @@ dependencies {
     implementation("androidx.multidex:multidex:2.0.1")
 }
 
+// Flutter configuration
 flutter {
     source = "../.."
+    // CI ortamında bu değerler local.properties'den okunacak
 }

@@ -72,22 +72,32 @@ jobs:
         channel: 'stable'
         cache: true
 
-    - name: 🔎 Resolve Flutter SDK path and write local.properties
+    - name: 🔎 Setup Flutter Environment and local.properties
       shell: bash
       run: |
         set -e
+        # Flutter SDK yolunu bul
         FLUTTER_BIN="$(which flutter)"
-        echo "flutter bin: $FLUTTER_BIN"
+        echo "Flutter binary: $FLUTTER_BIN"
         FLUTTER_HOME="$(dirname "$(dirname "$FLUTTER_BIN")")"
-        echo "Detected FLUTTER_HOME=$FLUTTER_HOME"
-        mkdir -p android
-        {
-          echo "flutter.sdk=$FLUTTER_HOME"
-          echo "flutter.buildMode=debug"
-        } > android/local.properties
-        cat android/local.properties
+        echo "Flutter SDK path: $FLUTTER_HOME"
+        
+        # Environment variables ayarla
         echo "FLUTTER_HOME=$FLUTTER_HOME" >> $GITHUB_ENV
         echo "FLUTTER_ROOT=$FLUTTER_HOME" >> $GITHUB_ENV
+        
+        # local.properties dosyasını oluştur
+        mkdir -p android
+        cat > android/local.properties <<EOF
+        sdk.dir=$ANDROID_SDK_ROOT
+        flutter.sdk=$FLUTTER_HOME
+        flutter.buildMode=debug
+        flutter.versionName=1.0.0
+        flutter.versionCode=1
+        EOF
+        
+        echo "Created android/local.properties:"
+        cat android/local.properties
          
     - name: 📦 Get dependencies
       run: flutter pub get
@@ -108,27 +118,24 @@ jobs:
         echo "FLUTTER_ENV=production" >> .env
         echo "API_BASE_URL=https://api.example.com" >> .env
         
-    - name: 🛠️ Write absolute flutter.source to gradle.properties
+    - name: 🛠️ Configure gradle.properties for CI
       shell: bash
       run: |
         set -e
+        echo "Configuring gradle.properties..."
         echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
         echo "FLUTTER_HOME=$FLUTTER_HOME"
-        # flutter.source mutlak yol olsun (plugin add-to-app modunda 'source' arıyor)
-        if grep -q '^flutter.source=' android/gradle.properties; then
-          sed -i.bak "s#^flutter.source=.*#flutter.source=$GITHUB_WORKSPACE#g" android/gradle.properties
-        else
-          echo "flutter.source=$GITHUB_WORKSPACE" >> android/gradle.properties
-        fi
-        # Flutter SDK yolunu da gradle.properties'e ekle
-        if grep -q '^flutter.sdk=' android/gradle.properties; then
-          sed -i.bak "s#^flutter.sdk=.*#flutter.sdk=$FLUTTER_HOME#g" android/gradle.properties
-        else
-          echo "flutter.sdk=$FLUTTER_HOME" >> android/gradle.properties
-        fi
-        echo "---- android/gradle.properties ----"
+        
+        # gradle.properties dosyasına Flutter ayarlarını ekle
+        cat >> android/gradle.properties <<EOF
+        
+        # CI/CD Flutter Configuration
+        flutter.source=$GITHUB_WORKSPACE
+        flutter.sdk=$FLUTTER_HOME
+        EOF
+        
+        echo "Updated android/gradle.properties:"
         cat android/gradle.properties
-        echo "-----------------------------------"
 
     - name: 🔧 Build APK
       run: |
