@@ -87,6 +87,7 @@ jobs:
         } > android/local.properties
         cat android/local.properties
         echo "FLUTTER_HOME=$FLUTTER_HOME" >> $GITHUB_ENV
+        echo "FLUTTER_ROOT=$FLUTTER_HOME" >> $GITHUB_ENV
          
     - name: 📦 Get dependencies
       run: flutter pub get
@@ -112,11 +113,18 @@ jobs:
       run: |
         set -e
         echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+        echo "FLUTTER_HOME=$FLUTTER_HOME"
         # flutter.source mutlak yol olsun (plugin add-to-app modunda 'source' arıyor)
         if grep -q '^flutter.source=' android/gradle.properties; then
           sed -i.bak "s#^flutter.source=.*#flutter.source=$GITHUB_WORKSPACE#g" android/gradle.properties
         else
           echo "flutter.source=$GITHUB_WORKSPACE" >> android/gradle.properties
+        fi
+        # Flutter SDK yolunu da gradle.properties'e ekle
+        if grep -q '^flutter.sdk=' android/gradle.properties; then
+          sed -i.bak "s#^flutter.sdk=.*#flutter.sdk=$FLUTTER_HOME#g" android/gradle.properties
+        else
+          echo "flutter.sdk=$FLUTTER_HOME" >> android/gradle.properties
         fi
         echo "---- android/gradle.properties ----"
         cat android/gradle.properties
