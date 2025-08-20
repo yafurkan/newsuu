@@ -71,7 +71,23 @@ jobs:
         flutter-version: ${{ env.FLUTTER_VERSION }}
         channel: 'stable'
         cache: true
-        
+
+    - name: 🔎 Resolve Flutter SDK path and write local.properties
+      shell: bash
+      run: |
+        set -e
+        FLUTTER_BIN="$(which flutter)"
+        echo "flutter bin: $FLUTTER_BIN"
+        FLUTTER_HOME="$(dirname "$(dirname "$FLUTTER_BIN")")"
+        echo "Detected FLUTTER_HOME=$FLUTTER_HOME"
+        mkdir -p android
+        {
+          echo "flutter.sdk=$FLUTTER_HOME"
+          echo "flutter.buildMode=debug"
+        } > android/local.properties
+        cat android/local.properties
+        echo "FLUTTER_HOME=$FLUTTER_HOME" >> $GITHUB_ENV
+         
     - name: 📦 Get dependencies
       run: flutter pub get
       
