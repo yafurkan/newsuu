@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "com.sutakip.app2025"
-    compileSdk = 35
+    compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.13599879"
 
     compileOptions {
@@ -23,7 +23,7 @@ android {
     defaultConfig {
         applicationId = "com.sutakip.app2025"
         minSdk = 23
-        targetSdk = 35
+        targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         multiDexEnabled = true
