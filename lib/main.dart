@@ -143,7 +143,7 @@ Future<void> _loadEnvironmentVariables() async {
   try {
     DebugLogger.info('🔧 Environment variables yükleniyor...', tag: 'MAIN');
     
-    // .env dosyasını yükle
+    // .env dosyasını yüklemeye çalış
     await dotenv.load(fileName: ".env");
     
     DebugLogger.success('✅ Environment variables başarıyla yüklendi', tag: 'MAIN');
@@ -155,11 +155,15 @@ Future<void> _loadEnvironmentVariables() async {
     }
     
   } catch (e) {
-    DebugLogger.warning('⚠️ .env dosyası yüklenemedi: $e', tag: 'MAIN');
-    DebugLogger.info('Uygulama varsayılan değerlerle çalışmaya devam edecek', tag: 'MAIN');
+    DebugLogger.info('ℹ️ .env dosyası bulunamadı, varsayılan konfigürasyon kullanılıyor', tag: 'MAIN');
     
     // .env dosyası yoksa boş bir environment oluştur
+    // Bu CI/CD ortamlarında normal bir durumdur
     dotenv.testLoad(fileInput: '');
+    
+    if (kDebugMode) {
+      DebugLogger.info('Debug modda çalışıyor - .env dosyası opsiyonel', tag: 'MAIN');
+    }
   }
 }
 
