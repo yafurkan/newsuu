@@ -31,17 +31,9 @@ extensions.extraProperties.set(
     )
 )
 
-// Tüm projelerde değerlendirme başlamadan önce hazır et
-gradle.beforeProject { project ->
-    project.extensions.extraProperties.set(
-        "flutter",
-        mapOf(
-            "compileSdkVersion" to legacyCompileSdk,
-            "minSdkVersion" to legacyMinSdk,
-            "targetSdkVersion" to legacyTargetSdk
-        )
-    )
-}
+// beforeProject bloğu KTS tarafında Closure beklediği için CI'da derleme hatasına yol açıyordu.
+// Root/allprojects/subprojects seviyelerinde zaten 'flutter' map'i set edildiği için bu blok gereksiz.
+// Bu yüzden kaldırıldı.
 
 // Ek olarak allprojects içinde de set et (bazı çözümleme senaryolarında gerekli olabilir)
 allprojects {
