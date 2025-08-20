@@ -76,6 +76,9 @@ dependencies:
   
   # Confetti animation
   confetti: ^0.7.0
+  
+  # Environment variables
+  flutter_dotenv: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -105,6 +108,7 @@ flutter:
     - assets/icons/
     - assets/animations/
     - assets/badges/
+    - .env
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

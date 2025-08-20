@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'firebase_options.dart';
 import 'data/services/notification_service.dart';
@@ -37,6 +38,9 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   try {
+    // 🔧 Environment variables'ı yükle
+    await _loadEnvironmentVariables();
+    
     // 🔒 Güvenlik kontrollerini yap
     await _performSecurityChecks();
     
@@ -131,6 +135,31 @@ Future<void> _initializeFirebase() async {
     }
     DebugLogger.error('Firebase initialization failed: $e', tag: 'MAIN');
     rethrow;
+  }
+}
+
+/// Environment variables'ı yükle
+Future<void> _loadEnvironmentVariables() async {
+  try {
+    DebugLogger.info('🔧 Environment variables yükleniyor...', tag: 'MAIN');
+    
+    // .env dosyasını yükle
+    await dotenv.load(fileName: ".env");
+    
+    DebugLogger.success('✅ Environment variables başarıyla yüklendi', tag: 'MAIN');
+    
+    if (kDebugMode) {
+      // Debug modda yüklenen değişkenleri listele (güvenlik için sadece key'leri)
+      final loadedKeys = dotenv.env.keys.toList();
+      DebugLogger.info('Yüklenen environment variables: ${loadedKeys.join(', ')}', tag: 'MAIN');
+    }
+    
+  } catch (e) {
+    DebugLogger.warning('⚠️ .env dosyası yüklenemedi: $e', tag: 'MAIN');
+    DebugLogger.info('Uygulama varsayılan değerlerle çalışmaya devam edecek', tag: 'MAIN');
+    
+    // .env dosyası yoksa boş bir environment oluştur
+    dotenv.testLoad(fileInput: '');
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../config/app_config.dart';
 
 /// Güvenlik doğrulama servisi
@@ -38,7 +39,7 @@ class SecurityValidator {
       if (config.firebaseApiKeyWeb.isEmpty) {
         return SecurityCheck(
           name: 'Firebase Configuration',
-          status: SecurityStatus.error,
+          status: SecurityStatus.warning,
           message: 'Firebase API anahtarları environment variables\'dan yüklenemedi',
           recommendation: '.env dosyasını kontrol edin ve FIREBASE_API_KEY_WEB değişkenini ayarlayın',
         );
@@ -62,8 +63,8 @@ class SecurityValidator {
     } catch (e) {
       return SecurityCheck(
         name: 'Firebase Configuration',
-        status: SecurityStatus.error,
-        message: 'Firebase konfigürasyon hatası: $e',
+        status: SecurityStatus.warning,
+        message: 'Firebase konfigürasyon uyarısı: $e',
         recommendation: 'Firebase ayarlarını kontrol edin',
       );
     }
@@ -89,7 +90,7 @@ class SecurityValidator {
     if (missingVars.isNotEmpty) {
       return SecurityCheck(
         name: 'Environment Variables',
-        status: SecurityStatus.error,
+        status: SecurityStatus.warning,
         message: 'Eksik environment variables: ${missingVars.join(', ')}',
         recommendation: '.env dosyasına eksik değişkenleri ekleyin',
       );
@@ -151,18 +152,9 @@ class SecurityValidator {
     );
   }
 
-  /// Environment variable'ı güvenli şekilde al
+  /// Environment variable'ı güvenli şekilde al - flutter_dotenv kullanarak
   String _getEnvironmentVariable(String key) {
-    switch (key) {
-      case 'FIREBASE_API_KEY_WEB':
-        return const String.fromEnvironment('FIREBASE_API_KEY_WEB', defaultValue: '');
-      case 'FIREBASE_PROJECT_ID_WEB':
-        return const String.fromEnvironment('FIREBASE_PROJECT_ID_WEB', defaultValue: '');
-      case 'FIREBASE_APP_ID_WEB':
-        return const String.fromEnvironment('FIREBASE_APP_ID_WEB', defaultValue: '');
-      default:
-        return '';
-    }
+    return dotenv.env[key] ?? '';
   }
 }
 

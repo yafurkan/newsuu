@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Uygulama konfigürasyon sınıfı
 /// Hassas bilgileri güvenli şekilde yönetir
@@ -12,19 +13,18 @@ class AppConfig {
   static const String _environment = String.fromEnvironment('ENVIRONMENT', defaultValue: 'production');
   static const bool _debugMode = bool.fromEnvironment('DEBUG_MODE', defaultValue: false);
 
-  // Firebase Configuration
-  static const String _firebaseApiKeyWeb = String.fromEnvironment('FIREBASE_API_KEY_WEB', defaultValue: '');
-  static const String _firebaseProjectIdWeb = String.fromEnvironment('FIREBASE_PROJECT_ID_WEB', defaultValue: '');
+  // Firebase Configuration - flutter_dotenv kullanarak
+  String get firebaseApiKeyWeb => dotenv.env['FIREBASE_API_KEY_WEB'] ?? '';
+  String get firebaseProjectIdWeb => dotenv.env['FIREBASE_PROJECT_ID_WEB'] ?? '';
+  String get firebaseAppIdWeb => dotenv.env['FIREBASE_APP_ID_WEB'] ?? '';
+  String get firebaseMessagingSenderId => dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '';
+  String get firebaseStorageBucket => dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '';
   
   // Getters
   String get environment => _environment;
   bool get isDebugMode => _debugMode || kDebugMode;
   bool get isProduction => _environment == 'production';
   bool get isDevelopment => _environment == 'development';
-  
-  // Firebase getters
-  String get firebaseApiKeyWeb => _firebaseApiKeyWeb;
-  String get firebaseProjectIdWeb => _firebaseProjectIdWeb;
   
   // API Configuration
   String get weatherApiBaseUrl => isProduction 
@@ -52,6 +52,12 @@ class AppConfig {
   bool get enableSSLPinning => isProduction;
   bool get enableBiometricAuth => true;
   
+  // Environment validation
+  bool get hasValidFirebaseConfig => 
+    firebaseApiKeyWeb.isNotEmpty && 
+    firebaseProjectIdWeb.isNotEmpty && 
+    firebaseAppIdWeb.isNotEmpty;
+  
   // Debug Information
   Map<String, dynamic> get debugInfo => {
     'environment': environment,
@@ -61,12 +67,13 @@ class AppConfig {
     'enableLogging': enableLogging,
     'enableCrashReporting': enableCrashReporting,
     'enableAnalytics': enableAnalytics,
+    'hasValidFirebaseConfig': hasValidFirebaseConfig,
   };
   
   @override
   String toString() {
     if (kDebugMode) {
-      return 'AppConfig(environment: $environment, debugMode: $isDebugMode)';
+      return 'AppConfig(environment: $environment, debugMode: $isDebugMode, firebaseConfigValid: $hasValidFirebaseConfig)';
     }
     return 'AppConfig(production)';
   }
