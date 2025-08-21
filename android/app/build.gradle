@@ -24,6 +24,10 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
+flutter {
+    source '../..'
+}
+
 android {
     namespace "com.sutakip.app2025"
     compileSdkVersion 35

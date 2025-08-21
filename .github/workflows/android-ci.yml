@@ -97,6 +97,16 @@ jobs:
         
         echo "Created android/local.properties:"
         cat android/local.properties
+        
+        # Debug için dosya konumlarını göster
+        echo "=== DEBUG INFO ==="
+        echo "Current directory: $(pwd)"
+        echo "Android directory exists: $(ls -la android/)"
+        echo "Local.properties exists: $(ls -la android/local.properties)"
+        echo "Gradle.properties exists: $(ls -la android/gradle.properties)"
+        echo "Gradle.properties content:"
+        cat android/gradle.properties
+        echo "=== END DEBUG ==="
          
     - name: 📦 Get dependencies
       run: flutter pub get
