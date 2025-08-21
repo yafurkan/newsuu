@@ -87,7 +87,6 @@ jobs:
         echo "FLUTTER_ROOT=$FLUTTER_HOME" >> $GITHUB_ENV
         
         # local.properties dosyasını oluştur
-        mkdir -p android
         cat > android/local.properties <<EOF
         sdk.dir=$ANDROID_SDK_ROOT
         flutter.sdk=$FLUTTER_HOME
@@ -127,12 +126,8 @@ jobs:
         echo "FLUTTER_HOME=$FLUTTER_HOME"
         
         # gradle.properties dosyasına Flutter ayarlarını ekle
-        cat >> android/gradle.properties <<EOF
-        
-        # CI/CD Flutter Configuration
-        flutter.source=$GITHUB_WORKSPACE
-        flutter.sdk=$FLUTTER_HOME
-        EOF
+        sed -i "s#flutter.source=.*#flutter.source=..#g" android/gradle.properties
+        sed -i "s#flutter.sdk=.*#flutter.sdk=$FLUTTER_HOME#g" android/gradle.properties
         
         echo "Updated android/gradle.properties:"
         cat android/gradle.properties
