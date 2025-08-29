@@ -3,108 +3,180 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-import 'core/constants/colors.dart';
-import 'core/constants/strings.dart';
-import 'data/services/hive_service.dart';
+import 'firebase_options.dart';
 import 'data/services/notification_service.dart';
-import 'data/services/firebase_messaging_service.dart';
-import 'presentation/screens/splash/splash_screen.dart';
-import 'presentation/screens/home/home_screen.dart';
-import 'presentation/screens/auth/auth_screen.dart';
-import 'presentation/screens/auth/login_screen.dart';
+import 'data/services/cloud_sync_service.dart';
+import 'data/services/deep_link_service.dart';
+import 'screens/splash_screen.dart';
+import 'screens/login_screen.dart';
+import 'screens/home_screen.dart';
+import 'screens/animated_onboarding_screen.dart';
+import 'screens/email_verification_success_screen.dart';
 import 'presentation/providers/user_provider.dart';
 import 'presentation/providers/water_provider.dart';
 import 'presentation/providers/notification_provider.dart';
 import 'presentation/providers/auth_provider.dart';
+import 'presentation/providers/statistics_provider.dart';
+import 'presentation/providers/badge_provider.dart';
+import 'presentation/providers/onboarding_provider.dart';
+import 'presentation/providers/profile_provider.dart';
+import 'domain/services/local_avatar_service.dart';
+import 'presentation/onboarding/screens/onboarding_navigator.dart';
+import 'l10n/app_localizations.dart';
+import 'core/utils/debug_logger.dart';
 
 // Background message handler
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print('🔥 Background message: ${message.messageId}');
-}
-
-// Bildirim izinlerini kontrol et ve iste
-Future<void> _checkAndRequestNotificationPermissions() async {
-  try {
-    print('🔐 Bildirim izinleri kontrol ediliyor...');
-
-    final status = await Permission.notification.status;
-    print('📱 Mevcut izin durumu: $status');
-
-    // TECNO telefon sorunu için zorla dialog göster
-    if (status.isDenied || status.isGranted) {
-      print('🔔 Bildirim izni isteniyor...');
-      final result = await Permission.notification.request();
-      print('📋 İzin sonucu: $result');
-
-      if (result.isGranted) {
-        print('✅ Bildirim izni başarıyla verildi');
-      } else if (result.isDenied) {
-        print('❌ Bildirim izni reddedildi');
-      } else if (result.isPermanentlyDenied) {
-        print('🚫 Bildirim izni kalıcı olarak reddedildi - Ayarları açın');
-        // Kullanıcıyı ayarlara yönlendir
-        await openAppSettings();
-      }
-    } else if (status.isPermanentlyDenied) {
-      print('🚫 Bildirim izni kalıcı olarak reddedilmiş - Ayarları açın');
-      await openAppSettings();
-    }
-  } catch (e) {
-    print('❌ Bildirim izni kontrol hatası: $e');
-  }
+  DebugLogger.info(
+    'Background message received: ${message.messageId}',
+    tag: 'MAIN',
+  );
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase'i başlat
-  await Firebase.initializeApp();
+  try {
+    // Firebase'i kontrollü şekilde initialize et
+    await _initializeFirebase();
 
-  // Background message handler'ı kaydet
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    // Locale data'yı initialize et - önce tr_TR dene, sonra fallback'ler
+    try {
+      await initializeDateFormatting('tr_TR', null);
+      DebugLogger.success('Turkish locale initialized', tag: 'MAIN');
+    } catch (e) {
+      try {
+        await initializeDateFormatting('en_US', null);
+        DebugLogger.info('English locale initialized as fallback', tag: 'MAIN');
+      } catch (e2) {
+        await initializeDateFormatting('en', null);
+        DebugLogger.info('Default English locale initialized', tag: 'MAIN');
+      }
+    }
 
-  // Hive servisini başlat
-  final hiveService = HiveService();
-  await hiveService.initHive();
+    // İzinleri iste
+    await Permission.notification.request();
 
-  // Bildirim servisini başlat
-  final notificationService = NotificationService();
-  await notificationService.initialize();
+    // Notification service'i initialize et
+    final notificationService = NotificationService();
+    await notificationService.initialize();
 
-  // Bildirim izinlerini kontrol et ve gerekirse iste
-  await _checkAndRequestNotificationPermissions();
+    // Cloud sync service'i initialize et
+    final cloudSyncService = CloudSyncService();
 
-  // Firebase Messaging servisini başlat
-  final firebaseMessagingService = FirebaseMessagingService();
-  await firebaseMessagingService.initialize();
+    // Deep link service'i initialize et
+    final deepLinkService = DeepLinkService();
+    deepLinkService.initialize();
 
-  // Otomatik topic abonelikleri
-  await firebaseMessagingService.subscribeToTopic('all_users');
-  await firebaseMessagingService.subscribeToTopic('water_reminders');
-  await firebaseMessagingService.subscribeToTopic('daily_tips');
+    runApp(
+      SuTakipApp(
+        notificationService: notificationService,
+        cloudSyncService: cloudSyncService,
+        deepLinkService: deepLinkService,
+      ),
+    );
+  } catch (e) {
+    DebugLogger.error('Firebase initialization error: $e', tag: 'MAIN');
+    // Firebase hatası olsa da normal uygulamayı çalıştır
 
-  runApp(
-    SuTakipApp(
-      hiveService: hiveService,
-      notificationService: notificationService,
-      firebaseMessagingService: firebaseMessagingService,
-    ),
-  );
+    // Basit servisler oluştur
+    final notificationService = NotificationService();
+    final cloudSyncService = CloudSyncService();
+
+    runApp(
+      SuTakipApp(
+        notificationService: notificationService,
+        cloudSyncService: cloudSyncService,
+        deepLinkService: DeepLinkService(),
+      ),
+    );
+  }
+}
+
+Future<void> _initializeFirebase() async {
+  try {
+    // Önce tüm mevcut Firebase app'larını listele
+    final apps = Firebase.apps;
+    DebugLogger.info('Mevcut Firebase uygulamaları: ${apps.length}', tag: 'MAIN');
+    
+    // Her bir app'ın detaylarını logla
+    for (var app in apps) {
+      DebugLogger.info(
+        'Firebase App: ${app.name}, Options: ${app.options.projectId}',
+        tag: 'MAIN',
+      );
+    }
+
+    // Eğer DEFAULT app varsa onu kullan
+    if (apps.any((app) => app.name == '[DEFAULT]')) {
+      DebugLogger.info(
+        'DEFAULT Firebase uygulaması zaten mevcut, kullanılıyor.',
+        tag: 'MAIN',
+      );
+      return;
+    }
+
+    // Platform bilgilerini logla
+    DebugLogger.info(
+      'Platform: ${DefaultFirebaseOptions.currentPlatform.projectId}',
+      tag: 'MAIN',
+    );
+    DebugLogger.info(
+      'iOS Bundle ID: ${DefaultFirebaseOptions.currentPlatform.iosBundleId}',
+      tag: 'MAIN',
+    );
+
+    // Eğer hiç app yoksa veya DEFAULT yoksa yeni bir tane oluştur
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+
+    // Background message handler'ı kaydet
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+    DebugLogger.success('Firebase başarıyla başlatıldı', tag: 'MAIN');
+  } catch (e, stackTrace) {
+    // Duplicate app hatası spesifik olarak yakala
+    if (e.toString().contains('duplicate-app') ||
+        e.toString().contains('already exists')) {
+      DebugLogger.info(
+        'Firebase uygulaması zaten mevcut, devam ediliyor...',
+        tag: 'MAIN',
+      );
+      return;
+    }
+    
+    // Daha detaylı hata logu
+    DebugLogger.error('Firebase başlatma hatası: $e', tag: 'MAIN');
+    DebugLogger.error('Stack trace: $stackTrace', tag: 'MAIN');
+    
+    // Bundle ID uyumsuzluğu kontrolü
+    if (e.toString().contains('BUNDLE_ID') ||
+        e.toString().contains('bundle') ||
+        e.toString().contains('identifier')) {
+      DebugLogger.error(
+        'Bundle ID uyumsuzluğu olabilir! Xcode ve GoogleService-Info.plist kontrol edin.',
+        tag: 'MAIN',
+      );
+    }
+    
+    rethrow;
+  }
 }
 
 class SuTakipApp extends StatefulWidget {
-  final HiveService hiveService;
   final NotificationService notificationService;
-  final FirebaseMessagingService? firebaseMessagingService;
+  final CloudSyncService cloudSyncService;
+  final DeepLinkService deepLinkService;
 
   const SuTakipApp({
     super.key,
-    required this.hiveService,
     required this.notificationService,
-    this.firebaseMessagingService,
+    required this.cloudSyncService,
+    required this.deepLinkService,
   });
 
   @override
@@ -112,10 +184,53 @@ class SuTakipApp extends StatefulWidget {
 }
 
 class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
+  static final GlobalKey<NavigatorState> navigatorKey =
+      GlobalKey<NavigatorState>();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+
+    // Deep link callback'lerini ayarla
+    _setupDeepLinkCallbacks();
+  }
+
+  /// Deep link callback'lerini ayarla
+  void _setupDeepLinkCallbacks() {
+    widget.deepLinkService.onEmailVerificationSuccess = () {
+      DebugLogger.success(
+        'E-posta doğrulama başarılı - UI yönlendirme',
+        tag: 'MAIN',
+      );
+
+      // Ana thread'de navigation yap
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && navigatorKey.currentContext != null) {
+          Navigator.of(navigatorKey.currentContext!).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => const EmailVerificationSuccessScreen(),
+            ),
+            (route) => route.isFirst,
+          );
+        }
+      });
+    };
+
+    widget.deepLinkService.onEmailVerificationError = (error) {
+      DebugLogger.error('E-posta doğrulama hatası: $error', tag: 'MAIN');
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && navigatorKey.currentContext != null) {
+          ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(
+            SnackBar(
+              content: Text('❌ E-posta doğrulama hatası: $error'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      });
+    };
   }
 
   @override
@@ -128,67 +243,170 @@ class _SuTakipAppState extends State<SuTakipApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    // TODO: WaterProvider entegrasyonu tamamlandığında bu kısmı aktif et
-    /*
     if (state == AppLifecycleState.resumed) {
       // Uygulama ön plana geldiğinde günlük geçişi kontrol et
-      final waterProvider = context.read<WaterProvider>();
-      waterProvider.checkDayTransitionOnResume();
+      // Provider'ı güvenli şekilde alabilmek için try-catch kullan
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        try {
+          if (mounted && context.mounted) {
+            // Context'in hala geçerli olduğunu ve Provider'ın mevcut olduğunu kontrol et
+            final waterProvider = Provider.of<WaterProvider>(
+              context,
+              listen: false,
+            );
+            waterProvider.refreshData();
+            DebugLogger.info('WaterProvider başarıyla yenilendi', tag: 'MAIN');
+          }
+        } catch (e) {
+          // Provider henüz hazır değilse sessizce devam et
+          DebugLogger.info(
+            'WaterProvider henüz hazır değil, atlanıyor: $e',
+            tag: 'MAIN',
+          );
+        }
+      });
     }
-    */
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<HiveService>.value(value: widget.hiveService),
         Provider<NotificationService>.value(value: widget.notificationService),
+        Provider<CloudSyncService>.value(value: widget.cloudSyncService),
+        Provider<DeepLinkService>.value(value: widget.deepLinkService),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider(widget.hiveService)),
         ChangeNotifierProvider(
-          create: (_) => WaterProvider(widget.hiveService),
+          create: (_) => UserProvider(widget.cloudSyncService),
+        ),
+        ChangeNotifierProvider(create: (_) => StatisticsProvider()),
+        ChangeNotifierProxyProvider2<
+          UserProvider,
+          StatisticsProvider,
+          WaterProvider
+        >(
+          create: (context) => WaterProvider(widget.cloudSyncService),
+          update: (context, userProvider, statsProvider, waterProvider) {
+            // UserProvider'daki hedef değişikliğini WaterProvider'a aktar
+            waterProvider?.updateGoalFromUserProvider(
+              userProvider.dailyWaterGoal,
+            );
+
+            // Statistics update callback'ini ayarla
+            waterProvider?.setStatsUpdateCallback((amount, type, source) {
+              statsProvider.updateStatsOnWaterChange(
+                amount: amount,
+                type: type,
+                source: source,
+              );
+            });
+
+            // UserProvider'ı set et
+            waterProvider?.setUserProvider(userProvider);
+
+            // Context'i burada set etme - HomeScreen'de yapılacak
+
+            return waterProvider!;
+          },
         ),
         ChangeNotifierProvider(
           create: (_) => NotificationProvider(
-            widget.hiveService,
             widget.notificationService,
+            widget.cloudSyncService,
           ),
+        ),
+        ChangeNotifierProvider(create: (_) => BadgeProvider()),
+        ChangeNotifierProvider(create: (_) => OnboardingProvider()),
+        // LocalAvatarService provider'ı
+        Provider<LocalAvatarService>(create: (_) => LocalAvatarService()),
+        // ProfileProvider - diğer provider'ları kullanır
+        ChangeNotifierProxyProvider4<
+          UserProvider,
+          NotificationProvider,
+          BadgeProvider,
+          LocalAvatarService,
+          ProfileProvider
+        >(
+          create: (context) => ProfileProvider(
+            avatarService: context.read<LocalAvatarService>(),
+            userProvider: context.read<UserProvider>(),
+            notificationProvider: context.read<NotificationProvider>(),
+            badgeProvider: context.read<BadgeProvider>(),
+          ),
+          update: (context, userProvider, notificationProvider, badgeProvider, avatarService, profileProvider) {
+            return ProfileProvider(
+              avatarService: avatarService,
+              userProvider: userProvider,
+              notificationProvider: notificationProvider,
+              badgeProvider: badgeProvider,
+            );
+          },
         ),
       ],
-      child: MaterialApp(
-        title: AppStrings.appName,
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          primaryColor: AppColors.primary,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
-            brightness: Brightness.light,
-          ),
-          scaffoldBackgroundColor: AppColors.background,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.primary,
-            foregroundColor: AppColors.textWhite,
-            elevation: 0,
-          ),
-          elevatedButtonTheme: ElevatedButtonThemeData(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textWhite,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+      child: Consumer6<
+        AuthProvider,
+        UserProvider,
+        WaterProvider,
+        NotificationProvider,
+        StatisticsProvider,
+        BadgeProvider
+      >(
+        builder: (
+          context,
+          authProvider,
+          userProvider,
+          waterProvider,
+          notificationProvider,
+          statsProvider,
+          badgeProvider,
+          child,
+        ) {
+          // Badge provider'ı diğer provider'lara bağla
+          waterProvider.setBadgeProvider(badgeProvider);
+          authProvider.setBadgeProvider(badgeProvider);
+
+          // Çıkış yapıldığında diğer provider'ları temizle
+          authProvider.setSignOutCallback(() {
+            userProvider.clearUserData();
+            waterProvider.clearUserData();
+            statsProvider.clearUserData();
+            badgeProvider.reset();
+          });
+
+          return MaterialApp(
+            title: 'Su Takip',
+            theme: ThemeData(
+              primaryColor: const Color(0xFF2196F3), // AppTheme.primaryBlue
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF2196F3),
+                brightness: Brightness.light,
               ),
+              useMaterial3: true,
             ),
-          ),
-          fontFamily: 'Roboto',
-          useMaterial3: true,
-        ),
-        home: const SplashScreen(),
-        routes: {
-          '/home': (context) => const HomeScreen(),
-          '/auth': (context) => const AuthScreen(),
-          '/login': (context) => const LoginScreen(),
+            darkTheme: ThemeData(
+              primaryColor: const Color(0xFF64B5F6), // AppTheme.accentBlue
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF64B5F6),
+                brightness: Brightness.dark,
+              ),
+              useMaterial3: true,
+            ),
+            themeMode: ThemeMode.system, // Otomatik dark/light tema
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            navigatorKey: navigatorKey,
+            home: const SplashScreen(),
+            routes: {
+              '/login': (context) => const LoginScreen(),
+              '/home': (context) => const HomeScreen(),
+              '/onboarding': (context) => const OnboardingNavigator(), // Yeni onboarding sistemi
+              '/onboarding-old': (context) => const AnimatedOnboardingScreen(), // Eski sistem (backup)
+              '/profile-setup': (context) => const OnboardingNavigator(),
+              '/email-verification-success': (context) =>
+                  const EmailVerificationSuccessScreen(),
+            },
+            debugShowCheckedModeBanner: false,
+          );
         },
       ),
     );

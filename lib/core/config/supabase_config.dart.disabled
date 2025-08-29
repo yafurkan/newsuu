@@ -1,0 +1,40 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+class SupabaseConfig {
+  static const String supabaseUrl = 'https://agklmtctyhvogbrmsvty.supabase.co';
+  static const String supabaseAnonKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xtdGN0eWh2b2dicm1zdnR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQ5NDAzMDEsImV4cCI6MjA3MDUxNjMwMX0.irWsPYR6dje3FTrT1LkLzHUt64i4fsxRB2zD2t1FoCw';
+
+  // Service role key - bypass RLS for hybrid Firebase+Supabase
+  static const String supabaseServiceKey =
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFna2xtdGN0eWh2b2dicm1zdnR5Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NDk0MDMwMSwiZXhwIjoyMDcwNTE2MzAxfQ.KlJzI91MC3Il1g09ecsGuInuYHcUR8CWLQFXAQHz16Y';
+
+  static late SupabaseClient _client;
+  static late SupabaseClient _serviceClient;
+
+  static Future<void> initialize() async {
+    await Supabase.initialize(
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      debug: true, // Development için true
+    );
+
+    _client = Supabase.instance.client;
+
+    // Service client for data operations (bypass RLS)
+    _serviceClient = SupabaseClient(supabaseUrl, supabaseServiceKey);
+
+    print('🔧 SupabaseConfig initialized:');
+    print('   - URL: $supabaseUrl');
+    print(
+      '   - Service key (last 10 chars): ...${supabaseServiceKey.substring(supabaseServiceKey.length - 10)}',
+    );
+    print('   - Service client created: ${_serviceClient.toString()}');
+  }
+
+  // Public client (with RLS)
+  static SupabaseClient get client => _client;
+
+  // Service client (bypass RLS) - for data operations
+  static SupabaseClient get serviceClient => _serviceClient;
+}

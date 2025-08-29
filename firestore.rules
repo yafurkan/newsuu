@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read and write their own documents
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to subcollections under user document
+      match /{document=**} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Water intake data - allow users to access their own data
+    match /daily_water/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow access to daily subcollections
+      match /days/{dayId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+        
+        match /entries/{entryId} {
+          allow read, write: if request.auth != null && request.auth.uid == userId;
+        }
+      }
+    }
+    
+    // Statistics data
+    match /statistics/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      match /daily/{dayId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /weekly/{weekId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /monthly/{monthId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+      
+      match /performance/{perfId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+    
+    // Badges data
+    match /badges/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // User badges
+    match /user_badges/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Allow read access to system badges for all authenticated users
+    match /system_badges/{badgeId} {
+      allow read: if request.auth != null;
+    }
+  }
+}

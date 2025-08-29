@@ -1,0 +1,174 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'data/services/supabase_data_service.dart';
+import 'core/utils/debug_logger.dart';
+
+/// Test Supabase connection from Firebase Auth user
+class TestSupabaseConnection extends StatefulWidget {
+  const TestSupabaseConnection({super.key});
+
+  @override
+  State<TestSupabaseConnection> createState() => _TestSupabaseConnectionState();
+}
+
+class _TestSupabaseConnectionState extends State<TestSupabaseConnection> {
+  String _status = 'Ready to test...';
+  bool _isLoading = false;
+
+  Future<void> _runTests() async {
+    setState(() {
+      _isLoading = true;
+      _status = 'Starting tests...';
+    });
+
+    final service = SupabaseDataService.instance;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      setState(() {
+        _status = '❌ No Firebase user logged in';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      // Test 1: Connection
+      setState(() => _status = '1️⃣ Testing Supabase connection...');
+      final isConnected = await service.testConnection();
+      if (!isConnected) throw Exception('Connection failed');
+
+      // Test 2: User sync
+      setState(() => _status = '2️⃣ Syncing Firebase user to Supabase...');
+      await service.syncUser(
+        firebaseUid: user.uid,
+        email: user.email ?? 'test@example.com',
+        displayName: user.displayName ?? 'Test User',
+        photoUrl: user.photoURL,
+      );
+
+      // Test 3: Add water entry
+      setState(() => _status = '3️⃣ Adding test water entry...');
+      final entryId = await service.addWaterEntry(
+        amount: 250.0,
+        timestamp: DateTime.now(),
+        source: 'test',
+        note: 'Supabase test entry',
+      );
+
+      // Test 4: Get today's entries
+      setState(() => _status = '4️⃣ Getting today\'s water entries...');
+      final entries = await service.getTodayWaterEntries();
+
+      // Test 5: Update daily stats
+      setState(() => _status = '5️⃣ Updating daily stats...');
+      await service.updateDailyStats(
+        date: DateTime.now(),
+        totalAmount: 250.0,
+        entryCount: 1,
+        goalAmount: 2000.0,
+      );
+
+      // Success!
+      setState(() {
+        _status =
+            '''✅ All tests passed!
+
+🔗 Connection: OK
+👤 User sync: OK  
+💧 Water entry: $entryId
+📊 Today entries: ${entries.length}
+📈 Stats update: OK
+
+Firebase Auth + Supabase Data = 🚀''';
+        _isLoading = false;
+      });
+
+      DebugLogger.success(
+        'Supabase hybrid system test completed!',
+        tag: 'TEST',
+      );
+    } catch (e) {
+      setState(() {
+        _status = '❌ Test failed: $e';
+        _isLoading = false;
+      });
+      DebugLogger.error('Supabase test error: $e', tag: 'TEST');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Supabase Connection Test'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            const Text(
+              '🔥 Firebase Auth + 🐘 Supabase Data',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                  color: Colors.grey[50],
+                ),
+                child: SingleChildScrollView(
+                  child: Text(
+                    _status,
+                    style: const TextStyle(
+                      fontFamily: 'monospace',
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _runTests,
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(16),
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                ),
+                child: _isLoading
+                    ? const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text('Testing...'),
+                        ],
+                      )
+                    : const Text(
+                        'Run Supabase Tests',
+                        style: TextStyle(fontSize: 18),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

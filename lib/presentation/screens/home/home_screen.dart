@@ -14,6 +14,7 @@ import '../../widgets/today_intake_list.dart';
 import '../statistics/statistics_screen.dart';
 import '../notification_settings/notification_settings_screen.dart';
 import '../profile/profile_screen.dart';
+import '../badges/badges_screen.dart';
 
 /// Ana ekran - Dashboard
 class HomeScreen extends StatefulWidget {
@@ -192,9 +193,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: AppDimensions.paddingXXL),
 
-                // İstatistikler butonu
-                SizedBox(
-                      width: double.infinity,
+                // Butonlar
+                Row(
+                  children: [
+                    // İstatistikler butonu
+                    Expanded(
                       child: ElevatedButton.icon(
                         onPressed: () {
                           Navigator.of(context).push(
@@ -207,7 +210,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: const Text(
                           AppStrings.statistics,
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -224,13 +227,50 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ),
-                    )
-                    .animate()
-                    .fadeIn(
-                      delay: const Duration(milliseconds: 1400),
-                      duration: const Duration(milliseconds: 600),
-                    )
-                    .slideY(begin: 0.3, end: 0),
+                    ),
+                    
+                    const SizedBox(width: AppDimensions.paddingM),
+                    
+                    // Rozetler butonu
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => const BadgesScreen(),
+                            ),
+                          );
+                        },
+                        icon: const Icon(Icons.emoji_events),
+                        label: const Text(
+                          'Rozetler',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.success,
+                          foregroundColor: AppColors.textWhite,
+                          padding: const EdgeInsets.symmetric(
+                            vertical: AppDimensions.paddingM,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppDimensions.radiusM,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+                .animate()
+                .fadeIn(
+                  delay: const Duration(milliseconds: 1400),
+                  duration: const Duration(milliseconds: 600),
+                )
+                .slideY(begin: 0.3, end: 0),
               ],
             ),
           );
